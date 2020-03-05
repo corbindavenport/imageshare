@@ -4,8 +4,19 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>ImageShare</title>
+    <meta name="robots" content="noindex">
     <meta name="viewport" content="initial-scale=1">
     <link rel="stylesheet" type="text/css" href="styles.css">
+    <link href="favicon.ico" rel="icon" type="image/x-icon">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-59452245-7"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-59452245-7');
+    </script>
 </head>
 
 <body>
