@@ -7,3 +7,24 @@ Images uploaded using ImageShare are subject to Imgbb's [Terms of Service](https
 
 **Officially supported devices:**
  * Nintendo 3DS/2DS
+
+## Development information
+
+ImageShare is built to run on [Heroku](https://heroku.com). You can deploy it to your own Heroku account [here](https://heroku.com/deploy?template=https://github.com/corbindavenport/image-share), or you can use the [Heroku CLI](https://toolbelt.heroku.com/):
+
+```
+git clone git@github.com:corbindavenport/image-share.git
+cd image-share
+heroku login
+heroku create
+git push heroku master
+heroku open
+```
+
+ImageShare also requires an API key from [Imgbb.com](http://imgbb.com). Once you create an account and obtain a key, save it to your Heroku's configuration:
+
+```
+heroku config:set API_KEY=thekeygoeshere
+```
+
+If you don't want to use Heroku, hosting the `web` directory on any PHP-compatible web server should still work Just replace all instances of `getenv('API_KEY')` in ImageShare's code with the API key.

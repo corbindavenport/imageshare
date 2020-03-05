@@ -2,5 +2,11 @@
     "name": "ImageShare",
     "description": "Image sharing tool for game consoles and other devices with low-end browsers ",
     "repository": "https://github.com/corbindavenport/image-share",
-    "addons": []
+    "addons": [],
+    "env": {
+        "API_KEY": {
+            "description": "API key from Imgbb, used for uploading images. Get a key here: https://api.imgbb.com/",
+            "value": ""
+        }
+    }
 }
