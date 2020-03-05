@@ -47,7 +47,7 @@
       $imgurl = $pms['data']['url'];
       $img = '
         <div class="result" align="center">
-          <img src="http://chart.googleapis.com/chart?chs=300x300&cht=qr&chld=L|0&chl='.$imgurl.'">
+          <img src="//chart.googleapis.com/chart?chs=300x300&cht=qr&chld=L|0&chl='.$imgurl.'">
           <p>Scan this code with a QR code reader on another device. The camera apps on some iOS and Android devices can scan QR codes.</p>
         </div>';
       echo $img;
