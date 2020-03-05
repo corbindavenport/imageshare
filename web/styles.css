@@ -1,0 +1,97 @@
+body {
+	margin: 0;
+	padding: 0;
+	background-color: #FAFAFA;
+	color: #424242;
+	font-family: 'Arial', sans-serif;
+	font-size: 18px;
+	line-height: 20px;
+}
+
+input {
+    display: block;
+    width: 100%;
+    margin: 10px 0;
+    font-family: 'Arial', sans-serif;
+	font-size: 18px;
+	line-height: 20px;
+}
+
+input:first-of-type {
+    margin-top: 0;
+}
+
+.upload-form, .result {
+    margin: 20px auto;
+    padding: 10px;
+    max-width: 600px;
+    border: 1px solid #424242;
+    border-radius: 5px;
+}
+
+.result img {
+    max-width: 100%;
+}
+
+@media screen and (max-width: 750px) {
+
+    .upload-form, .result {
+        margin: 0 auto;
+        padding: 10px;
+        border: 0;
+    }
+
+}
+
+@media screen and (max-width: 750px) {
+
+    body {
+        font-size: 16px;
+    }
+
+}
+
+/* Nintendo 3DS Browser */
+
+@media screen and (max-width: 320px) and (max-height: 240px) {
+
+    /* Use both screens */
+
+    body {
+        height: 400px;
+        max-height: 400px;
+        background: #FFF;
+        overflow: hidden;
+    }
+
+    /* Show QR code on top screen and upload form on bottom screen */
+
+    .upload-form, .result {
+        margin: 0;
+        position: absolute;
+        left: 0;
+        right: 0;
+        overflow: hidden;
+    }
+
+    .result {
+        top: 0;
+        height: 200px;
+        padding: 0px;
+    }
+
+    .result p {
+        display: none;
+    }
+
+    .result img {
+        max-width: 100%;
+        max-height: 100%;
+    }
+
+    .upload-form {
+        top: 200px;
+        height: 200px;
+    }
+
+}
