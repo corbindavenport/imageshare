@@ -10,7 +10,7 @@
 
 <body>
     <div class="upload-form">
-        <p>This tool allows easy transfer of images to another device using QR codes. It uses the <a href="http://imgbb.com" target="_blank">Imgbb API</a>, and images are automatically deleted after five minutes.</p>
+        <p>ImageShare allows easy transfer of images to another device using QR codes. See <a href="//imgshare.corbin.io/" target="_blank">imgshare.corbin.io</a> for more information.</p>
         <form action="index.php" enctype="multipart/form-data" method="POST">
             <input name="img" size="35" type="file" />
             <input name="submit" type="submit" value="Upload" />
