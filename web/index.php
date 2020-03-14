@@ -9,7 +9,7 @@
     <link rel="stylesheet" type="text/css" href="styles.css">
     <link href="favicon.ico" rel="icon" type="image/x-icon">
     <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-59452245-7"></script>
+    <script async src="//www.googletagmanager.com/gtag/js?id=UA-59452245-7"></script>
     <script>
     window.dataLayer = window.dataLayer || [];
 
