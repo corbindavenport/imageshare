@@ -32,7 +32,7 @@
             <div class="panel-title">Upload image</div>
             <div class="body">
                 <form action="index.php" id="upload-form" enctype="multipart/form-data" method="POST">
-                    <p>ImageShare allows easy transfer of images using QR codes. See <a href="//imgshare.corbin.io/" target="_blank">imgshare.corbin.io</a> for more information.</p>
+                    <p>ImageShare allows easy transfer of images using QR codes. See <a href="//imgshare.corbin.io/" target="_blank">imgshare.corbin.io</a> for more information. Bookmark this page for easy access!</p>
                     <p><input name="img" id="img-btn" type="file" /></p>
                     <p><input name="submit" type="submit" value="Upload" /></p>
                 </form>
