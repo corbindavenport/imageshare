@@ -1,52 +1,111 @@
+body, html {
+	border: 0px !important;
+}
+
 body {
+	background: #ffffff;
+	font-family: "Lato","Helvetica Neue",Helvetica,Arial,sans-serif;
 	margin: 0;
 	padding: 0;
-	background-color: #FAFAFA;
-	color: #424242;
-	font-family: 'Arial', sans-serif;
-	font-size: 18px;
-	line-height: 20px;
+	font-size: 15px;
+	color: #2c3e50;
+	text-align: center;
 }
 
-input {
-    display: block;
-    width: 100%;
-    margin: 10px 0;
-    font-family: 'Arial', sans-serif;
-	font-size: 18px;
-	line-height: 20px;
+a {
+	text-decoration: none;
 }
 
-input:first-of-type {
+a:hover {
+	text-decoration: underline;
+}
+
+.button {
+	color: #ffffff;
+	background-color: #95a5a6;
+	border-color: #95a5a6;
+	border-width: 2px;
+	line-height: 38px;
+	padding: 0px 15px;
+	text-align: center;
+	border-radius: 4px;
+	behavior: url(css/PIE.htc);
+	display: inline-block;
+}
+
+.button:hover {
+	color: #ffffff;
+	background-color: #798d8f;
+	text-decoration: none !important;
+}
+
+.share-button {
+	width: 100%;
+	padding: 0 !important;
+}
+
+.header {
+	background: #18bc9c;
+	color: #FFFFFF;
+	font-size: 19px;
+	line-height: 60px;
+	padding-left: 15px;
+	text-align: left;
+}
+
+.container {
+	max-width: 800px;
+	padding: 15px;
+	display: inline-block;
+	text-align: left !important;
+}
+
+.panel {
+	background-color: #ffffff;
+	border: 1px solid #ecf0f1;
+	border-radius: 4px;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	margin-top: 15px;
+	behavior: url(css/PIE.htc);
+}
+
+.panel:first-of-type {
     margin-top: 0;
 }
 
-.upload-form, .result {
-    margin: 20px auto;
-    padding: 10px;
-    max-width: 600px;
-    border: 1px solid #424242;
-    border-radius: 5px;
+.panel .panel-title {
+	background-color: #ecf0f1;
+	padding: 10px 15px;
 }
 
-.result img {
+.panel .title {
+	font-size: 36px;
+	margin-bottom: 0px;
+	margin-top: 15px;
+}
+
+.panel .body {
+	padding-left: 15px;
+	padding-right: 15px;
+}
+
+input {
+    width: 100%;
+    display: block;
+}
+
+.qr-panel img {
+    margin: 10px;
     max-width: 100%;
 }
 
 @media screen and (max-width: 750px) {
 
-    .upload-form, .result {
-        margin: 0 auto;
-        padding: 10px;
-        border: 0;
-    }
-
-}
-
-@media screen and (max-width: 750px) {
-
-    body {
-        font-size: 16px;
+    .header {
+        line-height: 40px;
     }
 
 }
@@ -55,8 +114,6 @@ input:first-of-type {
 
 @media screen and (max-width: 320px) and (max-height: 240px) {
 
-    /* Use both screens */
-
     body {
         height: 400px;
         max-height: 400px;
@@ -64,34 +121,41 @@ input:first-of-type {
         overflow: hidden;
     }
 
-    /* Show QR code on top screen and upload form on bottom screen */
+    .header {
+        display: none;
+    }
 
-    .upload-form, .result {
-        margin: 0;
+    .panel {
+        border: 0;
+    }
+
+    .upload-panel, .qr-panel {
         position: absolute;
         left: 0;
         right: 0;
         overflow: hidden;
+        height: 200px;
     }
 
-    .result {
+    .upload-panel {
+        top: 190px;
+        bottom: 0;
+    }
+
+    .qr-panel {
+        border: 0;
         top: 0;
-        height: 200px;
-        padding: 0px;
+        height: 190px;
+        margin-top: 0;
     }
 
-    .result p {
-        display: none;
+    .qr-panel body {
+        padding: 5px;
     }
 
-    .result img {
-        max-width: 100%;
-        max-height: 100%;
-    }
-
-    .upload-form {
-        top: 200px;
-        height: 200px;
+    .qr-panel img {
+        height: 180px;
+        margin: 0;
     }
 
 }
