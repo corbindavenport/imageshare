@@ -29,8 +29,9 @@
         <?php
         if(isset($_POST['submit'])){
 
-          // Set software string
-          $software = '';
+          // Set initial info
+          $software = 'ImgShare Upload';
+          $description = 'Uploaded with ImgShare: imgshare.corbin.io';
           
           // Convert image to base64
           $img = $_FILES['img'];
@@ -44,30 +45,53 @@
           if (is_array($exif)) {
             // Read software string in 3DS screenshots
             if ($exif['Model'] === 'Nintendo 3DS') {
-              $software = $exif['Software'];
+              // Match ID with game title if possible
+              $id = strtoupper($exif['Software']);
+              $xml=simplexml_load_file('3dsreleases.xml');
+              foreach($xml->children() as $game) {
+                if ($game->titleid == '000400000'.$id.'00') {
+                  // Update software name
+                  $software = $game->name;
+                  break;
+                }
+              }
             }
           }
 
-          // Set post fields
-          $post = [
-            'key' => getenv('API_KEY'),
-            'image' => $base64,
-          ];
-          $ch = curl_init('https://api.imgbb.com/1/upload');
-          curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-          curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
+          // Upload image
+          $curl = curl_init();
+          $client = getenv('API_KEY');
+          curl_setopt_array($curl, array(
+            CURLOPT_URL => 'https://api.imgur.com/3/image',
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => array(
+              'image' => $base64,
+              'title' => $software,
+              'description' => $description
+            ),
+            CURLOPT_HTTPHEADER => array(
+              'Authorization: Client-ID '.$client
+            ),
+          ));
 
           // Upload image
-          $output = curl_exec($ch);
-          curl_close($ch);
+          $output = curl_exec($curl);
+          curl_close($curl);
 
           // Print QR code
           $pms = json_decode($output,true);
-          $imgurl = $pms['data']['url'];
+
+          $id = $pms['data']['id'];
           $img = '
             <div class="panel qr-panel">
               <div class="body" align="center">
-                <img title="'.$software.'" src="//chart.googleapis.com/chart?chs=300x300&cht=qr&chld=L|0&chl='.$imgurl.'">
+                <img title="https://imgur.com/'.$id.'" src="//chart.googleapis.com/chart?chs=300x300&cht=qr&chld=L|0&chl=https://imgur.com/'.$id.'">
               </div>
             </div>';
           echo $img;
