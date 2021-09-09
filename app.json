@@ -5,7 +5,7 @@
     "addons": [],
     "env": {
         "API_KEY": {
-            "description": "API key from Imgbb, used for uploading images. Get a key here: https://api.imgbb.com/",
+            "description": "API key from Imgur, used for uploading images. Get a key here: https://api.imgur.com/oauth2/addclient",
             "value": ""
         }
     }

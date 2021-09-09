@@ -3,9 +3,9 @@ ImageShare is a web-based image sharing tool. It's intended to be used with game
 
 **Live demo: [https://imgsharetool.herokuapp.com](https://imgsharetool.herokuapp.com)** (remove the HTTPS if you get SSL errors)
 
-ImageShare uploads photos to [Imgbb.com](http://imgbb.com) and presents the URL as a QR code. This allows the image to be easily transfered to any device with the ability to scan QR codes. The camera apps on most iOS and Android devices can read QR codes, so you might not even need to install a separate app.
+ImageShare uploads photos to [Imgur](https://imgur.com) and presents the URL as a QR code. This allows the image to be easily transfered to any device with the ability to scan QR codes. The camera apps on most iOS and Android devices can read QR codes, so you might not even need to install a separate app. When you upload a 3DS screenshot, the game name is automatically added to the Imgur post.
 
-Images uploaded using ImageShare are subject to Imgbb's [Terms of Service](https://imgbb.com/tos) and [Privacy Policy](https://imgbb.com/privacy), and are deleted automatically after five minutes.
+Images uploaded using ImageShare are subject to Imgur's [Terms of Service](https://imgur.com/tos) and [Privacy Policy](https://imgur.com/privacy).
 
 **Officially supported devices:**
  * Nintendo 3DS/2DS
@@ -23,7 +23,7 @@ git push heroku master
 heroku open
 ```
 
-ImageShare also requires an API key from [Imgbb.com](http://imgbb.com). Once you create an account and obtain a key, save it to your Heroku's configuration:
+ImageShare also requires an [Imgur API key](https://api.imgur.com/oauth2/addclient). Once you create an account and obtain a key, save it to your Heroku's configuration:
 
 ```
 heroku config:set API_KEY=thekeygoeshere
