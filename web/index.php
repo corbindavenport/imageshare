@@ -100,12 +100,12 @@
     ?>
     </div>
 
-    <!-- Plausible Analytics -->
-    <script defer data-domain="imgsharetool.herokuapp.com" src="https://plausible.io/js/plausible.compat.js"></script>
-
     <script>
     // Scroll to bottom of page (for dual-screen devices)
     window.scrollTo(0, document.body.scrollHeight);
     </script>
+
+    <!-- Plausible Analytics -->
+    <script id="plausible" defer data-domain="imgsharetool.herokuapp.com.com" src="https://plausible.io/js/plausible.compat.js"></script>
 
 </body>
