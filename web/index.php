@@ -106,6 +106,6 @@
     </script>
 
     <!-- Plausible Analytics -->
-    <script id="plausible" defer data-domain="imgsharetool.herokuapp.com.com" src="https://plausible.io/js/plausible.compat.js"></script>
+    <script id="plausible" defer data-domain="imgsharetool.herokuapp.com" src="https://plausible.io/js/plausible.compat.js"></script>
 
 </body>
