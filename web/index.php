@@ -100,8 +100,8 @@
     ?>
     </div>
 
-    <!-- Tracking pixel for Google Analytics -->
-    <img style="display: none" src="https://www.google-analytics.com/collect?v=1&t=pageview&tid=UA-59452245-7&cid=1&dp=ImageShare" />
+    <!-- Plausible Analytics -->
+    <script defer data-domain="imgsharetool.herokuapp.com" src="https://plausible.io/js/plausible.compat.js"></script>
 
     <script>
     // Scroll to bottom of page (for dual-screen devices)
