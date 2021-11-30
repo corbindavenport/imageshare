@@ -1,6 +1,6 @@
 {
     "name": "ImageShare",
-    "description": "Image sharing tool for game consoles and other devices with low-end browsers ",
+    "description": "Web app for uploading images from game consoles and other devices with low-end browsers.",
     "repository": "https://github.com/corbindavenport/image-share",
     "addons": [],
     "env": {
