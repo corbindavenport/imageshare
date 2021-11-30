@@ -127,10 +127,6 @@
     <script>
     // Scroll to bottom of page on page load (for dual-screen devices)
     window.scrollTo(0, document.body.scrollHeight);
-    // Show warning for people that have the Heroku URL bookmarked
-    if (window.location.href.indexOf('herokuapp.com') != -1) {
-      alert('ImageShare is now located at http://imgshare.corbin.io.\n\nPlease update your bookmarks so you do not lose access in the future!')
-    }
     </script>
 
 </body>
