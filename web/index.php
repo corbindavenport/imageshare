@@ -8,6 +8,30 @@
     <meta name="viewport" content="initial-scale=1">
     <link rel="stylesheet" type="text/css" href="styles.css">
     <link href="favicon.ico" rel="icon" type="image/x-icon">
+    <!-- Use PHP for sending Plausible analytics data -->
+    <?php
+     $data = array(
+         'name' => 'pageview',
+         'url' => 'https://imgsharetool.herokuapp.com/',
+         'domain' => 'imgsharetool.herokuapp.com',
+     );
+     $post_data = json_encode($data);
+     // Prepare new cURL resource
+     $crl = curl_init('https://plausible.io/api/event');
+     curl_setopt($crl, CURLOPT_RETURNTRANSFER, true);
+     curl_setopt($crl, CURLINFO_HEADER_OUT, true);
+     curl_setopt($crl, CURLOPT_POST, true);
+     curl_setopt($crl, CURLOPT_POSTFIELDS, $post_data);
+     // Set HTTP Header for POST request 
+     curl_setopt($crl, CURLOPT_HTTPHEADER, array(
+        'User-Agent: ' . $_SERVER['HTTP_USER_AGENT'],
+        'X-Forwarded-For: 127.0.0.1',
+        'Content-Type: application/json')
+     );
+     // Submit the POST request
+     $result = curl_exec($crl);
+     curl_close($crl);
+   ?>
 </head>
 
 <body>
@@ -104,8 +128,5 @@
     // Scroll to bottom of page (for dual-screen devices)
     window.scrollTo(0, document.body.scrollHeight);
     </script>
-
-    <!-- Plausible Analytics -->
-    <script id="plausible" defer data-domain="imgsharetool.herokuapp.com" src="https://plausible.io/js/plausible.compat.js"></script>
 
 </body>
