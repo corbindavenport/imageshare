@@ -55,7 +55,7 @@
 
           // Set initial info
           $software = 'ImgShare Upload';
-          $description = 'Uploaded with ImgShare: imgshare.corbin.io';
+          $description = 'Uploaded with ImageShare - imgshare.corbin.io';
           
           // Convert image to base64
           $img = $_FILES['img'];
@@ -127,6 +127,10 @@
     <script>
     // Scroll to bottom of page on page load (for dual-screen devices)
     window.scrollTo(0, document.body.scrollHeight);
+    // Show warning for people that have the Heroku URL bookmarked
+    if (window.location.href.indexOf('herokuapp.com') != -1) {
+      alert('ImageShare is now located at http://imgshare.corbin.io.\n\nPlease update your bookmarks so you do not lose access in the future!')
+    }
     </script>
 
 </body>
