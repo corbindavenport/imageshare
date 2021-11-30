@@ -1,14 +1,17 @@
 # ImageShare
-ImageShare is a web-based image sharing tool. It's intended to be used with game consoles like the Nintendo 3DS, but it should work on anything with a semi-modern web browser (JavaScript support is not required).
-
-**Live demo: [https://imgsharetool.herokuapp.com](https://imgsharetool.herokuapp.com)** (remove the HTTPS if you get SSL errors)
+ImageShare is a lightweight web app for uploading images. It's primarily designed as a replacement for the [Nintendo 3DS Image Share Service](https://www.nintendo.co.za/Hardware/Nintendo-3DS-Family/Download-Content/Nintendo-3DS-Image-Share-service/Nintendo-3DS-Image-Share-service-765563.html), accessible through the Nintendo 3DS Browser, but it also works on nearly every other web browser.
 
 ImageShare uploads photos to [Imgur](https://imgur.com) and presents the URL as a QR code. This allows the image to be easily transfered to any device with the ability to scan QR codes. The camera apps on most iOS and Android devices can read QR codes, so you might not even need to install a separate app. When you upload a 3DS screenshot, the game name is automatically added to the Imgur post.
 
 Images uploaded using ImageShare are subject to Imgur's [Terms of Service](https://imgur.com/tos) and [Privacy Policy](https://imgur.com/privacy).
 
-**Officially supported devices:**
- * Nintendo 3DS/2DS
+## How to use ImageShare
+
+To use ImageShare, just open [imgshare.corbin.io](http://imgshare.corbin.io) in your browser. If your device can scan QR codes (press L + R buttons on 3DS home screen), scan the below code to jump straight to ImageShare:
+
+![QR code for imgshare.corbin.io](https://i.imgur.com/VqpR6Ws.png)
+
+Once you have ImageShare open, bookmark it (tap the star button on the 3DS) for easy access later.
 
 ## Development information
 
@@ -29,4 +32,4 @@ ImageShare also requires an [Imgur API key](https://api.imgur.com/oauth2/addclie
 heroku config:set API_KEY=thekeygoeshere
 ```
 
-If you don't want to use Heroku, hosting the `web` directory on any PHP-compatible web server should still work Just replace all instances of `getenv('API_KEY')` in ImageShare's code with the API key.
+If you don't want to use Heroku, hosting the `web` directory on any PHP-compatible web server with `ext-exif` installed should work. Just replace all instances of `getenv('API_KEY')` in ImageShare's code with the API key.
