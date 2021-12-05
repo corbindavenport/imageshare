@@ -13,7 +13,7 @@ Images uploaded using ImageShare are subject to Imgur's [Terms of Service](https
 
 ## How to use ImageShare
 
-Just open [imgsharetool.herokuapp.com](https://imgsharetool.herokuapp.com/) in your browser to access ImageShare. If your device can scan QR codes (press L + R buttons on 3DS home screen), scan the below code to jump straight to ImageShare:
+Just open [imgsharetool.herokuapp.com](https://imgsharetool.herokuapp.com/) in your browser to access ImageShare. If your device can scan QR codes with a camera (press L + R buttons on 3DS home screen), scan the below code to open ImageShare.
 
 <div align="center"><img src="https://i.imgur.com/SvoNgrU.png" /></div>
 
