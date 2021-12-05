@@ -1,17 +1,23 @@
 # ImageShare
-ImageShare is a lightweight web app for uploading images. It's primarily designed as a replacement for the [Nintendo 3DS Image Share Service](https://www.nintendo.co.za/Hardware/Nintendo-3DS-Family/Download-Content/Nintendo-3DS-Image-Share-service/Nintendo-3DS-Image-Share-service-765563.html), accessible through the Nintendo 3DS Browser, but it also works on many other basic/legacy web browsers.
+ImageShare is a lightweight web app for uploading images. It's primarily designed as a replacement for the [Nintendo 3DS Image Share Service](https://www.nintendo.co.za/Hardware/Nintendo-3DS-Family/Download-Content/Nintendo-3DS-Image-Share-service/Nintendo-3DS-Image-Share-service-765563.html), accessible through the Nintendo 3DS/2DS Browser, but it also works on many other basic/legacy web browsers. When you select an image with ImageShare, it is uploaded to [Imgur](https://imgur.com) and presented as a QR code to scan with another device.
 
-ImageShare uploads photos to [Imgur](https://imgur.com) and presents the URL as a QR code. This allows the image to be easily transfered to any device with the ability to scan QR codes. The camera apps on most iOS and Android devices can read QR codes. When you upload a 3DS screenshot, the game name is automatically added to the Imgur post ([example](https://imgur.com/vGAbQzt)).
+**Features:**
+- Does not require logins or accounts
+- Works on both HTTPS and HTTP connections, for browsers with outdated SSL certificates
+- Does not require JavaScript support in web browser
+- Fully open-source and can self-hostable using [Heroku](https://heroku.com)
+- **New 3DS only:** Dual screen support
+- **3DS/New 3DS only:** Game screenshots are uploaded with the game title as the Imgur post title, using database from [3dsdb.com](http://3dsdb.com/)
 
 Images uploaded using ImageShare are subject to Imgur's [Terms of Service](https://imgur.com/tos) and [Privacy Policy](https://imgur.com/privacy).
 
 ## How to use ImageShare
 
-To use ImageShare, just open [imgsharetool.herokuapp.com](https://imgsharetool.herokuapp.com/) in your browser. If your device can scan QR codes (press L + R buttons on 3DS home screen), scan the below code to jump straight to ImageShare:
+Just open [imgsharetool.herokuapp.com](https://imgsharetool.herokuapp.com/) in your browser to access ImageShare. If your device can scan QR codes (press L + R buttons on 3DS home screen), scan the below code to jump straight to ImageShare:
 
-![QR code for imgshare.corbin.io](https://i.imgur.com/SvoNgrU.png)
+<div align="center"><img src="https://i.imgur.com/SvoNgrU.png" /></div>
 
-Once you have ImageShare open, bookmark it (tap the star button on the 3DS) for easy access later. If you have issues loading ImageShare, try loading `http://imgsharetool.herokuapp.com` instead of `https://imgsharetool.herokuapp.com`.
+Once you have ImageShare open, bookmark it (tap the star button on the 3DS) for easy access later. If you have issues loading ImageShare on your device, try loading `http://imgsharetool.herokuapp.com` instead of `https://imgsharetool.herokuapp.com`.
 
 ## Development information
 
