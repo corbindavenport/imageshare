@@ -17,7 +17,7 @@
      );
      $post_data = json_encode($data);
      // Prepare new cURL resource
-     $crl = curl_init('https://plausible.io/api/event');
+     $crl = curl_init('httpps://plausible.io/api/event');
      curl_setopt($crl, CURLOPT_RETURNTRANSFER, true);
      curl_setopt($crl, CURLINFO_HEADER_OUT, true);
      curl_setopt($crl, CURLOPT_POST, true);
@@ -102,16 +102,21 @@
           $pms = json_decode($output,true);
 
           $id = $pms['data']['id'];
+          $delete_hash = $pms['data']['deletehash'];
           $img = '
             <div class="panel qr-panel">
               <div class="panel-title">'.$software.'</div>
               <div class="body">
                 <center>
                   <img title="https://imgur.com/'.$id.'" src="//chart.googleapis.com/chart?chs=300x300&cht=qr&chld=L|0&chl=https://imgur.com/'.$id.'">
+                  <p>
+                    <a href="https://imgur.com/'.$id.'" target="_blank">Open in new window</a>
+                  </p>
                 </center>
-                <p>
-                  <a href="https://imgur.com/'.$id.'" target="_blank">Open in new window</a>
-                </p>
+                <form action="delete.php" id="upload-form" enctype="multipart/form-data" method="POST">
+                  <p><input name="submit" type="submit" value="Delete image" /></p>
+                  <input type="hidden" name="id" value="'.$delete_hash.'" />
+                </form>
               </div>
             </div>';
           echo $img;
@@ -130,6 +135,7 @@
         </div>
     </div>
         
-</div>
+  </div>
 
 </body>
+</html>
