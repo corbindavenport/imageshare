@@ -9,7 +9,6 @@ ImageShare is a lightweight web app for uploading images. It's primarily designe
 - Works on both HTTPS and HTTP connections, for browsers with outdated SSL certificates
 - Does not require JavaScript support in web browser
 - Fully open-source and can self-hostable using [Heroku](https://heroku.com)
-- **New 3DS only:** Dual screen support
 - **3DS/New 3DS only:** Automatic game title detection, using database from [3dsdb.com](http://3dsdb.com/) ([example](https://imgur.com/w6aZ3cb))
 
 Images uploaded using ImageShare are subject to Imgur's [Terms of Service](https://imgur.com/tos) and [Privacy Policy](https://imgur.com/privacy).

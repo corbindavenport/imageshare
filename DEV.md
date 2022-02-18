@@ -29,3 +29,11 @@ cd web
 export API_KEY="api_key_from_imgur_goes_here"
 php -S localhost:8080
 ```
+
+To test on another device with the server running, like a 3DS, you'll need to replace the host with your local IP address, like this:
+
+```
+php -S 192.168.68.65:8080
+```
+
+Then enter `http://192.168.65:8080` on the other web browser.

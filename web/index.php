@@ -40,16 +40,6 @@
 
     <div class="container">
 
-        <div class="panel upload-panel">
-            <div class="panel-title">Upload image</div>
-            <div class="body">
-                <form action="index.php" id="upload-form" enctype="multipart/form-data" method="POST">
-                    <p><input name="img" id="img-btn" type="file" /></p>
-                    <p><input name="submit" type="submit" value="Upload" /></p>
-                    <p>ImageShare allows easy transfer of images using QR codes. See <a href="https://github.com/corbindavenport/image-share" target="_blank">github.com/corbindavenport/image-share</a> for more information.</p>
-                </form>
-            </div>
-        </div>
         <?php
         if(isset($_POST['submit'])){
 
@@ -114,19 +104,32 @@
           $id = $pms['data']['id'];
           $img = '
             <div class="panel qr-panel">
-              <div class="body" align="center">
-                <img title="https://imgur.com/'.$id.'" src="//chart.googleapis.com/chart?chs=300x300&cht=qr&chld=L|0&chl=https://imgur.com/'.$id.'">
+              <div class="panel-title">'.$software.'</div>
+              <div class="body">
+                <center>
+                  <img title="https://imgur.com/'.$id.'" src="//chart.googleapis.com/chart?chs=300x300&cht=qr&chld=L|0&chl=https://imgur.com/'.$id.'">
+                </center>
+                <p>
+                  <a href="https://imgur.com/'.$id.'" target="_blank">Open in new window</a>
+                </p>
               </div>
             </div>';
           echo $img;
           
         }
-    ?>
-    </div>
+  ?>
 
-    <script>
-    // Scroll to bottom of page on page load (for dual-screen devices)
-    window.scrollTo(0, document.body.scrollHeight);
-    </script>
+  <div class="panel upload-panel">
+        <div class="panel-title">Upload Image</div>
+        <div class="body">
+            <form action="index.php" id="upload-form" enctype="multipart/form-data" method="POST">
+                <p><input name="img" id="img-btn" type="file" /></p>
+                <p><input name="submit" type="submit" value="Upload" /></p>
+                <p>ImageShare allows easy transfer of images using QR codes. See <a href="https://github.com/corbindavenport/image-share" target="_blank">github.com/corbindavenport/image-share</a> for more information.</p>
+            </form>
+        </div>
+    </div>
+        
+</div>
 
 </body>
