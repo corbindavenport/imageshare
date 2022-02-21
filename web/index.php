@@ -108,10 +108,9 @@
               <div class="panel-title">'.$software.'</div>
               <div class="body">
                 <center>
-                  <img title="https://imgur.com/'.$id.'" src="//chart.googleapis.com/chart?chs=300x300&cht=qr&chld=L|0&chl=https://imgur.com/'.$id.'">
-                  <p>
-                    <a href="https://imgur.com/'.$id.'" target="_blank">Open in new window</a>
-                  </p>
+                  <a href="https://imgur.com/'.$id.'" target="_blank">
+                    <img alt="QR code (click to open page in new window)" src="//chart.googleapis.com/chart?chs=300x300&cht=qr&chld=L|0&chl=https://imgur.com/'.$id.'">
+                  </a>
                 </center>
                 <form action="delete.php" id="upload-form" enctype="multipart/form-data" method="POST">
                   <p><input name="submit" type="submit" value="Delete image" /></p>
@@ -130,7 +129,7 @@
             <form action="index.php" id="upload-form" enctype="multipart/form-data" method="POST">
                 <p><input name="img" id="img-btn" type="file" /></p>
                 <p><input name="submit" type="submit" value="Upload" /></p>
-                <p>ImageShare allows easy transfer of images using QR codes. See <a href="https://github.com/corbindavenport/image-share" target="_blank">github.com/corbindavenport/image-share</a> for more information.</p>
+                <p>ImageShare is a lightweight web app for uploading and sharing images using QR codes. See <a href="https://imgshare.corbin.io/" target="_blank">imgshare.corbin.io</a> for more information.</p>
             </form>
         </div>
     </div>
