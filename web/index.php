@@ -5,33 +5,42 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>ImageShare</title>
     <meta name="robots" content="noindex">
-    <meta name="viewport" content="initial-scale=1">
     <link rel="stylesheet" type="text/css" href="styles.css">
     <link href="favicon.ico" rel="icon" type="image/x-icon">
-    <!-- Use PHP for sending Plausible analytics data -->
     <?php
-     $data = array(
-         'name' => 'pageview',
-         'url' => 'https://imgsharetool.herokuapp.com/',
-         'domain' => 'imgsharetool.herokuapp.com',
-     );
-     $post_data = json_encode($data);
-     // Prepare new cURL resource
-     $crl = curl_init('httpps://plausible.io/api/event');
-     curl_setopt($crl, CURLOPT_RETURNTRANSFER, true);
-     curl_setopt($crl, CURLINFO_HEADER_OUT, true);
-     curl_setopt($crl, CURLOPT_POST, true);
-     curl_setopt($crl, CURLOPT_POSTFIELDS, $post_data);
-     // Set HTTP Header for POST request 
-     curl_setopt($crl, CURLOPT_HTTPHEADER, array(
-        'User-Agent: ' . $_SERVER['HTTP_USER_AGENT'],
-        'X-Forwarded-For: 127.0.0.1',
-        'Content-Type: application/json')
-     );
-     // Submit the POST request
-     $result = curl_exec($crl);
-     curl_close($crl);
-   ?>
+    // Viewport size
+    $is3DS = strpos($_SERVER['HTTP_USER_AGENT'], 'Nintendo 3DS');
+    $isNew3DS = strpos($_SERVER['HTTP_USER_AGENT'], 'New Nintendo 3DS');
+    if ($is3DS && !($isNew3DS)) {
+      // This is required for proper viewport size on old 3DS web browser
+      echo '<meta name="viewport" content="width=320" />'.PHP_EOL;
+    } else {
+      // Normal mobile scaling for New 3DS Browser and everything else
+      echo '<meta name="viewport" content="initial-scale=1">'.PHP_EOL;
+    }
+    // Send Plausible analytics data
+    $data = array(
+        'name' => 'pageview',
+        'url' => 'https://imgsharetool.herokuapp.com/',
+        'domain' => 'imgsharetool.herokuapp.com',
+    );
+    $post_data = json_encode($data);
+    // Prepare new cURL resource
+    $crl = curl_init('httpps://plausible.io/api/event');
+    curl_setopt($crl, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($crl, CURLINFO_HEADER_OUT, true);
+    curl_setopt($crl, CURLOPT_POST, true);
+    curl_setopt($crl, CURLOPT_POSTFIELDS, $post_data);
+    // Set HTTP Header for POST request 
+    curl_setopt($crl, CURLOPT_HTTPHEADER, array(
+      'User-Agent: ' . $_SERVER['HTTP_USER_AGENT'],
+      'X-Forwarded-For: 127.0.0.1',
+      'Content-Type: application/json')
+    );
+    // Submit the POST request
+    $result = curl_exec($crl);
+    curl_close($crl);
+    ?>
 </head>
 
 <body>
