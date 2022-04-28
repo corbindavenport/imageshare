@@ -139,6 +139,8 @@
                 <p><input name="img" id="img-btn" type="file" /></p>
                 <p><input name="submit" type="submit" value="Upload" /></p>
                 <p>ImageShare is a lightweight web app for uploading and sharing images using QR codes. See <a href="https://imgshare.corbin.io/" target="_blank">imgshare.corbin.io</a> for more information.</p>
+                <p>If you find ImageShare useful, please consider donating to support continued development!</p>
+                <p style="text-align: center;"><b><a href="https://cash.app/$corbdav" target="_blank">cash.app/$corbdav</a> | <a href="https://paypal.me/corbindav" target="_blank">paypal.me/corbindav</a></b></p>
             </form>
         </div>
     </div>
