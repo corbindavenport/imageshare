@@ -5,33 +5,42 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>ImageShare</title>
     <meta name="robots" content="noindex">
-    <meta name="viewport" content="initial-scale=1">
     <link rel="stylesheet" type="text/css" href="styles.css">
     <link href="favicon.ico" rel="icon" type="image/x-icon">
-    <!-- Use PHP for sending Plausible analytics data -->
     <?php
-     $data = array(
-         'name' => 'pageview',
-         'url' => 'https://imgsharetool.herokuapp.com/',
-         'domain' => 'imgsharetool.herokuapp.com',
-     );
-     $post_data = json_encode($data);
-     // Prepare new cURL resource
-     $crl = curl_init('https://plausible.io/api/event');
-     curl_setopt($crl, CURLOPT_RETURNTRANSFER, true);
-     curl_setopt($crl, CURLINFO_HEADER_OUT, true);
-     curl_setopt($crl, CURLOPT_POST, true);
-     curl_setopt($crl, CURLOPT_POSTFIELDS, $post_data);
-     // Set HTTP Header for POST request 
-     curl_setopt($crl, CURLOPT_HTTPHEADER, array(
-        'User-Agent: ' . $_SERVER['HTTP_USER_AGENT'],
-        'X-Forwarded-For: 127.0.0.1',
-        'Content-Type: application/json')
-     );
-     // Submit the POST request
-     $result = curl_exec($crl);
-     curl_close($crl);
-   ?>
+    // Viewport size
+    $is3DS = strpos($_SERVER['HTTP_USER_AGENT'], 'Nintendo 3DS');
+    $isNew3DS = strpos($_SERVER['HTTP_USER_AGENT'], 'New Nintendo 3DS');
+    if ($is3DS && !($isNew3DS)) {
+      // This is required for proper viewport size on old 3DS web browser
+      echo '<meta name="viewport" content="width=320" />'.PHP_EOL;
+    } else {
+      // Normal mobile scaling for New 3DS Browser and everything else
+      echo '<meta name="viewport" content="initial-scale=1">'.PHP_EOL;
+    }
+    // Send Plausible analytics data
+    $data = array(
+        'name' => 'pageview',
+        'url' => 'https://imgsharetool.herokuapp.com/',
+        'domain' => 'imgsharetool.herokuapp.com',
+    );
+    $post_data = json_encode($data);
+    // Prepare new cURL resource
+    $crl = curl_init('httpps://plausible.io/api/event');
+    curl_setopt($crl, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($crl, CURLINFO_HEADER_OUT, true);
+    curl_setopt($crl, CURLOPT_POST, true);
+    curl_setopt($crl, CURLOPT_POSTFIELDS, $post_data);
+    // Set HTTP Header for POST request 
+    curl_setopt($crl, CURLOPT_HTTPHEADER, array(
+      'User-Agent: ' . $_SERVER['HTTP_USER_AGENT'],
+      'X-Forwarded-For: 127.0.0.1',
+      'Content-Type: application/json')
+    );
+    // Submit the POST request
+    $result = curl_exec($crl);
+    curl_close($crl);
+    ?>
 </head>
 
 <body>
@@ -40,16 +49,6 @@
 
     <div class="container">
 
-        <div class="panel upload-panel">
-            <div class="panel-title">Upload image</div>
-            <div class="body">
-                <form action="index.php" id="upload-form" enctype="multipart/form-data" method="POST">
-                    <p><input name="img" id="img-btn" type="file" /></p>
-                    <p><input name="submit" type="submit" value="Upload" /></p>
-                    <p>ImageShare allows easy transfer of images using QR codes. See <a href="https://github.com/corbindavenport/image-share" target="_blank">github.com/corbindavenport/image-share</a> for more information.</p>
-                </form>
-            </div>
-        </div>
         <?php
         if(isset($_POST['submit'])){
 
@@ -112,21 +111,39 @@
           $pms = json_decode($output,true);
 
           $id = $pms['data']['id'];
+          $delete_hash = $pms['data']['deletehash'];
           $img = '
             <div class="panel qr-panel">
-              <div class="body" align="center">
-                <img title="https://imgur.com/'.$id.'" src="//chart.googleapis.com/chart?chs=300x300&cht=qr&chld=L|0&chl=https://imgur.com/'.$id.'">
+              <div class="panel-title">'.$software.'</div>
+              <div class="body">
+                <center>
+                  <a href="https://imgur.com/'.$id.'" target="_blank">
+                    <img alt="QR code (click to open page in new window)" src="//chart.googleapis.com/chart?chs=300x300&cht=qr&chld=L|0&chl=https://imgur.com/'.$id.'">
+                  </a>
+                </center>
+                <form action="delete.php" id="upload-form" enctype="multipart/form-data" method="POST">
+                  <p><input name="submit" type="submit" value="Delete image" /></p>
+                  <input type="hidden" name="id" value="'.$delete_hash.'" />
+                </form>
               </div>
             </div>';
           echo $img;
           
         }
-    ?>
-    </div>
+  ?>
 
-    <script>
-    // Scroll to bottom of page on page load (for dual-screen devices)
-    window.scrollTo(0, document.body.scrollHeight);
-    </script>
+  <div class="panel upload-panel">
+        <div class="panel-title">Upload Image</div>
+        <div class="body">
+            <form action="index.php" id="upload-form" enctype="multipart/form-data" method="POST">
+                <p><input name="img" id="img-btn" type="file" /></p>
+                <p><input name="submit" type="submit" value="Upload" /></p>
+                <p>ImageShare is a lightweight web app for uploading and sharing images using QR codes. See <a href="https://imgshare.corbin.io/" target="_blank">imgshare.corbin.io</a> for more information.</p>
+            </form>
+        </div>
+    </div>
+        
+  </div>
 
 </body>
+</html>

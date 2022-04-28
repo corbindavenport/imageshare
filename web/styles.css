@@ -48,7 +48,7 @@ a:hover {
 	background: #18bc9c;
 	color: #FFFFFF;
 	font-size: 19px;
-	line-height: 60px;
+	line-height: 40px;
 	padding-left: 15px;
 	text-align: left;
 }
@@ -68,12 +68,7 @@ a:hover {
 	-moz-border-radius: 4px;
 	-webkit-border-radius: 4px;
 	-moz-border-radius: 4px;
-	margin-top: 15px;
-	behavior: url(css/PIE.htc);
-}
-
-.panel:first-of-type {
-    margin-top: 0;
+	margin-bottom: 15px;
 }
 
 .panel .panel-title {
@@ -99,27 +94,41 @@ input {
 
 .qr-panel img {
     margin: 10px;
-    max-width: 100%;
+    max-width: 100%; /* For browsers that without calc() support */
+	max-width: calc(100% - 20px);
+	max-height: 150px; /* For browsers without vh support */
+	max-height: 60vh;
 }
 
-@media screen and (max-width: 750px) {
+/* Large screens */
+@media screen and (min-width: 800px) {
 
-    .header {
-        line-height: 40px;
+	.header {
+        line-height: 60px;
     }
 
+	.panel {
+		float: left;
+		vertical-align: top;
+		margin-left: 5px;
+		margin-right: 5px;
+		width: 365px;
+	}
+
 }
 
-/* Nintendo 3DS Browser */
+/* Very small screens (like Nintendo 3DS Browser) */
 
-@media screen and (max-width: 320px) and (max-height: 240px) {
+@media screen and (max-width: 350px) {
 
     body {
-        height: 400px;
-        max-height: 400px;
         background: #FFF;
         overflow: hidden;
     }
+
+	.container {
+		padding: 0;
+	}
 
     .header {
         display: none;
@@ -127,35 +136,6 @@ input {
 
     .panel {
         border: 0;
-    }
-
-    .upload-panel, .qr-panel {
-        position: absolute;
-        left: 0;
-        right: 0;
-        overflow: hidden;
-        height: 200px;
-    }
-
-    .upload-panel {
-        top: 190px;
-        bottom: 0;
-    }
-
-    .qr-panel {
-        border: 0;
-        top: 0;
-        height: 190px;
-        margin-top: 0;
-    }
-
-    .qr-panel body {
-        padding: 5px;
-    }
-
-    .qr-panel img {
-        height: 180px;
-        margin: 0;
     }
 
 }

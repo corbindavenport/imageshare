@@ -1,6 +1,9 @@
 {
     "name": "corbindavenport/image-share",
     "require": {
-        "ext-exif":"*"
+        "ext-exif": "*"
+    },
+    "require-dev": {
+        "heroku/heroku-buildpack-php": "*"
     }
 }

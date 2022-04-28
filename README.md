@@ -9,7 +9,6 @@ ImageShare is a lightweight web app for uploading images. It's primarily designe
 - Works on both HTTPS and HTTP connections, for browsers with outdated SSL certificates
 - Does not require JavaScript support in web browser
 - Fully open-source and can self-hostable using [Heroku](https://heroku.com)
-- **New 3DS only:** Dual screen support
 - **3DS/New 3DS only:** Automatic game title detection, using database from [3dsdb.com](http://3dsdb.com/) ([example](https://imgur.com/w6aZ3cb))
 
 Images uploaded using ImageShare are subject to Imgur's [Terms of Service](https://imgur.com/tos) and [Privacy Policy](https://imgur.com/privacy).
@@ -21,24 +20,3 @@ Just open [imgsharetool.herokuapp.com](https://imgsharetool.herokuapp.com/) in y
 <div align="center"><img src="https://i.imgur.com/SvoNgrU.png" /></div>
 
 Once you have ImageShare open, bookmark it (tap the star button on the 3DS) for easy access later. If you have issues loading ImageShare on your device, try loading `http://imgsharetool.herokuapp.com` instead of `https://imgsharetool.herokuapp.com`.
-
-## Development information
-
-ImageShare is built to run on [Heroku](https://heroku.com). You can deploy it to your own Heroku account [here](https://heroku.com/deploy?template=https://github.com/corbindavenport/image-share), or you can use the [Heroku CLI](https://toolbelt.heroku.com/):
-
-```
-git clone git@github.com:corbindavenport/image-share.git
-cd image-share
-heroku login
-heroku create
-git push heroku master
-heroku open
-```
-
-ImageShare also requires an [Imgur API key](https://api.imgur.com/oauth2/addclient). Once you create an account and obtain a key, save it to your Heroku's configuration:
-
-```
-heroku config:set API_KEY=thekeygoeshere
-```
-
-If you don't want to use Heroku, hosting the `web` directory on any PHP-compatible web server with `ext-exif` installed should work. Just replace all instances of `getenv('API_KEY')` in ImageShare's code with the API key.
