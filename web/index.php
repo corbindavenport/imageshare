@@ -26,7 +26,7 @@
     );
     $post_data = json_encode($data);
     // Prepare new cURL resource
-    $crl = curl_init('httpps://plausible.io/api/event');
+    $crl = curl_init('https://plausible.io/api/event');
     curl_setopt($crl, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($crl, CURLINFO_HEADER_OUT, true);
     curl_setopt($crl, CURLOPT_POST, true);
