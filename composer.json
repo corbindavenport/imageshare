@@ -1,6 +1,7 @@
 {
     "name": "corbindavenport/image-share",
     "require": {
+        "php": ">=8.0.0",
         "ext-exif": "*"
     },
     "require-dev": {

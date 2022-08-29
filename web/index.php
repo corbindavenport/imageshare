@@ -19,27 +19,29 @@
       echo '<meta name="viewport" content="initial-scale=1">'.PHP_EOL;
     }
     // Send Plausible analytics data
-    $data = array(
+    if (!str_contains($_SERVER['HTTP_HOST'], 'localhost')) {
+      $data = array(
         'name' => 'pageview',
         'url' => 'https://imgsharetool.herokuapp.com/',
         'domain' => 'imgsharetool.herokuapp.com',
-    );
-    $post_data = json_encode($data);
-    // Prepare new cURL resource
-    $crl = curl_init('https://plausible.io/api/event');
-    curl_setopt($crl, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($crl, CURLINFO_HEADER_OUT, true);
-    curl_setopt($crl, CURLOPT_POST, true);
-    curl_setopt($crl, CURLOPT_POSTFIELDS, $post_data);
-    // Set HTTP Header for POST request 
-    curl_setopt($crl, CURLOPT_HTTPHEADER, array(
-      'User-Agent: ' . $_SERVER['HTTP_USER_AGENT'],
-      'X-Forwarded-For: 127.0.0.1',
-      'Content-Type: application/json')
-    );
-    // Submit the POST request
-    $result = curl_exec($crl);
-    curl_close($crl);
+      );
+      $post_data = json_encode($data);
+      // Prepare new cURL resource
+      $crl = curl_init('https://plausible.io/api/event');
+      curl_setopt($crl, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($crl, CURLINFO_HEADER_OUT, true);
+      curl_setopt($crl, CURLOPT_POST, true);
+      curl_setopt($crl, CURLOPT_POSTFIELDS, $post_data);
+      // Set HTTP Header for POST request 
+      curl_setopt($crl, CURLOPT_HTTPHEADER, array(
+        'User-Agent: ' . $_SERVER['HTTP_USER_AGENT'],
+        'X-Forwarded-For: 127.0.0.1',
+        'Content-Type: application/json')
+      );
+      // Submit the POST request
+      $result = curl_exec($crl);
+      curl_close($crl);
+    }
     ?>
 </head>
 
@@ -54,7 +56,7 @@
 
           // Set initial info
           $software = 'ImgShare Upload';
-          $description = 'Uploaded with ImageShare - imgshare.corbin.io';
+          $description = 'Uploaded with ImageShare: https://github.com/corbindavenport/imageshare';
           
           // Convert image to base64
           $img = $_FILES['img'];
@@ -136,12 +138,12 @@
         <div class="panel-title">Upload Image</div>
         <div class="body">
             <p>
-                <b>ImageShare may migrate to a new site or shut down by November 28, 2022. Check <a href="https://tinyurl.com/imgmigrate" target="_blank">tinyurl.com/imgmigrate</a> for updates.</b>
+              <b>ImageShare may migrate to a new site or shut down by November 28, 2022. Check <a href="https://tinyurl.com/imgmigrate" target="_blank">tinyurl.com/imgmigrate</a> for updates.</b>
             </p>
             <form action="index.php" id="upload-form" enctype="multipart/form-data" method="POST">
                 <p><input name="img" id="img-btn" type="file" /></p>
                 <p><input name="submit" type="submit" value="Upload" /></p>
-                <p>ImageShare is a lightweight web app for uploading and sharing images using QR codes. See <a href="https://imgshare.corbin.io/" target="_blank">imgshare.corbin.io</a> for more information.</p>
+                <p>ImageShare is a lightweight web app for uploading and sharing images using QR codes. See <a href="https://github.com/corbindavenport/imageshare" target="_blank">github.com/corbindavenport/imageshare</a> for more information.</p>
                 <p>If you find ImageShare useful, please consider donating to support continued development!</p>
                 <p style="text-align: center;"><b><a href="https://cash.app/$corbdav" target="_blank">cash.app/$corbdav</a> | <a href="https://paypal.me/corbindav" target="_blank">paypal.me/corbindav</a></b></p>
             </form>
@@ -149,6 +151,13 @@
     </div>
         
   </div>
+
+  <?php
+  // Redirect from Heroku: https://github.com/corbindavenport/imageshare/issues/11
+  if (str_contains($_SERVER['HTTP_HOST'], 'herokuapp.com')) {
+    //echo '<script>alert("ImageShare is moving to theimageshare.com. The old site (imgsharetool.herokuapp.com) will not be accessible by November 2022. Please update your bookmarks.\n\nYou will now be redirected to the new site.");window.location.href="http://theimageshare.com";</script>';
+  }
+  ?>
 
 </body>
 </html>
