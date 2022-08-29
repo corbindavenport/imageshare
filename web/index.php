@@ -65,7 +65,8 @@
 
           // Get EXIF data
           $exif = exif_read_data($handle);
-          if (is_array($exif)) {
+          if (is_array($exif) && array_key_exists('Model', $exif)) {
+
             // Read software string in 3DS screenshots
             if ($exif['Model'] === 'Nintendo 3DS') {
               // Match ID with game title if possible
@@ -107,9 +108,8 @@
           $output = curl_exec($curl);
           curl_close($curl);
 
-          // Print QR code
+          // Display result
           $pms = json_decode($output,true);
-
           $id = $pms['data']['id'];
           $delete_hash = $pms['data']['deletehash'];
           $img = '
