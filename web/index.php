@@ -6,6 +6,10 @@
     <title>ImageShare</title>
     <link rel="stylesheet" type="text/css" href="styles.css">
     <link href="favicon.ico" rel="icon" type="image/x-icon">
+    <meta name="description" content="ImageShare is a lightweight web app for uploading images, created for the Nintendo 3DS and other legacy web browsers.">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <!-- Viewport size and analytics -->
     <?php
     // Viewport size
     $is3DS = strpos($_SERVER['HTTP_USER_AGENT'], 'Nintendo 3DS');
@@ -42,6 +46,11 @@
       curl_close($crl);
     }
     ?>
+    <!-- Twitter cards -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:creator" content="@corbindavenport" />
+    <meta name="twitter:title" content="ImageShare" />
+    <meta name="twitter:description" content="ImageShare is a lightweight web app for uploading images, created for the Nintendo 3DS and other legacy web browsers." />
 </head>
 
 <body>
