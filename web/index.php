@@ -4,7 +4,6 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>ImageShare</title>
-    <meta name="robots" content="noindex">
     <link rel="stylesheet" type="text/css" href="styles.css">
     <link href="favicon.ico" rel="icon" type="image/x-icon">
     <?php
@@ -155,7 +154,7 @@
   <?php
   // Redirect from Heroku: https://github.com/corbindavenport/imageshare/issues/11
   if (str_contains($_SERVER['HTTP_HOST'], 'herokuapp.com')) {
-    //echo '<script>alert("ImageShare is moving to theimageshare.com. The old site (imgsharetool.herokuapp.com) will not be accessible by November 2022. Please update your bookmarks.\n\nYou will now be redirected to the new site.");window.location.href="http://theimageshare.com";</script>';
+    echo '<script>alert("ImageShare is moving to theimageshare.com. The old site (imgsharetool.herokuapp.com) will not be accessible by November 2022. Please update your bookmarks.\n\nYou will now be redirected to the new site.");window.location.href="http://theimageshare.com";</script>';
   }
   ?>
 
