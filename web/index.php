@@ -136,9 +136,6 @@
   <div class="panel upload-panel">
         <div class="panel-title">Upload Image</div>
         <div class="body">
-            <p>
-              <b>ImageShare may migrate to a new site or shut down by November 28, 2022. Check <a href="https://tinyurl.com/imgmigrate" target="_blank">tinyurl.com/imgmigrate</a> for updates.</b>
-            </p>
             <form action="index.php" id="upload-form" enctype="multipart/form-data" method="POST">
                 <p><input name="img" id="img-btn" type="file" /></p>
                 <p><input name="submit" type="submit" value="Upload" /></p>
