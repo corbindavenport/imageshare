@@ -22,7 +22,7 @@
       echo '<meta name="viewport" content="initial-scale=1">'.PHP_EOL;
     }
     // Send Plausible analytics data
-    if (!str_contains($_SERVER['HTTP_HOST'], 'localhost')) {
+    if (str_contains($_SERVER['HTTP_HOST'], 'theimageshare.com')) {
       $data = array(
         'name' => 'pageview',
         'url' => 'https://imgsharetool.herokuapp.com/',
