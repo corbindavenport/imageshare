@@ -170,24 +170,23 @@
   <div class="panel upload-panel">
         <div class="panel-title">Upload Image</div>
         <div class="body">
-            <form action="index.php" id="upload-form" enctype="multipart/form-data" method="POST">
-                <p><input name="img" id="img-btn" type="file" /></p>
-                <p><input name="submit" type="submit" value="Upload" /></p>
-                <p>ImageShare is a lightweight web app for uploading and sharing images using QR codes. See <a href="https://github.com/corbindavenport/imageshare" target="_blank">github.com/corbindavenport/imageshare</a> for more information.</p>
-                <p>If you find ImageShare useful, please consider donating to support continued development!</p>
-                <p style="text-align: center;"><b><a href="https://cash.app/$corbdav" target="_blank">cash.app/$corbdav</a> | <a href="https://paypal.me/corbindav" target="_blank">paypal.me/corbindav</a></b></p>
-            </form>
+          <?php
+          // Redirect from Heroku: https://github.com/corbindavenport/imageshare/issues/11
+          if (str_contains($_SERVER['HTTP_HOST'], 'herokuapp.com')) {
+            echo '<p><b>ImageShare is moving to <a href="http://theimageshare.com/">theimageshare.com</a>. This site will not be accessible by November 2022. Please update your bookmarks now.</b></p>'.PHP_EOL;
+          }
+          ?>
+          <form action="index.php" id="upload-form" enctype="multipart/form-data" method="POST">
+            <p><input name="img" id="img-btn" type="file" /></p>
+            <p><input name="submit" type="submit" value="Upload" /></p>
+            <p>ImageShare is a lightweight web app for uploading and sharing images using QR codes. See <a href="https://github.com/corbindavenport/imageshare" target="_blank">github.com/corbindavenport/imageshare</a> for more information.</p>
+            <p>If you find ImageShare useful, please consider donating to support continued development!</p>
+            <p style="text-align: center;"><b><a href="https://cash.app/$corbdav" target="_blank">cash.app/$corbdav</a> | <a href="https://paypal.me/corbindav" target="_blank">paypal.me/corbindav</a></b></p>
+          </form>
         </div>
     </div>
         
   </div>
-
-  <?php
-  // Redirect from Heroku: https://github.com/corbindavenport/imageshare/issues/11
-  if (str_contains($_SERVER['HTTP_HOST'], 'herokuapp.com')) {
-    echo '<script>alert("ImageShare is moving to theimageshare.com. The old site (theimageshare.com) will not be accessible by November 2022. Please update your bookmarks.\n\nYou will now be redirected to the new site.");window.location.href="http://theimageshare.com";</script>';
-  }
-  ?>
 
 </body>
 </html>
