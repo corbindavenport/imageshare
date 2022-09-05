@@ -21,12 +21,12 @@
       // Normal mobile scaling for New 3DS Browser and everything else
       echo '<meta name="viewport" content="initial-scale=1">'.PHP_EOL;
     }
-    // Send Plausible analytics data
+    // Send Plausible analytics data for pageview
     if (str_contains($_SERVER['HTTP_HOST'], 'theimageshare.com')) {
       $data = array(
         'name' => 'pageview',
-        'url' => 'https://imgsharetool.herokuapp.com/',
-        'domain' => 'imgsharetool.herokuapp.com',
+        'url' => 'https://theimageshare.com/',
+        'domain' => 'theimageshare.com',
       );
       $post_data = json_encode($data);
       // Prepare new cURL resource
@@ -63,7 +63,7 @@
         if(isset($_POST['submit'])){
 
           // Set initial info
-          $software = 'ImgShare Upload';
+          $software = 'ImageShare Upload';
           $description = 'Uploaded with ImageShare: https://github.com/corbindavenport/imageshare';
           
           // Convert image to base64
@@ -138,6 +138,31 @@
               </div>
             </div>';
           echo $img;
+
+          // Send analytics for upload
+          if (str_contains($_SERVER['HTTP_HOST'], 'theimageshare.com')) {
+            $data = array(
+              'name' => 'Upload',
+              'url' => 'https://theimageshare.com/',
+              'domain' => 'theimageshare.com',
+            );
+            $post_data = json_encode($data);
+            // Prepare new cURL resource
+            $crl = curl_init('https://plausible.io/api/event');
+            curl_setopt($crl, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($crl, CURLINFO_HEADER_OUT, true);
+            curl_setopt($crl, CURLOPT_POST, true);
+            curl_setopt($crl, CURLOPT_POSTFIELDS, $post_data);
+            // Set HTTP Header for POST request 
+            curl_setopt($crl, CURLOPT_HTTPHEADER, array(
+              'User-Agent: ' . $_SERVER['HTTP_USER_AGENT'],
+              'X-Forwarded-For: 127.0.0.1',
+              'Content-Type: application/json')
+            );
+            // Submit the POST request
+            $result = curl_exec($crl);
+            curl_close($crl);
+          }
           
         }
   ?>
@@ -160,7 +185,7 @@
   <?php
   // Redirect from Heroku: https://github.com/corbindavenport/imageshare/issues/11
   if (str_contains($_SERVER['HTTP_HOST'], 'herokuapp.com')) {
-    echo '<script>alert("ImageShare is moving to theimageshare.com. The old site (imgsharetool.herokuapp.com) will not be accessible by November 2022. Please update your bookmarks.\n\nYou will now be redirected to the new site.");window.location.href="http://theimageshare.com";</script>';
+    echo '<script>alert("ImageShare is moving to theimageshare.com. The old site (theimageshare.com) will not be accessible by November 2022. Please update your bookmarks.\n\nYou will now be redirected to the new site.");window.location.href="http://theimageshare.com";</script>';
   }
   ?>
 

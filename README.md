@@ -4,18 +4,23 @@ ImageShare is a lightweight web app for uploading images. It was originally desi
 
 ### Features
 
-- Does not require logins or accounts
-- Works on both HTTPS and HTTP connections, for browsers with outdated SSL certificates
-- Does not require JavaScript support in web browser
-- Fully open-source and can self-hostable using [Heroku](https://heroku.com) or [DigitalOcean App Platform](https://www.digitalocean.com/products/app-platform)
+- Does not require account creation or a login
+- Compatible with many old and low-end web browsers (live version is limited by [what CloudFlare CDN supports](https://developers.cloudflare.com/ssl/ssl-tls/browser-compatibility))
+- JavaScript does not have to be enabled in the browser
+- Fully open-source and can self-hostable using [Heroku](https://heroku.com), [DigitalOcean App Platform](https://www.digitalocean.com/products/app-platform), or nearly any PHP server
 - **3DS/New 3DS only:** Automatic game title detection, using database from [3dsdb.com](http://3dsdb.com/) ([example](https://imgur.com/w6aZ3cb))
 
-Images uploaded using ImageShare are subject to Imgur's [Terms of Service](https://imgur.com/tos) and [Privacy Policy](https://imgur.com/privacy).
-
-## How to use ImageShare
+### How to use
 
 Just open [theimageshare.com](https://theimageshare.com/) in your browser to access ImageShare. If your device can scan QR codes with a camera (press L + R buttons on 3DS home screen), scan the below code to open ImageShare.
 
-<div align="center"><img src="https://i.imgur.com/DsHP1u2.png" /></div>
+<div align="center"><img src="https://i.imgur.com/DsHP1u2.png" /></div><br>
 
 Once you have ImageShare open, bookmark it (tap the star button on the 3DS) for easy access later.
+
+
+### Privacy Policy & Terms of Service
+
+ImageShare uses [Plausible Analytics](https://plausible.io) to report anonymous usage data, including how many times the app is used and the browser/device used. Uploaded images are not stored on ImageShare servers, only on Imgur. The QR code is generated using the [Google Charts API](https://developers.google.com/chart/infographics/docs/qr_codes), which requires sending the URL to a Google server after upload.
+
+Images uploaded using ImageShare are subject to Imgur's [Terms of Service](https://imgur.com/tos) and [Privacy Policy](https://imgur.com/privacy).
