@@ -45486,4 +45486,148 @@
 	<type>1</type>
 	<card>1</card>
 </release>
+<release>
+	<id>2528</id>
+	<name>3in1 Horses</name>
+	<publisher>TREVA Entertainment</publisher>
+	<region>EUR</region>
+	<languages>en,fr,de,it,es,nl</languages>
+	<group>PUSSYCAT</group>
+	<imagesize>2048</imagesize>
+	<serial>CTR-BRZP</serial>
+	<titleid>00040000001BF900</titleid>
+	<imgcrc>c398e321</imgcrc>
+	<filename>cat-brzp</filename>
+	<releasename>3in1_Horses_EUR_MULTi6_3DS-PUSSYCAT</releasename>
+	<trimmedsize>146436096</trimmedsize>
+	<firmware>11.2.0E</firmware>
+	<type>1</type>
+	<card>1</card>
+</release>
+<release>
+	<id>2529</id>
+	<name>Jake Hunter Detective Story: Ghost of the Dusk</name>
+	<publisher>Aksys Games</publisher>
+	<region>USA</region>
+	<languages>en</languages>
+	<group>VENOM</group>
+	<imagesize>4096</imagesize>
+	<serial>CTR-BG9E</serial>
+	<titleid>00040000001CBC00</titleid>
+	<imgcrc>28671de0</imgcrc>
+	<filename>v-jhgotd</filename>
+	<releasename>Jake_Hunter_Detective_Story_Ghost_of_the_Dusk_3DS-VENOM</releasename>
+	<trimmedsize>443723776</trimmedsize>
+	<firmware>11.6.0U</firmware>
+	<type>1</type>
+	<card>1</card>
+</release>
+<release>
+	<id>2530</id>
+	<name>Yo-Kai Watch 3</name>
+	<publisher>Nintendo</publisher>
+	<region>USA</region>
+	<languages>en</languages>
+	<group>SUXXORS</group>
+	<imagesize>32768</imagesize>
+	<serial>CTR-ALZE</serial>
+	<titleid>00040000001D6700</titleid>
+	<imgcrc>3f79ebb5</imgcrc>
+	<filename>sxs-ykw3</filename>
+	<releasename>YoKai_Watch_3_USA_3DS-SUXXORS</releasename>
+	<trimmedsize>3592331264</trimmedsize>
+	<firmware>11.8.0U</firmware>
+	<type>1</type>
+	<card>1</card>
+</release>
+<release>
+	<id>2531</id>
+	<name>Yo-Kai Watch 3</name>
+	<publisher>Nintendo</publisher>
+	<region>EUR</region>
+	<languages>en,fr,de,it,es</languages>
+	<group>TRSI</group>
+	<imagesize>32768</imagesize>
+	<serial>CTR-ALZP</serial>
+	<titleid>00040000001D6800</titleid>
+	<imgcrc>943a4913</imgcrc>
+	<filename>trsi-alzp</filename>
+	<releasename>Yo-Kai_Watch_3_EUR_MULTi5_3DS-TRSI</releasename>
+	<trimmedsize>3602268160</trimmedsize>
+	<firmware>11.8.0E</firmware>
+	<type>1</type>
+	<card>1</card>
+</release>
+<release>
+	<id>2532</id>
+	<name>Persona Q2 - New Cinema Labyrinth</name>
+	<publisher>Atlus/SEGA</publisher>
+	<region>JPN</region>
+	<languages>ja</languages>
+	<group>HR</group>
+	<imagesize>32768</imagesize>
+	<serial>CTR-AQ2J</serial>
+	<titleid>00040000001CBE00</titleid>
+	<imgcrc>0083c83b</imgcrc>
+	<filename>hr-pq2</filename>
+	<releasename>Persona_Q2_New_Cinema_Labyrinth_JPN_3DS-HR</releasename>
+	<trimmedsize>2892267520</trimmedsize>
+	<firmware>11.6.0J</firmware>
+	<type>1</type>
+	<card>1</card>
+</release>
+<release>
+	<id>2533</id>
+	<name>Persona Q2 - New Cinema Labyrinth</name>
+	<publisher>Deep Silver</publisher>
+	<region>EUR</region>
+	<languages>en</languages>
+	<group>TiNGO</group>
+	<imagesize>32768</imagesize>
+	<serial>CTR-AQ2P</serial>
+	<titleid>00040000001D7600</titleid>
+	<imgcrc>2e2a7227</imgcrc>
+	<filename>tin-aq2p</filename>
+	<releasename>Persona.Q2.New.Cinema.Labyrinth.3DS-TiNGO</releasename>
+	<trimmedsize>2899566592</trimmedsize>
+	<firmware>11.8.0E</firmware>
+	<type>1</type>
+	<card>1</card>
+</release>
+<release>
+	<id>2534</id>
+	<name>Persona Q2 - New Cinema Labyrinth</name>
+	<publisher>Atlus/SEGA</publisher>
+	<region>USA</region>
+	<languages>en</languages>
+	<group>SUXXORS</group>
+	<imagesize>32768</imagesize>
+	<serial>CTR-AQ2E</serial>
+	<titleid>00040000001D7100</titleid>
+	<imgcrc>bbc7557e</imgcrc>
+	<filename>sxs-pq2n</filename>
+	<releasename>Persona_Q2_New_Cinema_Labyrinth_USA_3DS-SUXXORS</releasename>
+	<trimmedsize>2890895360</trimmedsize>
+	<firmware>11.8.0U</firmware>
+	<type>1</type>
+	<card>1</card>
+</release>
+<release>
+	<id>2535</id>
+	<name>Atooi Collection</name>
+	<publisher>Limited Run Games</publisher>
+	<region>USA</region>
+	<languages>en</languages>
+	<group>JRP</group>
+	<imagesize>8192</imagesize>
+	<serial>CTR-AUTE</serial>
+	<titleid>00040000001D9300</titleid>
+	<imgcrc>3bc5af55</imgcrc>
+	<filename>jrp-ac3ds</filename>
+	<releasename>Atooi.Collection_3DS-JRP</releasename>
+	<trimmedsize>537051136</trimmedsize>
+	<firmware>11.9.0U</firmware>
+	<type>1</type>
+	<card>1</card>
+</release>
 </releases>

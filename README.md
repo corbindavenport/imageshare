@@ -24,3 +24,7 @@ Once you have ImageShare open, bookmark it (tap the star button on the 3DS) for 
 ImageShare uses [Plausible Analytics](https://plausible.io) to report anonymous usage data, including how many times the app is used and the browser/device used. Uploaded images are not stored on ImageShare servers, only on Imgur. The QR code is generated using the [Google Charts API](https://developers.google.com/chart/infographics/docs/qr_codes), which requires sending the URL to a Google server after upload.
 
 Images uploaded using ImageShare are subject to Imgur's [Terms of Service](https://imgur.com/tos) and [Privacy Policy](https://imgur.com/privacy).
+
+### Credits
+
+The ImageShare icon and logo is based on [Cloud arrow up fill](https://icons.getbootstrap.com/icons/cloud-arrow-up-fill/) from Boostrap Icons.
