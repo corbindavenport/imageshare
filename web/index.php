@@ -5,7 +5,6 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>ImageShare</title>
     <link rel="stylesheet" type="text/css" href="styles.css">
-    <link href="favicon.ico" rel="icon" type="image/x-icon">
     <meta name="description" content="ImageShare is a lightweight web app for uploading images, created for the Nintendo 3DS and other legacy web browsers.">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -46,11 +45,17 @@
       curl_close($crl);
     }
     ?>
-    <!-- Twitter cards -->
+    <!-- Icons -->
+    <link href="favicon.ico" rel="icon" type="image/x-icon">
+    <link rel="apple-touch-icon" sizes="192x192" href="img/maskable_icon_x192.png">
+    <link rel="icon" type="image/png" sizes="24x24" href="img/favicon_x24.png">
+    <!-- Twitter card -->
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:creator" content="@corbindavenport" />
     <meta name="twitter:title" content="ImageShare" />
-    <meta name="twitter:description" content="ImageShare is a lightweight web app for uploading images, created for the Nintendo 3DS and other legacy web browsers." />
+    <meta name="twitter:description" content="Lightweight web app for uploading images, created for the Nintendo 3DS and other legacy web browsers." />
+    <meta name="twitter:image" content="https://theimageshare.com/img/maskable_icon_x512.png" />
+    <meta name="twitter:image:alt" content="ImageShare app icon" />
 </head>
 
 <body>
