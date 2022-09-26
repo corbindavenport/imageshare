@@ -46,9 +46,16 @@
     }
     ?>
     <!-- Icons -->
-    <link href="favicon.ico" rel="icon" type="image/x-icon">
-    <link rel="apple-touch-icon" sizes="192x192" href="img/maskable_icon_x192.png">
-    <link rel="icon" type="image/png" sizes="24x24" href="img/favicon_x24.png">
+    <?php
+    // Use a 16x16 favicon for the 3DS, larger icons in multiple sizes for other browsers
+    if (str_contains($_SERVER['HTTP_USER_AGENT'], 'Nintendo 3DS')) {
+      echo '<link rel="icon" href="favicon.ico" type="image/x-icon">'.PHP_EOL;
+    } else {
+      echo '<link rel="apple-touch-icon" sizes="192x192" href="img/maskable_icon_x192.png">'.PHP_EOL;
+      echo '    <link rel="icon" type="image/png" sizes="16x16" href="img/favicon_x16.png">'.PHP_EOL;
+      echo '    <link rel="icon" type="image/png" sizes="24x24" href="img/favicon_x24.png">'.PHP_EOL;
+    }
+    ?>
     <!-- Twitter card -->
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:creator" content="@corbindavenport" />
