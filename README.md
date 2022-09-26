@@ -5,10 +5,10 @@ ImageShare is a lightweight web app for uploading images. It was originally desi
 ### Features
 
 - Does not require account creation or a login
-- Compatible with many old and low-end web browsers (live version is limited by [what CloudFlare CDN supports](https://developers.cloudflare.com/ssl/ssl-tls/browser-compatibility))
+- Compatible with many old and low-end web browsers (official site is limited by [what CloudFlare CDN supports](https://developers.cloudflare.com/ssl/ssl-tls/browser-compatibility))
 - JavaScript does not have to be enabled in the browser
 - Fully open-source and can self-hostable using [Heroku](https://heroku.com), [DigitalOcean App Platform](https://www.digitalocean.com/products/app-platform), or nearly any PHP server
-- **3DS/New 3DS only:** Automatic game title detection, using database from [3dsdb.com](http://3dsdb.com/) ([example](https://imgur.com/w6aZ3cb))
+- Automatic game title detection for Nintendo 3DS uploads ([example](https://imgur.com/4Fb4HI6))
 
 ### How to use
 
@@ -27,4 +27,4 @@ Images uploaded using ImageShare are subject to Imgur's [Terms of Service](https
 
 ### Credits
 
-The ImageShare icon and logo is based on [Cloud arrow up fill](https://icons.getbootstrap.com/icons/cloud-arrow-up-fill/) from Boostrap Icons.
+Game title detection for Nintendo 3DS images uses a database published by [3dsdb.com](http://3dsdb.com/). The ImageShare icon and logo is based on [Cloud arrow up fill](https://icons.getbootstrap.com/icons/cloud-arrow-up-fill/) from Boostrap Icons.
