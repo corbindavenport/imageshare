@@ -47,8 +47,8 @@
     ?>
     <!-- Icons -->
     <?php
-    // Use a 16x16 favicon for the 3DS, larger icons in multiple sizes for other browsers
-    if (str_contains($_SERVER['HTTP_USER_AGENT'], 'Nintendo 3DS')) {
+    // Use a 16x16 favicon for the 3DS and Wii, larger icons in multiple sizes for other browsers
+    if (str_contains($_SERVER['HTTP_USER_AGENT'], 'Nintendo')) {
       echo '<link rel="icon" href="favicon.ico" type="image/x-icon">'.PHP_EOL;
     } else {
       echo '<link rel="apple-touch-icon" sizes="192x192" href="img/maskable_icon_x192.png">'.PHP_EOL;
@@ -192,7 +192,8 @@
             <p><input name="img" id="img-btn" type="file" /></p>
             <p><input name="submit" type="submit" value="Upload" /></p>
             <p>ImageShare is a lightweight web app for uploading and sharing images using QR codes. See <a href="https://github.com/corbindavenport/imageshare" target="_blank">github.com/corbindavenport/imageshare</a> for more information.</p>
-            <p>If you find ImageShare useful, please consider donating to support continued development!</p>
+            <p>Join Discord server: <a href="https://discord.gg/tqJDRsmQVn" target="_blank">discord.gg/tqJDRsmQVn</a></p>
+            <p>If you find ImageShare useful, please consider donating to support development and server costs!</p>
             <p style="text-align: center;"><b><a href="https://cash.app/$corbdav" target="_blank">cash.app/$corbdav</a> | <a href="https://paypal.me/corbindav" target="_blank">paypal.me/corbindav</a></b></p>
           </form>
         </div>
