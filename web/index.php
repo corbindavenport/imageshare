@@ -130,11 +130,25 @@
           $output = curl_exec($curl);
           curl_close($curl);
 
-          // Display result
+          // Parse result
           $pms = json_decode($output,true);
           $id = $pms['data']['id'];
           $delete_hash = $pms['data']['deletehash'];
-          $img = '
+
+          // Generate social media share links
+          if (str_contains($_SERVER['HTTP_USER_AGENT'], 'Nintendo')) {
+            $share_links = '<p><a href="http://i.reddit.com/submit?url=https://imgur.com/'.$id.'" target="_blank">Submit to Reddit</a></p>';
+          } else {
+            // Show more share links for non-Nintendo browsers (these sites are tested as no longer compatible with 3DS/Wii U)
+            $share_links = '
+            <p><a href="http://i.reddit.com/submit?url=https://imgur.com/'.$id.'" target="_blank">Submit to Reddit</a></p>
+            <p><a href="https://www.facebook.com/sharer/sharer.php?u=https://imgur.com/'.$id.'" target="_blank">Share to Facebook</a></p>
+            <p><a href="https://twitter.com/intent/tweet?text=Sent%20from%20ImageShare&url=https://imgur.com/'.$id.'" target="_blank">Share to Twitter</a></p>
+            ';
+          }
+
+          // Display result
+          $out = '
             <div class="panel qr-panel">
               <div class="panel-title">'.$software.'</div>
               <div class="body">
@@ -142,14 +156,15 @@
                   <a href="https://imgur.com/'.$id.'" target="_blank">
                     <img alt="QR code (click to open page in new window)" src="//chart.googleapis.com/chart?chs=300x300&cht=qr&chld=L|0&chl=https://imgur.com/'.$id.'">
                   </a>
+                  <form action="delete.php" id="upload-form" enctype="multipart/form-data" method="POST">
+                    <p><input name="submit" type="submit" value="Delete image" /></p>
+                    <input type="hidden" name="id" value="'.$delete_hash.'" />
+                  </form>
+                  '.$share_links.'
                 </center>
-                <form action="delete.php" id="upload-form" enctype="multipart/form-data" method="POST">
-                  <p><input name="submit" type="submit" value="Delete image" /></p>
-                  <input type="hidden" name="id" value="'.$delete_hash.'" />
-                </form>
               </div>
             </div>';
-          echo $img;
+          echo $out;
 
           // Send analytics for upload
           if (str_contains($_SERVER['HTTP_HOST'], 'theimageshare.com')) {
@@ -191,10 +206,12 @@
           <form action="index.php" id="upload-form" enctype="multipart/form-data" method="POST">
             <p><input name="img" id="img-btn" type="file" /></p>
             <p><input name="submit" type="submit" value="Upload" /></p>
-            <p>ImageShare is a lightweight web app for uploading and sharing images using QR codes. See <a href="https://github.com/corbindavenport/imageshare" target="_blank">github.com/corbindavenport/imageshare</a> for more information.</p>
-            <p>Join Discord server: <a href="https://discord.gg/tqJDRsmQVn" target="_blank">discord.gg/tqJDRsmQVn</a></p>
+            <p>ImageShare is a lightweight web app for uploading images with QR codes, created for the Nintendo 3DS and other legacy web browsers. See <a href="https://github.com/corbindavenport/imageshare" target="_blank">tinyurl.com/imgsharegit</a> for more information.</p>
             <p>If you find ImageShare useful, please consider donating to support development and server costs!</p>
-            <p style="text-align: center;"><b><a href="https://cash.app/$corbdav" target="_blank">cash.app/$corbdav</a> | <a href="https://paypal.me/corbindav" target="_blank">paypal.me/corbindav</a></b></p>
+            <p style="text-align: center;"><b><a href="https://cash.app/$corbdav" target="_blank">cash.app/$corbdav</a> • <a href="https://paypal.me/corbindav" target="_blank">paypal.me/corbindav</a></b></p>
+            <hr />
+            <p>Join Discord server: <a href="https://discord.gg/tqJDRsmQVn" target="_blank">discord.gg/tqJDRsmQVn</a></p>
+            <p>Follow on Twitter: <a href="https://twitter.com/intent/follow?screen_name=corbindavenport" target="_blank">@corbindavenport</a>
           </form>
         </div>
     </div>

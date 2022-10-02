@@ -20,6 +20,11 @@ a:hover {
 	text-decoration: underline;
 }
 
+hr {
+	border: 1px solid #ecf0f1;
+	margin: 0 -15px;
+}
+
 .button {
 	color: #ffffff;
 	background-color: #95a5a6;
