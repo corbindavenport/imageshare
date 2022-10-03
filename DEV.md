@@ -1,10 +1,10 @@
 # Development information
 
-ImageShare is built to run on [Heroku](https://heroku.com).
+ImageShare was originally built to run on [Heroku](https://heroku.com), but the current live version now runs on [DigitalOcean App Platform](https://www.digitalocean.com/products/app-platform). It is no longer actively tested on Heroku, but still uses the Deploy to Heroku service and should be compatible with all implementations.
 
 ## Deploying on Heroku
 
-You can deploy it to your own Heroku account [here](https://heroku.com/deploy?template=https://github.com/corbindavenport/image-share), or you can use the [Heroku CLI](https://toolbelt.heroku.com/) after the repository is cloned to your computer:
+You can deploy it to your own Heroku account [through the website](https://heroku.com/deploy?template=https://github.com/corbindavenport/imageshare), or you can use [Heroku CLI](https://toolbelt.heroku.com/) after the repository is cloned to your computer:
 
 ```
 heroku login
@@ -21,7 +21,7 @@ heroku config:set API_KEY=thekeygoeshere
 
 ### Deploying on other platforms
 
-If you don't want to use Heroku, hosting the `web` directory on any PHP-compatible web server with `curl` and `ext-exif` installed should also work. The following commands work for Ubuntu-based systems.
+If you don't want to use Heroku, host the `web` directory on any PHP-compatible web server that has `curl` (for API access), `ext-exif` (for extracting image data), and `php-simplexml` (for parsing the 3DS game database). The following commands work for Ubuntu-based systems:
 
 ```
 sudo apt install php php-curl php-exif php-simplexml
