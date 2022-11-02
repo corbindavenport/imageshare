@@ -197,14 +197,20 @@
   <div class="panel upload-panel">
         <div class="panel-title">Upload Image</div>
         <div class="body">
+          <!-- Warnings -->
           <?php
           // Redirect from Heroku: https://github.com/corbindavenport/imageshare/issues/11
           if (str_contains($_SERVER['HTTP_HOST'], 'herokuapp.com')) {
             echo '<p><b>ImageShare is moving to <a href="http://theimageshare.com/">theimageshare.com</a>. This site will not be accessible by November 2022. Please update your bookmarks now.</b></p>'.PHP_EOL;
           }
+          // HTTP warning: https://github.com/corbindavenport/imageshare/issues/14
+          if (str_contains($_SERVER['HTTP_USER_AGENT'], 'Nintendo')) {
+            // Do nothing
+          } else {
+            echo '<p><b>If you can no longer connect to ImageShare on the 3DS, Wii U, or other legacy browser/device, replace HTTPS in the bookmark with HTTP.</b></p>'
+          }
           ?>
-          <!-- Browser warning (#14) -->
-          <p><b>ImageShare is temporarily unavailable on the 3DS and Wii U Browsers. See <a href="https://github.com/corbindavenport/imageshare/issues/14" target="_blank">issue #14</a> for more updates.</b></p>
+          <!-- Main upload form -->
           <form action="index.php" id="upload-form" enctype="multipart/form-data" method="POST">
             <p><input name="img" id="img-btn" type="file" /></p>
             <p><input name="submit" type="submit" value="Upload" /></p>
