@@ -207,7 +207,7 @@
           if (str_contains($_SERVER['HTTP_USER_AGENT'], 'Nintendo')) {
             // Do nothing
           } else {
-            echo '<p><b>If you can no longer connect to ImageShare on the 3DS, Wii U, or other legacy browser/device, replace HTTPS in the bookmark with HTTP.</b></p>'
+            echo '<p><b>If you can no longer connect to ImageShare on the 3DS, Wii U, or other legacy browser/device, replace HTTPS in the bookmark with HTTP.</b></p>';
           }
           ?>
           <!-- Main upload form -->
