@@ -18,7 +18,7 @@ Just open [theimageshare.com](https://theimageshare.com/) in your browser to acc
 
 <div align="center"><img src="https://i.imgur.com/DsHP1u2.png" /></div><br>
 
-Once you have ImageShare open, bookmark it (tap the star button on the 3DS) for easy access later.
+Once you have ImageShare open, bookmark it (tap the star button on the 3DS) for easy access later. If the page doesn't load, replace `https://` in the URL with `http://`.
 
 
 ### Privacy Policy & Terms of Service
