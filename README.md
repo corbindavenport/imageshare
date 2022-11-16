@@ -7,19 +7,18 @@ ImageShare is a lightweight web app for uploading images. It was originally desi
 ### Features
 
 - Does not require account creation or a login
-- Compatible with many old and low-end web browsers (official site is limited by [what CloudFlare CDN supports](https://developers.cloudflare.com/ssl/ssl-tls/browser-compatibility))
+- Compatible with many old and low-end web browsers, using either HTTP or HTTPS
 - JavaScript does not have to be enabled in the browser
 - Fully open-source and can self-hostable using [Heroku](https://heroku.com), [DigitalOcean App Platform](https://www.digitalocean.com/products/app-platform), or nearly any PHP server
 - Automatic game title detection for Nintendo 3DS uploads ([example](https://imgur.com/4Fb4HI6))
 
 ### How to use
 
-Just open [theimageshare.com](https://theimageshare.com/) in your browser to access ImageShare. If your device can scan QR codes with a camera (press L + R buttons on 3DS home screen), scan the below code to open ImageShare.
+Just open [theimageshare.com](http://theimageshare.com/) in your browser to access ImageShare. If your device can scan QR codes with a camera (press L + R buttons on 3DS home screen), scan the below code to open ImageShare.
 
-<div align="center"><img src="https://i.imgur.com/DsHP1u2.png" /></div><br>
+<div align="center"><img src="https://i.imgur.com/CwnqTbp.png" /></div><br>
 
-Once you have ImageShare open, bookmark it (tap the star button on the 3DS) for easy access later. If the page doesn't load, replace `https://` in the URL with `http://`.
-
+Once you have ImageShare open, bookmark it (tap the star button on the 3DS) for easy access later.
 
 ### Privacy Policy & Terms of Service
 
