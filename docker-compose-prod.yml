@@ -5,9 +5,21 @@ services:
       context: .
       dockerfile: nginx/production/Dockerfile
     ports: 
-      - "8080:80"
+      - 80:80
+      - 443:443
     networks:
       - internal
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes: 
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    # This should be your own web domain and email address
+    command: certonly --webroot -w /var/www/certbot --force-renewal --email corbindavenport@outlook.com -d corbintesting.com --agree-tos --no-redirect
   php:
     build:
       context: .
