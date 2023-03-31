@@ -1,0 +1,11 @@
+spec:
+  name: imageshare
+  services:
+  - dockerfile_path: Dockerfile
+    git:
+      branch: docker
+      repo_clone_url: https://github.com/corbindavenport/imageshare.git
+  envs:
+    - key: API_KEY
+      value: "Get a key here: https://api.imgur.com/oauth2/addclient"
+      scope: RUN_TIME
