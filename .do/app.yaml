@@ -1,8 +1,0 @@
-name: imageshare
-services:
-- dockerfile_path: Dockerfile
-  github:
-    branch: docker
-    deploy_on_push: true
-    repo: corbindavenport/imageshare
-  name: imageshare

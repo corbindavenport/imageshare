@@ -2,8 +2,6 @@
 
 ImageShare was originally built to run on [Heroku](https://heroku.com), but the current live version now runs on [DigitalOcean App Platform](https://www.digitalocean.com/products/app-platform). It is no longer actively tested on Heroku, but still uses the Deploy to Heroku service and should be compatible with all implementations.
 
-[![Deploy to DO](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/corbindavenport/imageshare/tree/docker)
-
 ## Deploying on Heroku
 
 You can deploy it to your own Heroku account [through the website](https://heroku.com/deploy?template=https://github.com/corbindavenport/imageshare), or you can use [Heroku CLI](https://toolbelt.heroku.com/) after the repository is cloned to your computer:
