@@ -1,6 +1,7 @@
 version: "3"
 services:
   nginx:
+    restart: always
     build:
       context: .
       dockerfile: nginx/production/Dockerfile
@@ -21,6 +22,7 @@ services:
     # This should be your own web domain and email address
     command: certonly --webroot -w /var/www/certbot --force-renewal --email corbindavenport@outlook.com -d corbintesting.com --agree-tos --no-redirect
   php:
+    restart: always
     build:
       context: .
       dockerfile: php/Dockerfile-production
