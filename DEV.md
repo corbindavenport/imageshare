@@ -1,5 +1,7 @@
 # Development information
 
+ImageShare is built to run as a Docker container, using PHP as the runtime, Nginx as the server, 
+
 ImageShare was originally built to run on [Heroku](https://heroku.com), but the current live version now runs on [DigitalOcean App Platform](https://www.digitalocean.com/products/app-platform). It is no longer actively tested on Heroku, but still uses the Deploy to Heroku service and should be compatible with all implementations.
 
 ## Deploying on Heroku
