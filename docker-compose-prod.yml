@@ -11,16 +11,16 @@ services:
     networks:
       - internal
     volumes:
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot:ro
   certbot:
     image: certbot/certbot
     container_name: certbot
     volumes: 
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt:rw
+      - ./certbot/www:/var/www/certbot:rw
     # This should be your own web domain and email address
-    command: certonly --webroot -w /var/www/certbot --force-renewal --email corbindavenport@outlook.com -d corbintesting.com --agree-tos --no-redirect
+    command: certonly --webroot -w /var/www/certbot --force-renewal --email corbindavenport@outlook.com -d corbintesting.com --agree-tos --no-redirect  --non-interactive
   php:
     restart: always
     build:
