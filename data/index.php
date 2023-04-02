@@ -136,7 +136,61 @@
           // Parse result
           $pms = json_decode($output,true);
           $id = $pms['data']['id'];
+          $imgurl = $pms['data']['link'];
           $delete_hash = $pms['data']['deletehash'];
+          // For debugging: var_dump($pms);
+
+          // Send to Discord if enabled
+          if (isset($_COOKIE["discord_webhook"])) {
+            $webhook_curl = curl_init();
+            curl_setopt_array($webhook_curl, array(
+              CURLOPT_URL => $_COOKIE["discord_webhook"],
+              CURLOPT_MAXREDIRS => 10,
+              CURLOPT_TIMEOUT => 0,
+              CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+              CURLOPT_CUSTOMREQUEST => 'POST',
+              CURLOPT_POSTFIELDS => '{
+                "content": null,
+                "embeds": [
+                  {
+                    "title": "'.$software.'",
+                    "url": "https://imgur.com/'.$id.'",
+                    "color": null,
+                    "footer": {
+                      "text": "Uploader: '.$_SERVER["HTTP_USER_AGENT"].'"
+                    },
+                    "image": {
+                      "url": "'.$imgurl.'"
+                    }
+                  },
+                  {
+                    "color": null,
+                    "author": {
+                      "name": "Donate via PayPal",
+                      "url": "https://paypal.me/corbindav",
+                      "icon_url": "https://i.imgur.com/QLhiS7y.png"
+                    }
+                  },
+                  {
+                    "color": null,
+                    "author": {
+                      "name": "Donate via Cash App",
+                      "url": "https://cash.app/$corbdav",
+                      "icon_url": "https://i.imgur.com/Bx4gHCP.png"
+                    }
+                  }
+                ],
+                "username": "ImageShare",
+                "avatar_url": "https://i.imgur.com/bmjhpX4.png",
+                "attachments": []
+              }',
+              CURLOPT_HTTPHEADER => array(
+                'Content-Type: application/json'
+              ),
+            ));
+            $discord_output = curl_exec($webhook_curl);
+            curl_close($webhook_curl);
+          }
 
           // Display result
           $out = '
@@ -201,6 +255,9 @@
             <p><input name="img" id="img-btn" type="file" /></p>
             <p><input name="submit" type="submit" value="Upload" /></p>
           </form>
+          <!-- Discord integration -->
+          <p><a href="/discord.php">Open Discord settings</a></p>
+          <!-- Description -->
           <p>ImageShare is a lightweight web app for uploading images with QR codes, created for the Nintendo 3DS and other legacy web browsers. See <a href="https://github.com/corbindavenport/imageshare" target="_blank">tinyurl.com/imgsharegit</a> for more information.</p>
           <p>If you find ImageShare useful, please consider donating to support development and server costs!</p>
           <p style="text-align: center;"><b><a href="https://cash.app/$corbdav" target="_blank">cash.app/$corbdav</a> • <a href="https://paypal.me/corbindav" target="_blank">paypal.me/corbindav</a></b></p>
