@@ -81,10 +81,10 @@ The production version should reboot the containers if they go down (e.g. after 
 crontab -e
 ```
 
-Then add the following line, which runs certbot on the first day of every second month (certificates last 90 days), and restarts all Docker containers to apply changes:
+Add the following line to the end of the file, which runs certbot on the first day of every second month (certificates last 90 days), and restarts all Docker containers to apply changes:
 
 ```
-0 5 1 */2 *  /usr/bin/docker compose -f /root/imageshare/docker-compose-prod.yml run certbot certonly --webroot --webroot-path /var/www/certbot/ --email youremail@gmail.com -d yourdomain.com --agree-tos --no-redirect  --non-interactive; docker compose restart
+0 5 1 */2 *  /usr/bin/docker compose -f /user/imageshare/docker-compose-prod.yml run certbot certonly --webroot --webroot-path /var/www/certbot/ --email youremail@gmail.com -d yourdomain.com --agree-tos --no-redirect  --non-interactive; docker compose restart
 ```
 
 You will need to replace the path to the compose file with the correct path, as well as the domain and email address in the certbot command. Then save your changes.
