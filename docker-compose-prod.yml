@@ -14,7 +14,7 @@ services:
     networks:
       - internal
     volumes:
-      - ./nginx/templates:/etc/nginx/templates/
+      - ./nginx/production/templates:/etc/nginx/templates/
       - ./data/:/var/www/html/
       - ./logs/nginx:/var/log/nginx/
       - ./certbot/www:/var/www/certbot/:ro
