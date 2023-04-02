@@ -9,7 +9,7 @@ ImageShare is a lightweight web app for uploading images. It was originally desi
 - Does not require account creation or a login
 - Compatible with many old and low-end web browsers, using either HTTP or HTTPS
 - JavaScript does not have to be enabled in the browser
-- Fully open-source and can self-hostable using [Heroku](https://heroku.com), [DigitalOcean App Platform](https://www.digitalocean.com/products/app-platform), or nearly any PHP server
+- Fully open-source and can self-hostable using Docker (see [DEV.md](DEV.md))
 - Automatic game title detection for Nintendo 3DS uploads ([example](https://imgur.com/4Fb4HI6))
 
 ### How to use
