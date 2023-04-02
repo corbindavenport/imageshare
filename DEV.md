@@ -39,13 +39,22 @@ docker compose -f docker-compose.yml down
 
 ## Run ImageShare on a production server
 
-First, you need a server with Docker and Docker compose installed. I used the [pre-configured Docker droplet from DigitalOcean](https://marketplace.digitalocean.com/apps/docker). Then clone the ImageShare repository, set it up with an [Imgur API key](https://api.imgur.com/oauth2/addclient), and start it:
+First, you need a server with Docker and Docker compose installed. I used the [pre-configured Docker droplet from DigitalOcean](https://marketplace.digitalocean.com/apps/docker). Then clone the ImageShare repository, and set up the required environment variables. You need an [Imgur API key](https://api.imgur.com/oauth2/addclient), the domain you will use in production (this can be any value for just local testing), and your email address for Certbot notifications.
 
 ```
 git clone https://github.com/corbindavenport/imageshare.git
 cd imageshare
 echo "API_KEY=YourKeyGoesHere" > .env
+echo "DOMAIN=yourwebsitegoeshere.com" > .env
+echo "EMAIL=youremailaddress@gmail.com" > .env
 ```
+
+If you haven't already, set up a domain for ImageShare. If you want to retain compatibility with legacy web browsers, you may need to use an old top-level domain (e.g. `.com` or `.net`) instead of newer TLDs. The following DNS settings should be configured:
+
+| Type  | Host  | Value                                                       |
+| ----- | ----- | ----------------------------------------------------------- |
+| A     | @     | Your server IP address, like `165.20.200.20`                |
+| CNAME | www   | Your domain without the `www` part, like `myimageshare.net` |
 
 Then start the containers:
 

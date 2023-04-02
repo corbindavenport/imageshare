@@ -5,12 +5,16 @@ services:
     build:
       context: .
       dockerfile: nginx/production/Dockerfile
+    environment:
+      NGINX_ENVSUBST_TEMPLATE_SUFFIX: ".conf"
+      DOMAIN: ${DOMAIN}
     ports: 
       - 80:80
       - 443:443
     networks:
       - internal
     volumes:
+      - ./nginx/templates:/etc/nginx/templates/
       - ./data/:/var/www/html/
       - ./logs/nginx:/var/log/nginx/
       - ./certbot/www:/var/www/certbot/:ro
@@ -21,14 +25,14 @@ services:
       - ./certbot/www/:/var/www/certbot/:rw
       - ./certbot/conf/:/etc/letsencrypt/:rw
     # This should be your own web domain and email address
-    command: certonly --webroot --webroot-path /var/www/certbot/ --email corbindavenport@outlook.com -d corbintesting.com --agree-tos --no-redirect  --non-interactive
+    command: certonly --webroot --webroot-path /var/www/certbot/ --email ${EMAIL} -d ${DOMAIN} --agree-tos --no-redirect  --non-interactive
   php:
     restart: always
     build:
       context: .
       dockerfile: php/Dockerfile-production
-    env_file:
-      - ./.env
+    environment:
+      API_KEY: ${API_KEY}
     networks:
       - internal
 networks:
