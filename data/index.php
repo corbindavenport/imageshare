@@ -241,7 +241,6 @@
   <div class="panel upload-panel">
         <div class="panel-title">Upload Image</div>
         <div class="body">
-          <!-- Warnings -->
           <?php
           // HTTP warning: https://github.com/corbindavenport/imageshare/issues/14
           if (str_contains($_SERVER['HTTP_USER_AGENT'], 'Nintendo')) {
@@ -255,8 +254,14 @@
             <p><input name="img" id="img-btn" type="file" /></p>
             <p><input name="submit" type="submit" value="Upload" /></p>
           </form>
-          <!-- Discord integration -->
-          <p><a href="/discord.php">Open Discord settings</a></p>
+          <!-- Discord integration (doesn't work on Nintendo browsers yet) -->
+          <?php
+          if (str_contains($_SERVER['HTTP_USER_AGENT'], 'Nintendo')) {
+            // Do nothing
+          } else {
+            echo '<p><a href="/discord.php">Open Discord settings</a></p>';
+          }
+          ?>
           <!-- Description -->
           <p>ImageShare is a lightweight web app for uploading images with QR codes, created for the Nintendo 3DS and other legacy web browsers. See <a href="https://github.com/corbindavenport/imageshare" target="_blank">tinyurl.com/imgsharegit</a> for more information.</p>
           <p>If you find ImageShare useful, please consider donating to support development and server costs!</p>

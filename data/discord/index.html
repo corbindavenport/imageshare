@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageShare - Discord Setup</title>
+    <meta name="robots" content="noindex">
+    <link rel="stylesheet" type="text/css" href="/styles.css">
+    <link href="/favicon.ico" rel="icon" type="image/x-icon">
+</head>
+
+<body>
+
+    <div class="header">ImageShare</div>
+
+    <div class="container">
+
+        <div class="panel">
+            <div class="panel-title">Discord Settings</div>
+            <div class="body">
+                <noscript>
+                    <p>JavaScript is required for this page.</p>
+                </noscript>
+                <p>Create <a href="https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks" target="_blank">a webhook in Discord</a>, then paste the webhook URL in the text box below. A QR code will appear that you can scan with your device running ImageShare.</p>
+                <p><label for="webhook">Webhook URL:</label></p>
+                <p><input type="text" id="webhook" name="webhook" value=""></p>
+                <p><input name="submit" id="code-btn" type="button" value="Create code" /></p>
+                <p id="qr"></p>
+                <p><b>Nintendo 3DS:</b> Press L + R buttons on home screen, then press QR button on touch screen</p>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title">QR code</div>
+            <div class="body qr-panel" id="qr-container">
+                <p>A QR code will appear here.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        document.getElementById('code-btn').addEventListener('click', function() {
+            var container = document.getElementById('qr-container');
+            var webhook = 'http://' + window.location.hostname + '/discord.php?webhook=' + document.getElementById('webhook').value;
+            var imgEl = document.createElement('img');
+            imgEl.src = "//chart.googleapis.com/chart?chs=300x300&cht=qr&chld=L|0&chl=" + webhook;
+            container.innerHTML = imgEl.outerHTML;
+        })
+    </script>
+
+</body>
+
+</html>

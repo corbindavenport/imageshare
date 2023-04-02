@@ -1,5 +1,7 @@
 <?php
-if(isset($_POST['submit'])) {
+if (isset($_GET['webhook'])) {
+  setcookie("discord_webhook", $_GET["webhook"]);
+} else if (isset($_POST['submit'])) {
   setcookie("discord_webhook", $_POST["webhook"]);
 }
 ?>
@@ -51,7 +53,9 @@ if(isset($_POST['submit'])) {
               <form action="discord.php" id="upload-form" enctype="multipart/form-data" method="POST" autocomplete="off">
                 <p><label for="webhook">Webhook URL:</label></p>
                 <?php
-                  if (isset($_POST["webhook"])) {
+                  if (isset($_GET['webhook'])) {
+                    $webhook = $_GET["webhook"];
+                  } else if (isset($_POST['submit'])) {
                     $webhook = $_POST["webhook"];
                   } else if (isset($_COOKIE["discord_webhook"])) {
                     $webhook = $_COOKIE["discord_webhook"];
@@ -62,6 +66,7 @@ if(isset($_POST['submit'])) {
                 ?>
                 <p><input name="submit" type="submit" value="Save" /></p>
               </form>
+              <p>Don't want to type the webhook here? Open <b>theimageshare.com/discord</b> on another device.</p>
               <p>How to use webhooks: <a href="https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks" target="_blank">https://tinyurl.com/diswebhook</a></p>
               <p><a href="/">Go back home</a></p>
           </div>
