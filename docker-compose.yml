@@ -12,14 +12,15 @@ services:
     volumes:
       - ./data/:/var/www/html/
       - ./logs/nginx:/var/log/nginx/
+      - ./certbot/www:/var/www/certbot/:ro
+      - ./certbot/conf/:/etc/nginx/ssl/:ro
   certbot:
-    image: certbot/certbot
-    container_name: certbot
-    volumes: 
-      - ./certbot/conf:/etc/letsencrypt:rw
-      - ./certbot/www:/var/www/certbot:rw
+    image: certbot/certbot:latest
+    volumes:
+      - ./certbot/www/:/var/www/certbot/:rw
+      - ./certbot/conf/:/etc/letsencrypt/:rw
     # This should be your own web domain and email address
-    command: certonly --webroot -w /var/www/certbot --force-renewal --email corbindavenport@outlook.com -d corbintesting.com --agree-tos --no-redirect  --non-interactive
+    command: certonly --webroot --webroot-path /var/www/certbot/ --email corbindavenport@outlook.com -d corbintesting.com --agree-tos --no-redirect  --non-interactive
   php:
     image: php:fpm-alpine
     env_file:
