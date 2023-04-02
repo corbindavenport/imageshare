@@ -60,7 +60,7 @@
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:creator" content="@corbindavenport" />
     <meta name="twitter:title" content="ImageShare" />
-    <meta name="twitter:description" content="Lightweight web app for uploading images, created for the Nintendo 3DS and other legacy web browsers." />
+    <meta name="twitter:description" content="ImageShare is a lightweight web app for uploading images, created for the Nintendo 3DS and other legacy web browsers." />
     <meta name="twitter:image" content="https://theimageshare.com/img/maskable_icon_x512.png" />
     <meta name="twitter:image:alt" content="ImageShare app icon" />
 </head>
@@ -72,6 +72,9 @@
     <div class="container">
 
         <?php
+        // Turn off all error reporting
+        error_reporting(0);
+
         if(isset($_POST['submit'])){
 
           // Set initial info
@@ -135,18 +138,6 @@
           $id = $pms['data']['id'];
           $delete_hash = $pms['data']['deletehash'];
 
-          // Generate social media share links
-          if (str_contains($_SERVER['HTTP_USER_AGENT'], 'Nintendo')) {
-            $share_links = '<p><a href="http://i.reddit.com/submit?url=https://imgur.com/'.$id.'" target="_blank">Submit to Reddit</a></p>';
-          } else {
-            // Show more share links for non-Nintendo browsers (these sites are tested as no longer compatible with 3DS/Wii U)
-            $share_links = '
-            <p><a href="http://i.reddit.com/submit?url=https://imgur.com/'.$id.'" target="_blank">Submit to Reddit</a></p>
-            <p><a href="https://www.facebook.com/sharer/sharer.php?u=https://imgur.com/'.$id.'" target="_blank">Share to Facebook</a></p>
-            <p><a href="https://twitter.com/intent/tweet?text=Sent%20from%20ImageShare&url=https://imgur.com/'.$id.'" target="_blank">Share to Twitter</a></p>
-            ';
-          }
-
           // Display result
           $out = '
             <div class="panel qr-panel">
@@ -160,7 +151,6 @@
                     <p><input name="submit" type="submit" value="Delete image" /></p>
                     <input type="hidden" name="id" value="'.$delete_hash.'" />
                   </form>
-                  '.$share_links.'
                 </center>
               </div>
             </div>';
@@ -199,10 +189,6 @@
         <div class="body">
           <!-- Warnings -->
           <?php
-          // Redirect from Heroku: https://github.com/corbindavenport/imageshare/issues/11
-          if (str_contains($_SERVER['HTTP_HOST'], 'herokuapp.com')) {
-            echo '<p><b>ImageShare is moving to <a href="http://theimageshare.com/">theimageshare.com</a>. This site will not be accessible by November 2022. Please update your bookmarks now.</b></p>'.PHP_EOL;
-          }
           // HTTP warning: https://github.com/corbindavenport/imageshare/issues/14
           if (str_contains($_SERVER['HTTP_USER_AGENT'], 'Nintendo')) {
             // Do nothing
@@ -214,13 +200,13 @@
           <form action="index.php" id="upload-form" enctype="multipart/form-data" method="POST">
             <p><input name="img" id="img-btn" type="file" /></p>
             <p><input name="submit" type="submit" value="Upload" /></p>
-            <p>ImageShare is a lightweight web app for uploading images with QR codes, created for the Nintendo 3DS and other legacy web browsers. See <a href="https://github.com/corbindavenport/imageshare" target="_blank">tinyurl.com/imgsharegit</a> for more information.</p>
-            <p>If you find ImageShare useful, please consider donating to support development and server costs!</p>
-            <p style="text-align: center;"><b><a href="https://cash.app/$corbdav" target="_blank">cash.app/$corbdav</a> • <a href="https://paypal.me/corbindav" target="_blank">paypal.me/corbindav</a></b></p>
-            <hr />
-            <p>Join Discord server: <a href="https://discord.gg/tqJDRsmQVn" target="_blank">discord.gg/tqJDRsmQVn</a></p>
-            <p>Follow on Twitter: <a href="https://twitter.com/intent/follow?screen_name=corbindavenport" target="_blank">@corbindavenport</a>
           </form>
+          <p>ImageShare is a lightweight web app for uploading images with QR codes, created for the Nintendo 3DS and other legacy web browsers. See <a href="https://github.com/corbindavenport/imageshare" target="_blank">tinyurl.com/imgsharegit</a> for more information.</p>
+          <p>If you find ImageShare useful, please consider donating to support development and server costs!</p>
+          <p style="text-align: center;"><b><a href="https://cash.app/$corbdav" target="_blank">cash.app/$corbdav</a> • <a href="https://paypal.me/corbindav" target="_blank">paypal.me/corbindav</a></b></p>
+          <hr />
+          <p>Join Discord server: <a href="https://discord.gg/tqJDRsmQVn" target="_blank">discord.gg/tqJDRsmQVn</a></p>
+          <p>Follow on Mastodon: <a href="https://toot.community/@corbin" target="_blank">@corbin@toot.community</a>
         </div>
     </div>
         

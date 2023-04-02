@@ -15,14 +15,13 @@ Setting up ImageShare on a production server involves using the `docker-compose`
 
 ## Run ImageShare on a local PC or server
 
-First, you need to clone the ImageShare repository (if you haven't already), and set up the required environment variables. You need an [Imgur API key](https://api.imgur.com/oauth2/addclient), the domain you will use in production (this can be any value for just local testing), and your email address for Certbot notifications:
+First, you need to clone the ImageShare repository (if you haven't already), and set up the required environment variables. You need an [Imgur API key](https://api.imgur.com/oauth2/addclient), and the domain you will use in production (this can be any value for just local testing):
 
 ```
 git clone https://github.com/corbindavenport/imageshare.git
 cd imageshare
 echo "API_KEY=YourKeyGoesHere" > .env
 echo "DOMAIN=yourwebsitegoeshere.com" > .env
-echo "EMAIL=youremailaddress@gmail.com" > .env
 ```
 
 Then start the application like this:
@@ -41,14 +40,13 @@ docker compose -f docker-compose.yml down
 
 ## Run ImageShare on a production server
 
-First, you need a server with Docker and Docker compose installed. I used the [pre-configured Docker droplet from DigitalOcean](https://marketplace.digitalocean.com/apps/docker). Then clone the ImageShare repository, and set up the required environment variables. You need an [Imgur API key](https://api.imgur.com/oauth2/addclient), the domain you will use in production, and your email address for Certbot notifications:
+First, you need a server with Docker and Docker compose installed. I used the [pre-configured Docker droplet from DigitalOcean](https://marketplace.digitalocean.com/apps/docker). Then clone the ImageShare repository, and set up the required environment variables. You need an [Imgur API key](https://api.imgur.com/oauth2/addclient), and the domain you will use in production:
 
 ```
 git clone https://github.com/corbindavenport/imageshare.git
 cd imageshare
 echo "API_KEY=YourKeyGoesHere" > .env
 echo "DOMAIN=yourwebsitegoeshere.com" > .env
-echo "EMAIL=youremailaddress@gmail.com" > .env
 ```
 
 If you haven't already, set up a domain for ImageShare. If you want to retain compatibility with legacy web browsers, you may need to use an old top-level domain (e.g. `.com` or `.net`) instead of newer TLDs. The following DNS settings should be configured:
@@ -64,7 +62,13 @@ Then start the containers:
 docker compose -f docker-compose.yml up
 ```
 
-ImageShare should now be running at the server's IP address, and Certbot should have generated valid SSL certificates. You can check the results by running `docker logs certbot`. If it worked, you can switch to the production version:
+ImageShare should now be running at the server's IP address. Now you need to run Certbot to generate SSL certificates (substitute your own domain and email):
+
+```
+docker compose run --rm  certbot certonly --webroot --webroot-path /var/www/certbot/ --email youremail@gmail.com -d yourdomain.com --agree-tos --no-redirect  --non-interactive
+```
+
+If it worked, you can switch to the production version:
 
 ```
 docker compose down
