@@ -15,12 +15,14 @@ Setting up ImageShare on a production server involves using the `docker-compose`
 
 ## Run ImageShare on a local PC or server
 
-First, you need to clone the ImageShare repository, and switch to the new directory. You also need to obtain an [Imgur API key](https://api.imgur.com/oauth2/addclient) and write it to a `.env` file, like this:
+First, you need to clone the ImageShare repository (if you haven't already), and set up the required environment variables. You need an [Imgur API key](https://api.imgur.com/oauth2/addclient), the domain you will use in production (this can be any value for just local testing), and your email address for Certbot notifications:
 
 ```
 git clone https://github.com/corbindavenport/imageshare.git
 cd imageshare
 echo "API_KEY=YourKeyGoesHere" > .env
+echo "DOMAIN=yourwebsitegoeshere.com" > .env
+echo "EMAIL=youremailaddress@gmail.com" > .env
 ```
 
 Then start the application like this:
@@ -39,7 +41,7 @@ docker compose -f docker-compose.yml down
 
 ## Run ImageShare on a production server
 
-First, you need a server with Docker and Docker compose installed. I used the [pre-configured Docker droplet from DigitalOcean](https://marketplace.digitalocean.com/apps/docker). Then clone the ImageShare repository, and set up the required environment variables. You need an [Imgur API key](https://api.imgur.com/oauth2/addclient), the domain you will use in production (this can be any value for just local testing), and your email address for Certbot notifications.
+First, you need a server with Docker and Docker compose installed. I used the [pre-configured Docker droplet from DigitalOcean](https://marketplace.digitalocean.com/apps/docker). Then clone the ImageShare repository, and set up the required environment variables. You need an [Imgur API key](https://api.imgur.com/oauth2/addclient), the domain you will use in production, and your email address for Certbot notifications:
 
 ```
 git clone https://github.com/corbindavenport/imageshare.git
