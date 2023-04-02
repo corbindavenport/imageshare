@@ -21,6 +21,7 @@ services:
     volumes:
       - ./certbot/www/:/var/www/certbot/:rw
       - ./certbot/conf/:/etc/letsencrypt/:rw
+    command: certonly --webroot --webroot-path /var/www/certbot/ --email ${EMAIL} -d ${DOMAIN} --agree-tos --no-redirect  --non-interactive
   php:
     image: php:fpm-alpine
     environment:
