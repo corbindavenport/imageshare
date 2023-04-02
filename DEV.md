@@ -20,8 +20,8 @@ First, you need to clone the ImageShare repository (if you haven't already), and
 ```
 git clone https://github.com/corbindavenport/imageshare.git
 cd imageshare
-echo "API_KEY=YourKeyGoesHere" > .env
-echo "DOMAIN=yourwebsitegoeshere.com" > .env
+echo "\nAPI_KEY=YourKeyGoesHere" >> .env
+echo "\nDOMAIN=yourwebsitegoeshere.com" >> .env
 ```
 
 Then start the application like this:
@@ -45,8 +45,8 @@ First, you need a server with Docker and Docker compose installed. I used the [p
 ```
 git clone https://github.com/corbindavenport/imageshare.git
 cd imageshare
-echo "API_KEY=YourKeyGoesHere" > .env
-echo "DOMAIN=yourwebsitegoeshere.com" > .env
+echo "\nAPI_KEY=YourKeyGoesHere" > .env
+echo "\nDOMAIN=yourwebsitegoeshere.com" > .env
 ```
 
 If you haven't already, set up a domain for ImageShare. If you want to retain compatibility with legacy web browsers, you may need to use an old top-level domain (e.g. `.com` or `.net`) instead of newer TLDs. The following DNS settings should be configured:
@@ -62,7 +62,7 @@ Then start the containers:
 docker compose -f docker-compose.yml up
 ```
 
-ImageShare should now be running at the server's IP address. Now you need to run Certbot to generate SSL certificates (substitute your own domain and email):
+ImageShare should now be running at the server's IP address. After you verify the web server is working (DNS settings might take a while to kick in), you need to run Certbot to generate SSL certificates (substitute your own domain and email):
 
 ```
 docker compose run --rm  certbot certonly --webroot --webroot-path /var/www/certbot/ --email youremail@gmail.com -d yourdomain.com --agree-tos --no-redirect  --non-interactive
@@ -75,7 +75,19 @@ docker compose down
 docker compose -f docker-compose-prod.yml up
 ```
 
-TODO: Add instructions for auto-renew and auto startup
+The production version should reboot the containers if they go down (e.g. after a reboot), if your Docker is set up correctly. The last step is to automate the certificate renewal, so SSL continues to work. On Linux systems, create a crontab like this:
+
+```
+crontab -e
+```
+
+Then add the following line, which runs certbot on the first day of every second month (certificates last 90 days), and restarts all Docker containers to apply changes:
+
+```
+0 5 1 */2 *  /usr/bin/docker compose -f /root/imageshare/docker-compose-prod.yml run certbot certonly --webroot --webroot-path /var/www/certbot/ --email youremail@gmail.com -d yourdomain.com --agree-tos --no-redirect  --non-interactive; docker compose restart
+```
+
+You will need to replace the path to the compose file with the correct path, as well as the domain and email address in the certbot command. Then save your changes.
 
 ## Updating ImageShare
 
