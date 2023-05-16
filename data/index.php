@@ -120,6 +120,7 @@
             CURLOPT_CUSTOMREQUEST => 'POST',
             CURLOPT_POSTFIELDS => array(
               'image' => $data,
+              'type' => 'file',
               'title' => $software,
               'description' => $description
             ),
