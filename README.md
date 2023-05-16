@@ -1,6 +1,6 @@
 # ImageShare
 
-**If you can no longer connect to ImageShare on the 3DS, Wii U, or other legacy browser/device, replace HTTPS in the bookmark with HTTP.**
+**ImageShare is using a backup API right now, see [#19](https://github.com/corbindavenport/imageshare/issues/19) for details.**
 
 ImageShare is a lightweight web app for uploading images. It was originally designed as a replacement for the [Nintendo 3DS Image Share Service](https://web.archive.org/web/20170822055326/https://www.nintendo.com/3ds/image-share), accessible through the Nintendo 3DS/2DS Browser, but it also works on many other basic/legacy web browsers. When you select an image with ImageShare, it is uploaded to [Imgur](https://imgur.com) and presented as a QR code to scan with another device.
 
@@ -18,7 +18,7 @@ Just open [theimageshare.com](http://theimageshare.com/) in your browser to acce
 
 <div align="center"><img src="https://i.imgur.com/CwnqTbp.png" /></div><br>
 
-Once you have ImageShare open, bookmark it (tap the star button on the 3DS) for easy access later.
+Once you have ImageShare open, bookmark it (tap the star button on the 3DS) for easy access later. If your device supports the SSL certificate, you can use ImageShare over HTTPS instead of HTTP for added security.
 
 ### Privacy Policy & Terms of Service
 
