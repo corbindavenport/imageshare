@@ -125,7 +125,7 @@
               'description' => $description
             ),
             CURLOPT_HTTPHEADER => array(
-              'Authorization: 1Client-ID '.$client
+              'Authorization: Client-ID '.$client
             ),
           ));
 
@@ -159,7 +159,7 @@
               // Parse result
               $pms = json_decode($output,true);
               $page_url = $pms['data']['url_viewer'];
-              $image_url = $pms['data']['url'];
+              $image_url = $pms['data']['url']; 
             } else {
               // Show error message
               echo '<meta http-equiv="refresh" content="0;url=error.php">';
