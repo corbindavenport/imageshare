@@ -81,12 +81,11 @@
           $software = 'ImageShare Upload';
           $description = 'Uploaded with ImageShare: https://github.com/corbindavenport/imageshare';
           
-          // Convert image to base64
+          // Open image
           $img = $_FILES['img'];
           $filename = $img['tmp_name'];
           $handle = fopen($filename, "r");
           $data = fread($handle, filesize($filename));
-          $base64 = base64_encode($data);
 
           // Get EXIF data
           $exif = exif_read_data($handle);
@@ -120,7 +119,7 @@
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => 'POST',
             CURLOPT_POSTFIELDS => array(
-              'image' => $base64,
+              'image' => $data,
               'title' => $software,
               'description' => $description
             ),
