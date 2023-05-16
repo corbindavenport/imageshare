@@ -131,7 +131,14 @@
 
           // Upload image
           $output = curl_exec($curl);
+          $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
           curl_close($curl);
+          
+          // Check status
+          if ($status != 200) {
+            echo '<meta http-equiv="refresh" content="0;url=error.php">';
+            exit();
+          }
 
           // Parse result
           $pms = json_decode($output,true);
