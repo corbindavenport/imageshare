@@ -125,7 +125,7 @@
               'description' => $description
             ),
             CURLOPT_HTTPHEADER => array(
-              'Authorization: Client-ID '.$client
+              'Authorization: 1Client-ID '.$client
             ),
           ));
 
@@ -134,18 +134,38 @@
           $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
           curl_close($curl);
           
-          // Check status
-          if ($status != 200) {
-            echo '<meta http-equiv="refresh" content="0;url=error.php">';
-            exit();
+          if ($status == 200) {
+            // Parse result from Imgur
+            $pms = json_decode($output,true);
+            $page_url = 'https://imgur.com/'.$pms['data']['id'];
+            $image_url = $pms['data']['link'];
+            $delete_hash = $pms['data']['deletehash'];
+            // For debugging: var_dump($pms);
+          } else {
+            // Imgur API returned an error, try ImgBB
+            if ((getenv('IMGBB_KEY'))) {
+              $imgbb_post = [
+                'key' => getenv('IMGBB_KEY'),
+                'image' => base64_encode($data),
+                'expiration' => 120
+              ];
+              $ch = curl_init('https://api.imgbb.com/1/upload');
+              curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+              curl_setopt($ch, CURLOPT_POSTFIELDS, $imgbb_post);
+              // Upload image to ImgBB
+              $output = curl_exec($ch);
+              curl_close($ch);
+              // TODO: Parse ImgBB errors
+              // Parse result
+              $pms = json_decode($output,true);
+              $page_url = $pms['data']['url_viewer'];
+              $image_url = $pms['data']['url'];
+            } else {
+              // Show error message
+              echo '<meta http-equiv="refresh" content="0;url=error.php">';
+              exit();
+            }
           }
-
-          // Parse result
-          $pms = json_decode($output,true);
-          $id = $pms['data']['id'];
-          $imgurl = $pms['data']['link'];
-          $delete_hash = $pms['data']['deletehash'];
-          // For debugging: var_dump($pms);
 
           // Send to Discord if enabled
           if (isset($_COOKIE["discord_webhook"])) {
@@ -161,13 +181,13 @@
                 "embeds": [
                   {
                     "title": "'.$software.'",
-                    "url": "https://imgur.com/'.$id.'",
+                    "url": "'.$page_url.'",
                     "color": null,
                     "footer": {
                       "text": "Uploader: '.$_SERVER["HTTP_USER_AGENT"].'"
                     },
                     "image": {
-                      "url": "'.$imgurl.'"
+                      "url": "'.$image_url.'"
                     }
                   }
                 ],
@@ -184,18 +204,25 @@
           }
 
           // Display result
+          if (str_contains($page_url, 'imgur')) {
+            $host_options = '
+            <form action="delete.php" id="upload-form" enctype="multipart/form-data" method="POST">
+              <p><input name="submit" type="submit" value="Delete image" /></p>
+              <input type="hidden" name="id" value="'.$delete_hash.'" />
+            </form>
+            ';
+          } else {
+            $host_options = '<p>The Imgur API was unavailable, ImgBB was used instead. <b>You have two minutes to save your image before it is automatically deleted.</b></p>';
+          }
           $out = '
             <div class="panel qr-panel">
               <div class="panel-title">'.$software.'</div>
               <div class="body">
                 <center>
-                  <a href="https://imgur.com/'.$id.'" target="_blank">
-                    <img alt="QR code (click to open page in new window)" src="//chart.googleapis.com/chart?chs=300x300&cht=qr&chld=L|0&chl=https://imgur.com/'.$id.'">
+                  <a href="'.$page_url.'" target="_blank">
+                    <img alt="QR code (click to open page in new window)" src="//chart.googleapis.com/chart?chs=300x300&cht=qr&chld=L|0&chl='.$page_url.'">
                   </a>
-                  <form action="delete.php" id="upload-form" enctype="multipart/form-data" method="POST">
-                    <p><input name="submit" type="submit" value="Delete image" /></p>
-                    <input type="hidden" name="id" value="'.$delete_hash.'" />
-                  </form>
+                  '.$host_options.'
                 </center>
               </div>
             </div>';
