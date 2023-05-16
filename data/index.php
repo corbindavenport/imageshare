@@ -37,7 +37,7 @@
       // Set HTTP Header for POST request 
       curl_setopt($crl, CURLOPT_HTTPHEADER, array(
         'User-Agent: ' . $_SERVER['HTTP_USER_AGENT'],
-        'X-Forwarded-For: 127.0.0.1',
+        'X-Forwarded-For: ' . $_SERVER['REMOTE_ADDR'],
         'Content-Type: application/json')
       );
       // Submit the POST request
@@ -162,22 +162,6 @@
                     "image": {
                       "url": "'.$imgurl.'"
                     }
-                  },
-                  {
-                    "color": null,
-                    "author": {
-                      "name": "Donate via PayPal",
-                      "url": "https://paypal.me/corbindav",
-                      "icon_url": "https://i.imgur.com/QLhiS7y.png"
-                    }
-                  },
-                  {
-                    "color": null,
-                    "author": {
-                      "name": "Donate via Cash App",
-                      "url": "https://cash.app/$corbdav",
-                      "icon_url": "https://i.imgur.com/Bx4gHCP.png"
-                    }
                   }
                 ],
                 "username": "ImageShare",
@@ -227,7 +211,7 @@
             // Set HTTP Header for POST request 
             curl_setopt($crl, CURLOPT_HTTPHEADER, array(
               'User-Agent: ' . $_SERVER['HTTP_USER_AGENT'],
-              'X-Forwarded-For: 127.0.0.1',
+              'X-Forwarded-For: ' . $_SERVER['REMOTE_ADDR'],
               'Content-Type: application/json')
             );
             // Submit the POST request
