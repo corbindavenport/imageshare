@@ -1,7 +1,5 @@
 # ImageShare
 
-**ImageShare is using a backup API right now, see [#19](https://github.com/corbindavenport/imageshare/issues/19) for details.**
-
 ImageShare is a lightweight web app for uploading images. It was originally designed as a replacement for the [Nintendo 3DS Image Share Service](https://web.archive.org/web/20170822055326/https://www.nintendo.com/3ds/image-share), accessible through the Nintendo 3DS/2DS Browser, but it also works on many other basic/legacy web browsers. When you select an image with ImageShare, it is uploaded to [Imgur](https://imgur.com) and presented as a QR code to scan with another device.
 
 ### Features
