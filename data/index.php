@@ -158,7 +158,7 @@
               // TODO: Parse ImgBB errors
               // Parse result
               $pms = json_decode($output,true);
-              $page_url = $pms['data']['url_viewer'];
+              $page_url = $pms['data']['url']; // url_viewer is having issues
               $image_url = $pms['data']['url']; 
             } else {
               // Show error message
@@ -259,14 +259,6 @@
   <div class="panel upload-panel">
         <div class="panel-title">Upload Image</div>
         <div class="body">
-          <?php
-          // HTTP warning: https://github.com/corbindavenport/imageshare/issues/14
-          if (str_contains($_SERVER['HTTP_USER_AGENT'], 'Nintendo')) {
-            // Do nothing
-          } else {
-            echo '<p><b>If you can no longer connect to ImageShare on the 3DS, Wii U, or other legacy browser/device, replace HTTPS in the bookmark with HTTP.</b></p>';
-          }
-          ?>
           <!-- Main upload form -->
           <form action="index.php" id="upload-form" enctype="multipart/form-data" method="POST">
             <p><input name="img" id="img-btn" type="file" /></p>
@@ -283,7 +275,8 @@
           <!-- Description -->
           <p>ImageShare is a lightweight web app for uploading images with QR codes, created for the Nintendo 3DS and other legacy web browsers. See <a href="https://github.com/corbindavenport/imageshare" target="_blank">tinyurl.com/imgsharegit</a> for more information.</p>
           <p>If you find ImageShare useful, please consider donating to support development and server costs!</p>
-          <p style="text-align: center;"><b><a href="https://cash.app/$corbdav" target="_blank">cash.app/$corbdav</a> • <a href="https://paypal.me/corbindav" target="_blank">paypal.me/corbindav</a></b></p>
+          <p style="text-align: center; font-weight: bold;"><a href="https://www.patreon.com/corbindavenport" target="_blank">patreon.com/corbindavenport</a></p>
+          <p style="text-align: center; font-weight: bold;"><a href="https://cash.app/$corbdav" target="_blank">cash.app/$corbdav</a> • <a href="https://paypal.me/corbindav" target="_blank">paypal.me/corbindav</a></p>
           <hr />
           <p>Join Discord server: <a href="https://discord.gg/tqJDRsmQVn" target="_blank">discord.gg/tqJDRsmQVn</a></p>
           <p>Follow on Mastodon: <a href="https://toot.community/@corbin" target="_blank">@corbin@toot.community</a>
