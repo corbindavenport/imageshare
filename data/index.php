@@ -106,121 +106,108 @@
             }
           }
 
-          // Upload image
+          // Set up image upload with selected service
           $curl = curl_init();
-          $client = getenv('API_KEY');
-          curl_setopt_array($curl, array(
-            CURLOPT_URL => 'https://api.imgur.com/3/image',
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS => array(
-              'image' => $data,
-              'type' => 'file',
-              'title' => $software,
-              'description' => $description
-            ),
-            CURLOPT_HTTPHEADER => array(
-              'Authorization: Client-ID '.$client
-            ),
-          ));
+          if ($_POST["upload_method"] === 'imgur_anonymous') {
+            // Imgur anonymous upload
+            $client = getenv('API_KEY');
+            curl_setopt_array($curl, array(
+              CURLOPT_URL => 'https://api.imgur.com/3/image',
+              CURLOPT_RETURNTRANSFER => true,
+              CURLOPT_ENCODING => '',
+              CURLOPT_MAXREDIRS => 10,
+              CURLOPT_TIMEOUT => 0,
+              CURLOPT_FOLLOWLOCATION => true,
+              CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+              CURLOPT_CUSTOMREQUEST => 'POST',
+              CURLOPT_POSTFIELDS => array(
+                'image' => $data,
+                'type' => 'file',
+                'title' => $software,
+                'description' => $description
+              ),
+              CURLOPT_HTTPHEADER => array(
+                'Authorization: Client-ID '.$client
+              ),
+            ));
+          } else if ($_POST["upload_method"] === 'imgbb_anonymous') {
+            // Anonymous ImgBB upload
+            curl_setopt_array($curl, array(
+              CURLOPT_URL => 'https://api.imgbb.com/1/upload',
+              CURLOPT_RETURNTRANSFER => true,
+              CURLOPT_ENCODING => '',
+              CURLOPT_MAXREDIRS => 10,
+              CURLOPT_TIMEOUT => 0,
+              CURLOPT_FOLLOWLOCATION => true,
+              CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+              CURLOPT_CUSTOMREQUEST => 'POST',
+              CURLOPT_POSTFIELDS => array(
+                'key' => getenv('IMGBB_KEY'),
+                'image' => base64_encode($data),
+                'expiration' => 120
+              )
+            ));
+          } else if ($_POST["upload_method"] === 'imgbb_registered') {
+            // Registered ImgBB upload
+            curl_setopt_array($curl, array(
+              CURLOPT_URL => 'https://api.imgbb.com/1/upload',
+              CURLOPT_RETURNTRANSFER => true,
+              CURLOPT_ENCODING => '',
+              CURLOPT_MAXREDIRS => 10,
+              CURLOPT_TIMEOUT => 0,
+              CURLOPT_FOLLOWLOCATION => true,
+              CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+              CURLOPT_CUSTOMREQUEST => 'POST',
+              CURLOPT_POSTFIELDS => array(
+                'key' => $_COOKIE["imgbb_key"],
+                'name' => $software,
+                'image' => base64_encode($data)
+              )
+            ));
+          }
 
           // Upload image
           $output = curl_exec($curl);
           $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
           curl_close($curl);
           
+          // Parse result
           if ($status == 200) {
-            // Parse result from Imgur
-            $pms = json_decode($output,true);
-            $page_url = 'https://imgur.com/'.$pms['data']['id'];
-            $image_url = $pms['data']['link'];
-            $delete_hash = $pms['data']['deletehash'];
-            // For debugging: var_dump($pms);
-          } else {
-            // Imgur API returned an error, try ImgBB
-            if ((getenv('IMGBB_KEY'))) {
-              $imgbb_post = [
-                'key' => getenv('IMGBB_KEY'),
-                'image' => base64_encode($data),
-                'expiration' => 120
-              ];
-              $ch = curl_init('https://api.imgbb.com/1/upload');
-              curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-              curl_setopt($ch, CURLOPT_POSTFIELDS, $imgbb_post);
-              // Upload image to ImgBB
-              $output = curl_exec($ch);
-              curl_close($ch);
-              // TODO: Parse ImgBB errors
-              // Parse result
+            // Image URL
+            if ($_POST["upload_method"] === 'imgur_anonymous') {
               $pms = json_decode($output,true);
-              $page_url = $pms['data']['url']; // url_viewer is having issues
-              $image_url = $pms['data']['url']; 
-            } else {
-              // Show error message
-              echo '<meta http-equiv="refresh" content="0;url=error.php">';
-              exit();
+              $img_url = 'https://imgur.com/'.$pms['data']['id'];
+              $delete_hash = $pms['data']['deletehash'];
+            } else if (($_POST["upload_method"] === 'imgbb_anonymous') || ($_POST["upload_method"] === 'imgbb_registered')) {
+              $pms = json_decode($output,true);
+              $img_url = $pms['data']['url'];
             }
-          }
-
-          // Send to Discord if enabled
-          if (isset($_COOKIE["discord_webhook"])) {
-            $webhook_curl = curl_init();
-            curl_setopt_array($webhook_curl, array(
-              CURLOPT_URL => $_COOKIE["discord_webhook"],
-              CURLOPT_MAXREDIRS => 10,
-              CURLOPT_TIMEOUT => 0,
-              CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-              CURLOPT_CUSTOMREQUEST => 'POST',
-              CURLOPT_POSTFIELDS => '{
-                "content": null,
-                "embeds": [
-                  {
-                    "title": "'.$software.'",
-                    "url": "'.$page_url.'",
-                    "color": null,
-                    "footer": {
-                      "text": "Uploader: '.$_SERVER["HTTP_USER_AGENT"].'"
-                    },
-                    "image": {
-                      "url": "'.$image_url.'"
-                    }
-                  }
-                ],
-                "username": "ImageShare",
-                "avatar_url": "https://i.imgur.com/bmjhpX4.png",
-                "attachments": []
-              }',
-              CURLOPT_HTTPHEADER => array(
-                'Content-Type: application/json'
-              ),
-            ));
-            $discord_output = curl_exec($webhook_curl);
-            curl_close($webhook_curl);
+          } else {
+            // Show error message
+            echo '<meta http-equiv="refresh" content="0;url=error.php">';
+            exit();
           }
 
           // Display result
-          if (str_contains($page_url, 'imgur')) {
+          if ($_POST["upload_method"] === 'imgur_anonymous') {
             $host_options = '
             <form action="delete.php" id="upload-form" enctype="multipart/form-data" method="POST">
               <p><input name="submit" type="submit" value="Delete image" /></p>
               <input type="hidden" name="id" value="'.$delete_hash.'" />
             </form>
             ';
-          } else {
-            $host_options = '<p>The Imgur API was unavailable, ImgBB was used instead. <b>You have two minutes to save your image before it is automatically deleted.</b></p>';
+          } else if ($_POST["upload_method"] === 'imgbb_anonymous') {
+            $host_options = '<p>You have two minutes to save your image before it is deleted. You can save your images permanently by entering an ImgBB API key in the settings.</p>';
+          } else if ($_POST["upload_method"] === 'imgbb_registered') {
+            $host_options = '<p>This image is also available from your ImgBB profile.</p>';
           }
           $out = '
             <div class="panel qr-panel">
               <div class="panel-title">'.$software.'</div>
               <div class="body">
                 <center>
-                  <a href="'.$page_url.'" target="_blank">
-                    <img alt="QR code (click to open page in new window)" src="//chart.googleapis.com/chart?chs=300x300&cht=qr&chld=L|0&chl='.$page_url.'">
+                  <a href="'.$img_url.'" target="_blank">
+                    <img alt="QR code (click to open page in new window)" src="//chart.googleapis.com/chart?chs=300x300&cht=qr&chld=L|0&chl='.$img_url.'">
                   </a>
                   '.$host_options.'
                 </center>
@@ -263,15 +250,51 @@
           <form action="index.php" id="upload-form" enctype="multipart/form-data" method="POST">
             <p><input name="img" id="img-btn" type="file" /></p>
             <p><input name="submit" type="submit" value="Upload" /></p>
+            <!-- Add upload options based on server-side and local cookie settings -->
+            <?php
+              // Check available upload options
+              $imgur_anonymous_status = 'disabled="true"';
+              $imgbb_anonymous_status = 'disabled="true"';
+              $imgbb_registered_status = 'disabled="true"';
+              if (getenv('API_KEY')) {
+                $imgur_anonymous_status = '';
+              }
+              if (getenv('IMGBB_KEY')) {
+                $imgbb_anonymous_status = '';
+              }
+              if (isset($_COOKIE["imgbb_key"])) {
+                $imgbb_registered_status = '';
+              }
+              // Set the default upload option
+              $imgur_anonymous_checked = '';
+              $imgbb_anonymous_checked = '';
+              $imgbb_registered_checked = '';
+              if (isset($_COOKIE["imgbb_key"])) {
+                // If there is an ImgBB API key, set it as the default
+                $imgbb_registered_checked = 'checked="checked"';
+              } else {
+                // Use ImgBB anonymous as secondary option
+                $imgbb_anonymous_checked = 'checked="checked"';
+              }
+              // Display upload options
+              echo '
+                <p>
+                  <input required type="radio" id="imgbb_anonymous" name="upload_method" '.$imgbb_anonymous_status.' value="imgbb_anonymous" '.$imgbb_anonymous_checked.' />
+                  <label for="imgbb_anonymous">ImgBB (anonymous)</label>
+                </p>
+                <p>
+                  <input type="radio" id="registered" name="upload_method" '.$imgbb_registered_status.' value="imgbb_registered" '.$imgbb_registered_checked.' />
+                  <label for="imgbb_registered">ImgBB with API key</label>
+                </p>
+                <p>
+                  <input type="radio" id="imgur_anonymous" name="upload_method" '.$imgur_anonymous_status.' value="imgur_anonymous" />
+                  <label for="imgur_anonymous" '.$imgur_anonymous_checked.' >Imgur (anonymous)</label>
+                </p>
+              ';
+            ?>
           </form>
-          <!-- Discord integration (doesn't work on Nintendo browsers yet) -->
-          <?php
-          if (str_contains($_SERVER['HTTP_USER_AGENT'], 'Nintendo')) {
-            // Do nothing
-          } else {
-            echo '<p><a href="/discord.php">Open Discord settings</a></p>';
-          }
-          ?>
+          <p><a href="/settings.php">Open Settings (API keys)</a></p>
+          <hr>
           <!-- Description -->
           <p>ImageShare is a lightweight web app for uploading images with QR codes, created for the Nintendo 3DS and other legacy web browsers. See <a href="https://github.com/corbindavenport/imageshare" target="_blank">tinyurl.com/imgsharegit</a> for more information.</p>
           <p>If you find ImageShare useful, please consider donating to support development and server costs!</p>

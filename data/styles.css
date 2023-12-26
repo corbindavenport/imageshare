@@ -92,9 +92,15 @@ hr {
 	padding-right: 15px;
 }
 
-input {
+input[type="button"],
+input[type="submit"] {
     width: 100%;
     display: block;
+}
+
+input[type="text"] {
+	width: 97.5%;
+	width: calc(100% - 0.6em);
 }
 
 .qr-panel img {

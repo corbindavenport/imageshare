@@ -1,8 +1,6 @@
 <?php
-if (isset($_GET['webhook'])) {
-  setcookie("discord_webhook", $_GET["webhook"]);
-} else if (isset($_POST['submit'])) {
-  setcookie("discord_webhook", $_POST["webhook"]);
+if (isset($_POST['submit'])) {
+  setcookie("imgbb_key", $_POST["imgbb_key"]);
 }
 ?>
 
@@ -11,7 +9,7 @@ if (isset($_GET['webhook'])) {
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>ImageShare</title>
+    <title>ImageShare - Settings</title>
     <meta name="robots" content="noindex">
     <link rel="stylesheet" type="text/css" href="styles.css">
     <link href="favicon.ico" rel="icon" type="image/x-icon">
@@ -45,30 +43,30 @@ if (isset($_GET['webhook'])) {
     <div class="container">
 
       <div class="panel">
-          <div class="panel-title">Discord Settings</div>
+          <div class="panel-title">ImageShare Settings</div>
           <div class="body">
-              <p>ImageShare can automatically send all new images to a Discord channel using webhooks, for easier access on desktops or other devices without easy QR code scanning.</p>
-              <p>To stop using webhooks, clear the text field and click Save.</p>
+              <p>You can enter API keys here to enable new upload options.</p>
+              <p>More information: TODO</p>
+              <hr>
               <!-- Main upload form -->
-              <form action="discord.php" id="upload-form" enctype="multipart/form-data" method="POST" autocomplete="off">
-                <p><label for="webhook">Webhook URL:</label></p>
+              <form action="settings.php" id="upload-form" enctype="multipart/form-data" method="POST" autocomplete="off">
+                <p><b>ImgBB.com</b></p>
+                <p><label for="webhook">API key:</label></p>
                 <?php
-                  if (isset($_GET['webhook'])) {
-                    $webhook = $_GET["webhook"];
-                  } else if (isset($_POST['submit'])) {
-                    $webhook = $_POST["webhook"];
-                  } else if (isset($_COOKIE["discord_webhook"])) {
-                    $webhook = $_COOKIE["discord_webhook"];
+                  if (isset($_POST['imgbb_key'])) {
+                    $imgbb_key = $_POST["imgbb_key"];
+                  } else if (isset($_COOKIE["imgbb_key"])) {
+                    $imgbb_key = $_COOKIE["imgbb_key"];
                   } else {
-                    $webhook = "";
+                    $imgbb_key = "";
                   }
-                  echo '<p><input type="text" id="webhook" name="webhook" value="'.$webhook.'"></p>';
+                  echo '<p><input type="text" id="imgbb_key" name="imgbb_key" value="'.$imgbb_key.'"></p>';
                 ?>
+                <p>Using your own API key will upload images to your own ImgBB account with no expiry. The images will also be accessible from your ImgBB account on another web browser without scanning the QR code.</p>
+                <hr>
                 <p><input name="submit" type="submit" value="Save" /></p>
               </form>
-              <p>Don't want to type the webhook here? Open <b>theimageshare.com/discord</b> on another device.</p>
-              <p>How to use webhooks: <a href="https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks" target="_blank">https://tinyurl.com/diswebhook</a></p>
-              <p><a href="/">Go back home</a></p>
+              <p style="text-align: center"><a href="/" style="color: #0000ff;">Go back home</a></p>
           </div>
       </div>
         
