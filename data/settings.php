@@ -1,6 +1,9 @@
 <?php
 if (isset($_POST['submit'])) {
-  setcookie("imgbb_key", $_POST["imgbb_key"]);
+  // Set the expiration time for 1 year from now
+  $expire = time() + 365 * 24 * 60 * 60; // 1 year
+  setcookie("imgbb_key", $_POST["imgbb_key"], $expire);
+
 }
 ?>
 
@@ -46,7 +49,7 @@ if (isset($_POST['submit'])) {
           <div class="panel-title">ImageShare Settings</div>
           <div class="body">
               <p>You can enter API keys here to enable new upload options.</p>
-              <p>More information: TODO</p>
+              <p>More information: <a href="https://github.com/corbindavenport/imageshare/blob/main/SETUP.md" target="_blank">tinyurl.com/imgsharesetup</a></p>
               <hr>
               <!-- Main upload form -->
               <form action="settings.php" id="upload-form" enctype="multipart/form-data" method="POST" autocomplete="off">
@@ -62,7 +65,7 @@ if (isset($_POST['submit'])) {
                   }
                   echo '<p><input type="text" id="imgbb_key" name="imgbb_key" value="'.$imgbb_key.'"></p>';
                 ?>
-                <p>Using your own API key will upload images to your own ImgBB account with no expiry. The images will also be accessible from your ImgBB account on another web browser without scanning the QR code.</p>
+                <p>Images uploaded with an ImgBB API will be saved to your ImgBB account with no expiry.</p>
                 <hr>
                 <p><input name="submit" type="submit" value="Save" /></p>
               </form>
