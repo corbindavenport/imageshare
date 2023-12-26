@@ -134,18 +134,38 @@
           $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
           curl_close($curl);
           
-          // Check status
-          if ($status != 200) {
-            echo '<meta http-equiv="refresh" content="0;url=error.php">';
-            exit();
+          if ($status == 200) {
+            // Parse result from Imgur
+            $pms = json_decode($output,true);
+            $page_url = 'https://imgur.com/'.$pms['data']['id'];
+            $image_url = $pms['data']['link'];
+            $delete_hash = $pms['data']['deletehash'];
+            // For debugging: var_dump($pms);
+          } else {
+            // Imgur API returned an error, try ImgBB
+            if ((getenv('IMGBB_KEY'))) {
+              $imgbb_post = [
+                'key' => getenv('IMGBB_KEY'),
+                'image' => base64_encode($data),
+                'expiration' => 120
+              ];
+              $ch = curl_init('https://api.imgbb.com/1/upload');
+              curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+              curl_setopt($ch, CURLOPT_POSTFIELDS, $imgbb_post);
+              // Upload image to ImgBB
+              $output = curl_exec($ch);
+              curl_close($ch);
+              // TODO: Parse ImgBB errors
+              // Parse result
+              $pms = json_decode($output,true);
+              $page_url = $pms['data']['url']; // url_viewer is having issues
+              $image_url = $pms['data']['url']; 
+            } else {
+              // Show error message
+              echo '<meta http-equiv="refresh" content="0;url=error.php">';
+              exit();
+            }
           }
-
-          // Parse result
-          $pms = json_decode($output,true);
-          $id = $pms['data']['id'];
-          $imgurl = $pms['data']['link'];
-          $delete_hash = $pms['data']['deletehash'];
-          // For debugging: var_dump($pms);
 
           // Send to Discord if enabled
           if (isset($_COOKIE["discord_webhook"])) {
@@ -161,13 +181,13 @@
                 "embeds": [
                   {
                     "title": "'.$software.'",
-                    "url": "https://imgur.com/'.$id.'",
+                    "url": "'.$page_url.'",
                     "color": null,
                     "footer": {
                       "text": "Uploader: '.$_SERVER["HTTP_USER_AGENT"].'"
                     },
                     "image": {
-                      "url": "'.$imgurl.'"
+                      "url": "'.$image_url.'"
                     }
                   }
                 ],
@@ -184,18 +204,25 @@
           }
 
           // Display result
+          if (str_contains($page_url, 'imgur')) {
+            $host_options = '
+            <form action="delete.php" id="upload-form" enctype="multipart/form-data" method="POST">
+              <p><input name="submit" type="submit" value="Delete image" /></p>
+              <input type="hidden" name="id" value="'.$delete_hash.'" />
+            </form>
+            ';
+          } else {
+            $host_options = '<p>The Imgur API was unavailable, ImgBB was used instead. <b>You have two minutes to save your image before it is automatically deleted.</b></p>';
+          }
           $out = '
             <div class="panel qr-panel">
               <div class="panel-title">'.$software.'</div>
               <div class="body">
                 <center>
-                  <a href="https://imgur.com/'.$id.'" target="_blank">
-                    <img alt="QR code (click to open page in new window)" src="//chart.googleapis.com/chart?chs=300x300&cht=qr&chld=L|0&chl=https://imgur.com/'.$id.'">
+                  <a href="'.$page_url.'" target="_blank">
+                    <img alt="QR code (click to open page in new window)" src="//chart.googleapis.com/chart?chs=300x300&cht=qr&chld=L|0&chl='.$page_url.'">
                   </a>
-                  <form action="delete.php" id="upload-form" enctype="multipart/form-data" method="POST">
-                    <p><input name="submit" type="submit" value="Delete image" /></p>
-                    <input type="hidden" name="id" value="'.$delete_hash.'" />
-                  </form>
+                  '.$host_options.'
                 </center>
               </div>
             </div>';
@@ -232,14 +259,6 @@
   <div class="panel upload-panel">
         <div class="panel-title">Upload Image</div>
         <div class="body">
-          <?php
-          // HTTP warning: https://github.com/corbindavenport/imageshare/issues/14
-          if (str_contains($_SERVER['HTTP_USER_AGENT'], 'Nintendo')) {
-            // Do nothing
-          } else {
-            echo '<p><b>If you can no longer connect to ImageShare on the 3DS, Wii U, or other legacy browser/device, replace HTTPS in the bookmark with HTTP.</b></p>';
-          }
-          ?>
           <!-- Main upload form -->
           <form action="index.php" id="upload-form" enctype="multipart/form-data" method="POST">
             <p><input name="img" id="img-btn" type="file" /></p>
@@ -256,7 +275,8 @@
           <!-- Description -->
           <p>ImageShare is a lightweight web app for uploading images with QR codes, created for the Nintendo 3DS and other legacy web browsers. See <a href="https://github.com/corbindavenport/imageshare" target="_blank">tinyurl.com/imgsharegit</a> for more information.</p>
           <p>If you find ImageShare useful, please consider donating to support development and server costs!</p>
-          <p style="text-align: center;"><b><a href="https://cash.app/$corbdav" target="_blank">cash.app/$corbdav</a> • <a href="https://paypal.me/corbindav" target="_blank">paypal.me/corbindav</a></b></p>
+          <p style="text-align: center; font-weight: bold;"><a href="https://www.patreon.com/corbindavenport" target="_blank">patreon.com/corbindavenport</a></p>
+          <p style="text-align: center; font-weight: bold;"><a href="https://cash.app/$corbdav" target="_blank">cash.app/$corbdav</a> • <a href="https://paypal.me/corbindav" target="_blank">paypal.me/corbindav</a></p>
           <hr />
           <p>Join Discord server: <a href="https://discord.gg/tqJDRsmQVn" target="_blank">discord.gg/tqJDRsmQVn</a></p>
           <p>Follow on Mastodon: <a href="https://toot.community/@corbin" target="_blank">@corbin@toot.community</a>

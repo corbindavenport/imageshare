@@ -25,6 +25,7 @@ services:
     image: php:fpm-alpine
     environment:
       API_KEY: ${API_KEY}
+      IMGBB_KEY: ${IMGBB_KEY}
     build:
       context: .
       dockerfile: php/Dockerfile

@@ -31,6 +31,7 @@ services:
       dockerfile: php/Dockerfile-production
     environment:
       API_KEY: ${API_KEY}
+      IMGBB_KEY: ${IMGBB_KEY}
     networks:
       - internal
 networks:
