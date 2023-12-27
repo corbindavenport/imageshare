@@ -30,7 +30,7 @@ services:
       context: .
       dockerfile: php/Dockerfile-production
     environment:
-      API_KEY: ${API_KEY}
+      IMGUR_KEY: ${IMGUR_KEY}
       IMGBB_KEY: ${IMGBB_KEY}
       PLAUSIBLE_DOMAIN: ${PLAUSIBLE_DOMAIN}
     networks:

@@ -106,7 +106,7 @@
           $curl = curl_init();
           if ($_POST["upload_method"] === 'imgur_anonymous') {
             // Imgur anonymous upload
-            $client = getenv('API_KEY');
+            $client = getenv('IMGUR_KEY');
             curl_setopt_array($curl, array(
               CURLOPT_URL => 'https://api.imgur.com/3/image',
               CURLOPT_RETURNTRANSFER => true,
@@ -249,7 +249,7 @@
               $imgur_anonymous_status = 'disabled="true"';
               $imgbb_anonymous_status = 'disabled="true"';
               $imgbb_registered_status = 'disabled="true"';
-              if (getenv('API_KEY')) {
+              if (getenv('IMGUR_KEY')) {
                 $imgur_anonymous_status = '';
               }
               if (getenv('IMGBB_KEY')) {
@@ -268,7 +268,7 @@
               } else if (getenv('IMGBB_KEY')) {
                 // Use ImgBB anonymous as secondary option if available
                 $imgbb_anonymous_checked = 'checked="checked"';
-              } else if (getenv('API_KEY')) {
+              } else if (getenv('IMGUR_KEY')) {
                 // Use Imgur API anonymouse as secondary option if available
                 $imgur_anonymous_checked = 'checked="checked"';
               }

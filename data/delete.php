@@ -42,7 +42,7 @@
         // Set curl info
         $delete_hash = $_POST['id'];
         $curl = curl_init();
-        $client = getenv('API_KEY');
+        $client = getenv('IMGUR_KEY');
         curl_setopt_array($curl, array(
           CURLOPT_URL => 'https://api.imgur.com/3/image/'.$delete_hash,
           CURLOPT_RETURNTRANSFER => true,

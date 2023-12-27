@@ -15,13 +15,20 @@ Setting up ImageShare on a production server involves using the `docker-compose`
 
 ## Run ImageShare on a local PC or server
 
-First, you need to clone the ImageShare repository (if you haven't already), and set up the required environment variables. You need an [Imgur API key](https://api.imgur.com/oauth2/addclient), and the domain you will use in production (this can be any value for just local testing):
+First, clone the ImageShare repository, if you haven't already:
 
 ```
 git clone https://github.com/corbindavenport/imageshare.git
 cd imageshare
-echo "\nAPI_KEY=YourKeyGoesHere" >> .env
-echo "\nDOMAIN=yourwebsitegoeshere.com" >> .env
+```
+
+You need an either [Imgur API key](https://api.imgur.com/oauth2/addclient) or an [ImgBB API key](https://api.imgbb.com/) for ImageShare. If you add both, the user can choose which service to use on each upload.
+
+Create a new plain text file in the root directory (same folder as this readme) called `.env` and add your API keys as lines like this:
+
+```
+IMGUR_KEY=imgurclientidgoeshere
+IMGBB_KEY=keygoeshere
 ```
 
 Then start the application like this:
@@ -40,23 +47,31 @@ docker compose -f docker-compose.yml down
 
 ## Run ImageShare on a production server
 
-First, you need a server with Docker and Docker compose installed. I used the [pre-configured Docker droplet from DigitalOcean](https://marketplace.digitalocean.com/apps/docker). Then clone the ImageShare repository, and set up the required environment variables. You need an [Imgur API key](https://api.imgur.com/oauth2/addclient), and the domain you will use in production:
+You need a server with Docker and Docker compose installed. I used the [pre-configured Docker droplet from DigitalOcean](https://marketplace.digitalocean.com/apps/docker). Clone the ImageShare repository on your server, if you haven't already:
 
 ```
 git clone https://github.com/corbindavenport/imageshare.git
 cd imageshare
-echo "\nAPI_KEY=YourKeyGoesHere" > .env
-echo "\nDOMAIN=yourwebsitegoeshere.com" > .env
 ```
 
-If you haven't already, set up a domain for ImageShare. If you want to retain compatibility with legacy web browsers, you may need to use an old top-level domain (e.g. `.com` or `.net`) instead of newer TLDs. The following DNS settings should be configured:
+You need an either [Imgur API key](https://api.imgur.com/oauth2/addclient) or an [ImgBB API key](https://api.imgbb.com/) for ImageShare. If you add both, the user can choose which service to use on each upload. You also need to set the domain that will be used for public access. If you want to retain compatibility with legacy web browsers, you may need to use an old top-level domain (e.g. `.com` or `.net`) instead of newer TLDs.
+
+Create a new plain text file in the root directory (same folder as this readme) called `.env` and add your API keys and domain as lines like this:
+
+```
+IMGUR_KEY=imgurclientidgoeshere
+IMGBB_KEY=keygoeshere
+DOMAIN=yourwebsitegoeshere.com
+```
+
+Next, set the DNS settings for your domain like this:
 
 | Type  | Host  | Value                                                       |
 | ----- | ----- | ----------------------------------------------------------- |
 | A     | @     | Your server IP address, like `165.20.200.20`                |
-| CNAME | www   | Your domain without the `www` part, like `myimageshare.net` |
+| CNAME | www   | Your domain without the `www` part, like `yourwebsitegoeshere.com` |
 
-Then start the containers:
+Then start the development container:
 
 ```
 docker compose -f docker-compose.yml up
