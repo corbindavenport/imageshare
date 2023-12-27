@@ -1,10 +1,11 @@
-body, html {
+body,
+html {
 	border: 0px !important;
 }
 
 body {
 	background: #ffffff;
-	font-family: "Lato","Helvetica Neue",Helvetica,Arial,sans-serif;
+	font-family: "Lato", "Helvetica Neue", Helvetica, Arial, sans-serif;
 	margin: 0;
 	padding: 0;
 	font-size: 15px;
@@ -94,21 +95,32 @@ hr {
 
 input[type="button"],
 input[type="submit"] {
-    width: 100%;
-    display: block;
+	width: 100%;
+	display: block;
 }
 
 input[type="text"] {
-	width: 97.5%;
+	width: 97.5%; /* For browsers that don't support calc */
 	width: calc(100% - 0.6em);
 }
 
+/* QR code styles for ancient web browsers */
 .qr-panel img {
-    margin: 10px;
-    max-width: 100%; /* For browsers that without calc() support */
-	max-width: calc(100% - 20px);
-	max-height: 150px; /* For browsers without vh support */
-	max-height: 60vh;
+	border: 0;
+	margin: 10px;
+	width: 150px;
+	height: 150px;
+}
+
+/* QR code styles for newer browsers that support viewport units and calc() */
+@supports (width: calc(100% - 30px)) and (max-height: 60vh) {
+	.qr-panel img {
+		width: calc(100% - 30px);
+		height: auto;
+		max-width: 350px;
+		max-height: 60vh;
+		object-fit: scale-down;
+	}
 }
 
 .qr-panel a {
@@ -119,8 +131,8 @@ input[type="text"] {
 @media screen and (min-width: 800px) {
 
 	.header {
-        line-height: 60px;
-    }
+		line-height: 60px;
+	}
 
 	.panel {
 		float: left;
@@ -136,21 +148,21 @@ input[type="text"] {
 
 @media screen and (max-width: 350px) {
 
-    body {
-        background: #FFF;
-        overflow: hidden;
-    }
+	body {
+		background: #FFF;
+		overflow: hidden;
+	}
 
 	.container {
 		padding: 0;
 	}
 
-    .header {
-        display: none;
-    }
+	.header {
+		display: none;
+	}
 
-    .panel {
-        border: 0;
-    }
+	.panel {
+		border: 0;
+	}
 
 }
