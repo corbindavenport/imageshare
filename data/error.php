@@ -39,8 +39,10 @@
       <div class="panel">
           <div class="panel-title">Error</div>
           <div class="body">
-              <p>An error occured while uploading your image. There may be an outage with the Imgur API, you can check <a href="https://status.imgur.com/" target="_blank">status.imgur.com</a>.</p>
+              <p>An error occured while uploading your image. Please try again or select a different upload method.</p>
               <p><a href="/">Try again</a></p>
+              <hr>
+              <p>Imgur service status: <a href="https://status.imgur.com/" target="_blank">status.imgur.com</a></p>
           </div>
       </div>
         

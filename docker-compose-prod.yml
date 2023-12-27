@@ -32,6 +32,7 @@ services:
     environment:
       API_KEY: ${API_KEY}
       IMGBB_KEY: ${IMGBB_KEY}
+      PLAUSIBLE_DOMAIN: ${PLAUSIBLE_DOMAIN}
     networks:
       - internal
 networks:

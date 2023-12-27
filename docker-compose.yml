@@ -26,6 +26,7 @@ services:
     environment:
       API_KEY: ${API_KEY}
       IMGBB_KEY: ${IMGBB_KEY}
+      PLAUSIBLE_DOMAIN: ${PLAUSIBLE_DOMAIN}
     build:
       context: .
       dockerfile: php/Dockerfile

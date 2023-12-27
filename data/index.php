@@ -20,27 +20,23 @@
       // Normal mobile scaling for New 3DS Browser and everything else
       echo '<meta name="viewport" content="initial-scale=1">'.PHP_EOL;
     }
-    // Send Plausible analytics data for pageview
-    if (str_contains($_SERVER['HTTP_HOST'], 'theimageshare.com')) {
+    // Send Plausible analytics data for pageview if configured
+    if (getenv('PLAUSIBLE_DOMAIN')) {
       $data = array(
         'name' => 'pageview',
-        'url' => 'https://theimageshare.com/',
-        'domain' => 'theimageshare.com',
+        'url' => '/',
+        'domain' => getenv('PLAUSIBLE_DOMAIN'),
       );
-      $post_data = json_encode($data);
-      // Prepare new cURL resource
       $crl = curl_init('https://plausible.io/api/event');
       curl_setopt($crl, CURLOPT_RETURNTRANSFER, true);
       curl_setopt($crl, CURLINFO_HEADER_OUT, true);
       curl_setopt($crl, CURLOPT_POST, true);
-      curl_setopt($crl, CURLOPT_POSTFIELDS, $post_data);
-      // Set HTTP Header for POST request 
+      curl_setopt($crl, CURLOPT_POSTFIELDS, json_encode($data));
       curl_setopt($crl, CURLOPT_HTTPHEADER, array(
         'User-Agent: ' . $_SERVER['HTTP_USER_AGENT'],
         'X-Forwarded-For: ' . $_SERVER['REMOTE_ADDR'],
         'Content-Type: application/json')
       );
-      // Submit the POST request
       $result = curl_exec($crl);
       curl_close($crl);
     }
@@ -215,27 +211,24 @@
             </div>';
           echo $out;
 
-          // Send analytics for upload
-          if (str_contains($_SERVER['HTTP_HOST'], 'theimageshare.com')) {
+          // Send analytics for upload if configured
+          if (getenv('PLAUSIBLE_DOMAIN')) {
             $data = array(
               'name' => 'Upload',
-              'url' => 'https://theimageshare.com/',
-              'domain' => 'theimageshare.com',
+              'props' => '{"Upload Mode":"'.$_POST["upload_method"].'"}',
+              'url' => '/',
+              'domain' => getenv('PLAUSIBLE_DOMAIN'),
             );
-            $post_data = json_encode($data);
-            // Prepare new cURL resource
             $crl = curl_init('https://plausible.io/api/event');
             curl_setopt($crl, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($crl, CURLINFO_HEADER_OUT, true);
             curl_setopt($crl, CURLOPT_POST, true);
-            curl_setopt($crl, CURLOPT_POSTFIELDS, $post_data);
-            // Set HTTP Header for POST request 
+            curl_setopt($crl, CURLOPT_POSTFIELDS, json_encode($data));
             curl_setopt($crl, CURLOPT_HTTPHEADER, array(
               'User-Agent: ' . $_SERVER['HTTP_USER_AGENT'],
               'X-Forwarded-For: ' . $_SERVER['REMOTE_ADDR'],
               'Content-Type: application/json')
             );
-            // Submit the POST request
             $result = curl_exec($crl);
             curl_close($crl);
           }
@@ -272,9 +265,12 @@
               if (isset($_COOKIE["imgbb_key"])) {
                 // If there is an ImgBB API key, set it as the default
                 $imgbb_registered_checked = 'checked="checked"';
-              } else {
-                // Use ImgBB anonymous as secondary option
+              } else if (getenv('IMGBB_KEY')) {
+                // Use ImgBB anonymous as secondary option if available
                 $imgbb_anonymous_checked = 'checked="checked"';
+              } else if (getenv('API_KEY')) {
+                // Use Imgur API anonymouse as secondary option if available
+                $imgur_anonymous_checked = 'checked="checked"';
               }
               // Display upload options
               echo '

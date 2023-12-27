@@ -75,7 +75,12 @@ docker compose down
 docker compose -f docker-compose-prod.yml up
 ```
 
-The production version should reboot the containers if they go down (e.g. after a reboot), if your Docker is set up correctly. The last step is to automate the certificate renewal, so SSL continues to work. On Linux systems, create a crontab like this:
+The production version should reboot the containers if they go down (e.g. after a reboot), if your Docker is set up correctly.
+
+
+## Auto-renew certificate
+
+You can automate the certificate renewal so SSL continues to work without manual work. On Linux systems, create a crontab like this:
 
 ```
 crontab -e
@@ -99,3 +104,32 @@ docker compose -f docker-compose.yml up --build
 ```
 
 If you're using the production application, replace `docker-compose.yml` with `docker-compose-prod.yml`.
+
+## Enable Plausible Analytics (optional)
+
+ImageShare can optionally use [Plausible Analytics](https://plausible.io/) to track pageviews and uploads. The collected data includes pageviews, upload events (not the contents of the upload), and the upload method. The analytics is handled server-side, using the client's user agent and IP address.
+
+To get started, [create a website in Plausible](https://plausible.io/sites/new). The Plausible domain doesn't have to match the actual site URL.
+
+You have to create custom events and goals to track uploads and the type of uploads. In the Plausible domain settings, open the Goals page and create a custom event called "Upload". This is used to track image upload events.
+
+![Add goal screenshot](https://i.imgur.com/CnQwZdi.png)
+
+Next, open the Custom Properties page, and create a new property called "Upload Mode". This is used to track which upload method (anonymous Imgur, registered ImbBB, etc.) is used on each upload event.
+
+![Add custom event screenshot](https://i.imgur.com/fYQ2jej.png)
+
+Next, add the Plausible domain to your server `.env` file like this:
+
+```
+PLAUSIBLE_DOMAIN=yourdomain.com
+```
+
+Finally, apply your settings by restarting the server. If you're running the production server, replace `docker-compose.yml` with `docker-compose-prod.yml` in the below example.
+
+```
+docker compose down
+docker compose -f docker-compose.yml up
+```
+
+Pageviews and upload events should now appear in your Plausible dashboard. Note that the Nintendo 3DS, New Nintendo 3DS, and Wii U Browsers all appear as "NetFront" in Plausible.

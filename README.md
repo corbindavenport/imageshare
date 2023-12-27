@@ -7,7 +7,7 @@ ImageShare is a lightweight web app for uploading and sharing images. It was ori
 - Uploads images to [Imgur](https://imgur.com) or [ImgBB](https://imgbb.com/)
 - Does not require account creation or a login
 - Compatible with many old and low-end web browsers, using either HTTP or HTTPS
-- JavaScript does not have to be enabled in the browser
+- Works without JavaScript enabled
 - Fully open-source and can self-hostable using Docker (see [DEV.md](DEV.md))
 - Automatic game title detection for Nintendo 3DS uploads ([example](https://imgur.com/4Fb4HI6))
 
@@ -23,7 +23,7 @@ Once you have ImageShare open, bookmark it (tap the star button on the 3DS) for 
 
 ImageShare uses [Plausible Analytics](https://plausible.io) to report anonymous usage data, including how many times the app is used and the browser/device used. Uploaded images are not stored on ImageShare servers, only on Imgur. The QR code is generated using the [Google Charts API](https://developers.google.com/chart/infographics/docs/qr_codes), which requires sending the URL to a Google server after upload.
 
-Images uploaded using ImageShare are subject to Imgur's [Terms of Service](https://imgur.com/tos) and [Privacy Policy](https://imgur.com/privacy).
+Imgur image uploads are subject to Imgur's [Terms of Service](https://imgur.com/tos) and [Privacy Policy](https://imgur.com/privacy). ImgBB image uploads are subject to ImgBB's [Terms of Service](https://imgbb.com/tos) and [Privacy Policy](https://imgbb.com/privacy).
 
 ### Credits
 
