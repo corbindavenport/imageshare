@@ -18,7 +18,7 @@
       echo '<meta name="viewport" content="width=320" />'.PHP_EOL;
     } else {
       // Normal mobile scaling for New 3DS Browser and everything else
-      echo '<meta name="viewport" content="initial-scale=1">'.PHP_EOL;
+      echo '<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">'.PHP_EOL;
     }
     // Send Plausible analytics data for pageview if configured
     if (getenv('PLAUSIBLE_DOMAIN')) {
@@ -241,7 +241,7 @@
         <div class="body">
           <!-- Main upload form -->
           <form action="index.php" id="upload-form" enctype="multipart/form-data" method="POST">
-            <p><input name="img" id="img-btn" type="file" /></p>
+            <p><input name="img" id="img-btn" type="file" accept="image/*" /></p>
             <p><input name="submit" type="submit" value="Upload" /></p>
             <!-- Add upload options based on server-side and local cookie settings -->
             <?php

@@ -2,8 +2,7 @@
 if (isset($_POST['submit'])) {
   // Set the expiration time for 1 year from now
   $expire = time() + 365 * 24 * 60 * 60; // 1 year
-  setcookie("imgbb_key", $_POST["imgbb_key"], $expire);
-
+  setcookie('imgbb_key', $_POST['imgbb_key'], $expire, '/');
 }
 ?>
 
@@ -25,7 +24,7 @@ if (isset($_POST['submit'])) {
       echo '<meta name="viewport" content="width=320" />'.PHP_EOL;
     } else {
       // Normal mobile scaling for New 3DS Browser and everything else
-      echo '<meta name="viewport" content="initial-scale=1">'.PHP_EOL;
+      echo '<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">'.PHP_EOL;
     }
     // Set icon size
     // Use a 16x16 favicon for the 3DS and Wii, larger icons in multiple sizes for other browsers
@@ -49,6 +48,11 @@ if (isset($_POST['submit'])) {
           <div class="panel-title">ImageShare Settings</div>
           <div class="body">
               <p>You can enter API keys here to enable new upload options.</p>
+              <?php
+                if (str_contains($_SERVER['HTTP_USER_AGENT'], 'Nintendo')) {
+                  echo '<p><b>These settings may not save properly on Nintendo web browsers.</b></p>';
+                }
+              ?>
               <p>More information: <a href="https://github.com/corbindavenport/imageshare/blob/main/SETUP.md" target="_blank">tinyurl.com/imgsharesetup</a></p>
               <hr>
               <!-- Main upload form -->
