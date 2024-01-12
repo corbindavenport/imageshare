@@ -1,0 +1,21 @@
+{
+    "name": "ImageShare",
+    "short_name": "ImageShare",
+    "description": "Lightweight web app for uploading images, created for the Nintendo 3DS and other legacy web browsers.",
+    "icons": [
+        {
+            "src": "/img/maskable_icon_x192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable any"
+        },
+        {
+            "src": "/img/maskable_icon_x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable any"
+        }
+    ],
+    "display": "standalone",
+    "start_url": "/?utm_source=Installed%20App&utm_medium=App%20Launch"
+}

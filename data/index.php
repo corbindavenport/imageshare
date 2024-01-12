@@ -52,6 +52,12 @@
       echo '    <link rel="icon" type="image/png" sizes="24x24" href="img/favicon_x24.png">'.PHP_EOL;
     }
     ?>
+    <!-- Web app manifest and Windows tile -->
+    <!-- Documentation for Windows tile: https://learn.microsoft.com/en-us/previous-versions/windows/internet-explorer/ie-developer/platform-apis/dn255024(v=vs.85) -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="application-name" content="ImageShare">
+    <meta name="msapplication-TileColor" content="#7e57c2">
+    <meta name="msapplication-square150x150logo" content="img/maskable_icon_x192.png">
     <!-- Open Graph card -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content="ImageShare" />
