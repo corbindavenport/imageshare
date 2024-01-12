@@ -1,6 +1,6 @@
 # ImageShare Settings
 
-ImageShare uses anonymous image uploads by default, which may expire or have other limitations. You can enter your own API key to enable more upload options and features.
+ImageShare uses anonymous image uploads by default, which may expire or have other limitations. You can enter your own API key as a user to enable more upload options and features.
 
 ## ImgBB API
 

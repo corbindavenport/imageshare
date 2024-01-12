@@ -4,11 +4,12 @@ ImageShare is a lightweight web app for uploading and sharing images. It was ori
 
 ### Features
 
-- Uploads images to [Imgur](https://imgur.com) or [ImgBB](https://imgbb.com/)
+- Uploads images to [Imgur](https://imgur.com) or [ImgBB](https://imgbb.com/) and creates a QR code for the link
 - Does not require account creation or a login
 - Compatible with many old and low-end web browsers¹ using either HTTP or HTTPS
 - Works without JavaScript enabled
-- Fully open-source and can self-hostable using Docker (see [DEV.md](DEV.md))
+- Can be self-hosted on any server with Docker (see [DEV.md](DEV.md))
+- Enhanced support for iOS, Windows Phone, and Windows 10 Mobile, with minimal UI and optimized app icon when installed to the home screen 
 - Automatic game title detection for Nintendo 3DS uploads ([example](https://imgur.com/4Fb4HI6))
 
 ¹ The browser must have file upload support, which includes most desktop browsers, Mobile Safari [on iOS 6 or later](https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariWebContent/CreatingContentforSafarioniPhone/CreatingContentforSafarioniPhone.html#:~:text=File%20uploads%20and%20downloads), etc.

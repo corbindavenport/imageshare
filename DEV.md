@@ -22,9 +22,7 @@ git clone https://github.com/corbindavenport/imageshare.git
 cd imageshare
 ```
 
-You need an either [Imgur API key](https://api.imgur.com/oauth2/addclient) or an [ImgBB API key](https://api.imgbb.com/) for ImageShare. If you add both, the user can choose which service to use on each upload.
-
-Create a new plain text file in the root directory (same folder as this readme) called `.env` and add your API keys as lines like this:
+You need an either [Imgur API key](https://api.imgur.com/oauth2/addclient) or an [ImgBB API key](https://api.imgbb.com/) for ImageShare. If you add both, the user can choose which service to use on each upload. Create a new plain text file in the root directory (same folder as this readme) called `.env` and add your API keys as lines like this:
 
 ```
 IMGUR_KEY=imgurclientidgoeshere

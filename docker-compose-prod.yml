@@ -32,6 +32,7 @@ services:
     environment:
       IMGUR_KEY: ${IMGUR_KEY}
       IMGBB_KEY: ${IMGBB_KEY}
+      DOMAIN: ${DOMAIN}
       PLAUSIBLE_DOMAIN: ${PLAUSIBLE_DOMAIN}
     networks:
       - internal

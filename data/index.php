@@ -52,13 +52,19 @@
       echo '    <link rel="icon" type="image/png" sizes="24x24" href="img/favicon_x24.png">'.PHP_EOL;
     }
     ?>
-    <!-- Twitter card -->
+    <!-- Open Graph card -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageShare" />
+    <meta property="og:description" content="ImageShare is a lightweight web app for uploading images, created for the Nintendo 3DS and other legacy web browsers." />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <?php
+      $domain = getenv('DOMAIN');
+      echo '<meta property="og:url" content="https://'.$domain.'" />'.PHP_EOL;
+      echo '    <meta property="og:image" content="https://'.$domain.'/img/maskable_icon_x512.png" />'.PHP_EOL;
+    ?>
+    <meta name="og:image:alt" content="ImageShare app icon" />
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:creator" content="@corbindavenport" />
-    <meta name="twitter:title" content="ImageShare" />
-    <meta name="twitter:description" content="ImageShare is a lightweight web app for uploading images, created for the Nintendo 3DS and other legacy web browsers." />
-    <meta name="twitter:image" content="https://theimageshare.com/img/maskable_icon_x512.png" />
-    <meta name="twitter:image:alt" content="ImageShare app icon" />
 </head>
 
 <body>
@@ -75,9 +81,7 @@
 
           // Set initial info
           $software = 'ImageShare Upload';
-          $description = 'Uploaded with ImageShare: https://github.com/corbindavenport/imageshare
-          
-Device info: '.$_SERVER['HTTP_USER_AGENT'];
+          $description = 'Uploaded with ImageShare: https://github.com/corbindavenport/imageshare';
           
           // Open image
           $img = $_FILES['img'];
