@@ -75,7 +75,9 @@
 
           // Set initial info
           $software = 'ImageShare Upload';
-          $description = 'Uploaded with ImageShare: https://github.com/corbindavenport/imageshare';
+          $description = 'Uploaded with ImageShare: https://github.com/corbindavenport/imageshare
+          
+Device info: '.$_SERVER['HTTP_USER_AGENT'];
           
           // Open image
           $img = $_FILES['img'];
@@ -203,7 +205,7 @@
               <div class="body">
                 <center>
                   <a href="'.$img_url.'" target="_blank">
-                    <img alt="QR code (click to open page in new window)" src="//chart.googleapis.com/chart?chs=300x300&cht=qr&chld=L|0&chl='.$img_url.'">
+                    <img alt="QR code (click to open page in new window)" src="//api.qrserver.com/v1/create-qr-code/?size=300x300&data='.$img_url.'">
                   </a>
                   '.$host_options.'
                 </center>

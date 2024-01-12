@@ -23,7 +23,7 @@ Once you have ImageShare open, bookmark it (tap the star button on the 3DS) for 
 
 ### Privacy Policy & Terms of Service
 
-ImageShare uses [Plausible Analytics](https://plausible.io) to report anonymous usage data, including how many times the app is used and the browser/device used. Uploaded images are not stored on ImageShare servers, only on Imgur. The QR code is generated using the [Google Charts API](https://developers.google.com/chart/infographics/docs/qr_codes), which requires sending the URL to a Google server after upload.
+ImageShare uses [Plausible Analytics](https://plausible.io) to report anonymous usage data, including how many times the app is used and the browser/device used. Uploaded images are not stored on ImageShare servers, only on Imgur. The QR code is generated using the [goQR.me API](https://goqr.me/api/), which requires sending the URL to goQR.me after upload.
 
 Imgur image uploads are subject to Imgur's [Terms of Service](https://imgur.com/tos) and [Privacy Policy](https://imgur.com/privacy). ImgBB image uploads are subject to ImgBB's [Terms of Service](https://imgbb.com/tos) and [Privacy Policy](https://imgbb.com/privacy).
 
