@@ -90,6 +90,7 @@
           $description = 'Uploaded with ImageShare: https://github.com/corbindavenport/imageshare';
           
           // Open image
+          // For testing: var_dump($_FILES['img']);
           $img = $_FILES['img'];
           $filename = $img['tmp_name'];
           $handle = fopen($filename, "r");
