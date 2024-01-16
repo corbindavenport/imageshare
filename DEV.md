@@ -32,7 +32,7 @@ IMGBB_KEY=keygoeshere
 Then start the application like this:
 
 ```
-docker compose -f docker-compose.yml up
+docker compose -f docker-compose.yml up --build
 ```
 
 ImageShare should now be accessible in your web browser from `http://localhost`. You can also test it on other devices on the same network (like a Nintendo 3DS) by replacing `localhost` with your local IP address, like this: `http://192.168.1.500`.
