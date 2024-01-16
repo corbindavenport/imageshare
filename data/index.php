@@ -81,7 +81,7 @@
 
         <?php
         // Turn off all error reporting
-        error_reporting(0);
+        //error_reporting(0);
 
         if(isset($_POST['submit'])){
 
@@ -101,18 +101,46 @@
           if (is_array($exif) && array_key_exists('Model', $exif)) {
 
             // Read software string in 3DS screenshots
-            if ($exif['Model'] === 'Nintendo 3DS') {
-              // Match ID with game title if possible
-              $id = strtoupper($exif['Software']);
-              $xml=simplexml_load_file('3dsreleases.xml');
-              foreach($xml->children() as $game) {
-                if ($game->titleid == '000400000'.$id.'00') {
-                  // Update software name
-                  $software = $game->name;
-                  break;
+               // Read software string in 3DS screenshots
+               if ($exif['Model'] === 'Nintendo 3DS') {
+                // All the regions from the titlelist
+                // GB = EUR/PAL
+                // KR AND TW are Korea and Taiwan
+                // filenames are titlelist_$region.json
+                // files from hax0kartik/3dsdb(values retrived from eshop directly)
+                    
+                        /*
+              EACH GAME IN THE JSON IS MADE LIKE THIS:
+               {
+                "Name": "Shovel Software Insurance Claim",
+                "UID": "50010000049535",
+                "TitleID": "000400000F715C00",
+                "Version": "N/A",
+                "Size": "25.7 MB [206 blocks]",
+                "Product Code": "KTR-N-CF6P",
+                "Publisher": "Batafurai"
+              },
+  
+              BUNCH OF STUFF FOR RATING BUT IT ISN'T WHAT WE SEARCH.(only need names and title id)
+  
+              the title id is in the attributes of <title> so we have to access via the ->attributes()->id thing.
+                */
+  
+                $regions = ["GB", "JP", "KR", "TW", "US"];
+                // Match ID with game title if possible
+                $id = strtoupper($exif['Software']);
+                foreach($regions as $region) { // FOR EACH REGION!!
+                  $json=json_decode(file_get_contents('titlelist/list_'.$region.'.json'));
+                  foreach($json as $game) {
+                    if ($game->TitleID == '000400000'.$id.'00') {
+                      // Update software name
+                      
+                      $software = $game->Name;
+                      break 2; // in order to break fully of 2 foreachs.
+                    }
+                  }
                 }
               }
-            }
           }
 
           // Set up image upload with selected service
