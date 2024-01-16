@@ -135,7 +135,8 @@
                     if ($game->TitleID == '000400000'.$id.'00') {
                       // Update software name
                       
-                      $software = $game->Name;
+
+                      $software = str_replace("\u2122", "", $game->Name);
                       break 2; // in order to break fully of 2 foreachs.
                     }
                   }
