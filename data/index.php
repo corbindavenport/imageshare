@@ -99,7 +99,6 @@
           // Get EXIF data
           $exif = exif_read_data($handle);
           if (is_array($exif) && array_key_exists('Model', $exif)) {
-
             // Read software string in 3DS screenshots
             if ($exif['Model'] === 'Nintendo 3DS') {
               // Match ID with game title if possible
@@ -312,6 +311,8 @@
           <hr />
           <p>Join Discord server: <a href="https://discord.gg/tqJDRsmQVn" target="_blank">discord.gg/tqJDRsmQVn</a></p>
           <p>Follow on Mastodon: <a href="https://toot.community/@corbin" target="_blank">@corbin@toot.community</a>
+          <hr />
+          <p>ImageShare v24.04.1</p>
         </div>
     </div>
         
