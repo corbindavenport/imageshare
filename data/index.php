@@ -312,7 +312,7 @@
           <p>Join Discord server: <a href="https://discord.gg/tqJDRsmQVn" target="_blank">discord.gg/tqJDRsmQVn</a></p>
           <p>Follow on Mastodon: <a href="https://toot.community/@corbin" target="_blank">@corbin@toot.community</a>
           <hr />
-          <p>ImageShare v24.04.1</p>
+          <p>ImageShare v24.01.1</p>
         </div>
     </div>
         
