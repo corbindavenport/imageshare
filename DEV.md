@@ -22,7 +22,7 @@ git clone https://github.com/corbindavenport/imageshare.git
 cd imageshare
 ```
 
-You need an either [Imgur API key](https://imgur.com/account/settings/apps) or an [ImgBB API key](https://api.imgbb.com/) for ImageShare. If you add both, the user can choose which service to use on each upload. Create a new plain text file in the root directory (same folder as this readme) called `.env` and add your API keys as lines like this:
+You need an either [Imgur API key](https://api.imgur.com/oauth2/addclient) or an [ImgBB API key](https://api.imgbb.com/) for ImageShare. If you add both, the user can choose which service to use on each upload. Create a new plain text file in the root directory (same folder as this readme) called `.env` and add your API keys as lines like this:
 
 ```
 IMGUR_KEY=imgurclientidgoeshere
@@ -52,7 +52,7 @@ git clone https://github.com/corbindavenport/imageshare.git
 cd imageshare
 ```
 
-You need an either [Imgur API key](https://imgur.com/account/settings/apps) or an [ImgBB API key](https://api.imgbb.com/) for ImageShare. If you add both, the user can choose which service to use on each upload. You also need to set the domain that will be used for public access. If you want to retain compatibility with legacy web browsers, you may need to use an old top-level domain (e.g. `.com` or `.net`) instead of newer TLDs.
+You need an either [Imgur API key](https://api.imgur.com/oauth2/addclient) or an [ImgBB API key](https://api.imgbb.com/) for ImageShare. If you add both, the user can choose which service to use on each upload. You also need to set the domain that will be used for public access. If you want to retain compatibility with legacy web browsers, you may need to use an old top-level domain (e.g. `.com` or `.net`) instead of newer TLDs.
 
 Create a new plain text file in the root directory (same folder as this readme) called `.env` and add your API keys and domain as lines like this:
 
