@@ -20,6 +20,8 @@ Just open [theimageshare.com](http://theimageshare.com/) in your browser to acce
 
 <div align="center"><img src="https://i.imgur.com/CwnqTbp.png" /></div><br>
 
+**Can't connect to ImageShare?** Check that the date and time is correct on your device and try again.
+
 Once you have ImageShare open, bookmark it (tap the star button on the 3DS) for easy access later. If your device supports the SSL certificate, you can use ImageShare over HTTPS instead of HTTP for added security.
 
 ### Privacy Policy & Terms of Service
