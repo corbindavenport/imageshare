@@ -5,14 +5,12 @@ ImageShare is a lightweight web app for uploading and sharing images. It was ori
 ### Features
 
 - Uploads images to [Imgur](https://imgur.com) or [ImgBB](https://imgbb.com/) and creates a QR code for the link
+- Fast performance using server-side PHP code and no client-side JavaScript
 - Does not require account creation or a login
 - Compatible with many old and low-end web browsers¹ using either HTTP or HTTPS
-- Works without JavaScript enabled
-- Can be self-hosted on any server with Docker (see [DEV.md](DEV.md))
-- Enhanced support for iOS, Windows Phone, and Windows 10 Mobile, with minimal UI and optimized app icon when installed to the home screen 
+- Self-hostable on any server with Docker (see [DEV.md](DEV.md))
+- Enhanced support for iOS, Windows Phone, and Windows 10 Mobile
 - Automatic game title detection for Nintendo 3DS uploads ([example](https://imgur.com/4Fb4HI6))
-
-¹ The browser must have file upload support, which includes most desktop browsers, Mobile Safari [on iOS 6 or later](https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariWebContent/CreatingContentforSafarioniPhone/CreatingContentforSafarioniPhone.html#:~:text=File%20uploads%20and%20downloads), etc.
 
 ### How to use
 
@@ -26,9 +24,9 @@ Once you have ImageShare open, bookmark it (tap the star button on the 3DS) for 
 
 ### Privacy Policy & Terms of Service
 
-ImageShare uses [Plausible Analytics](https://plausible.io) to report anonymous usage data, including how many times the app is used and the browser/device used. Uploaded images are not stored on ImageShare servers, only on Imgur. The QR code is generated using the [goQR.me API](https://goqr.me/api/), which requires sending the URL to goQR.me after upload.
+ImageShare uses [Plausible Analytics](https://plausible.io) to report anonymous usage data, including how many times the app is used and the browser/device used. Uploaded images are only stored on ImageShare servers until the upload to the third-party service is complete, then the copy on ImageShare is deleted. The QR code is generated using the [goQR.me API](https://goqr.me/api/), which requires sending the URL to goQR.me after upload.
 
-Imgur image uploads are subject to Imgur's [Terms of Service](https://imgur.com/tos) and [Privacy Policy](https://imgur.com/privacy). ImgBB image uploads are subject to ImgBB's [Terms of Service](https://imgbb.com/tos) and [Privacy Policy](https://imgbb.com/privacy).
+Imgur uploads are subject to Imgur's [Terms of Service](https://imgur.com/tos) and [Privacy Policy](https://imgur.com/privacy). ImgBB uploads are subject to ImgBB's [Terms of Service](https://imgbb.com/tos) and [Privacy Policy](https://imgbb.com/privacy).
 
 ### Credits
 
