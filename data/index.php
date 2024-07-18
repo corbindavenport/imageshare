@@ -124,21 +124,29 @@
     
                 BUNCH OF STUFF FOR RATING BUT IT ISN'T WHAT WE SEARCH.(only need names and title id)
     
-                the title id is in the attributes of <title> so we have to access via the ->attributes()->id thing.
                   */
-    
+                  // DEFAULT IMAGE NAME FOR 3DS TITLES SO ITS NOT UGLY
+                  $software = "An ImageShare Image from a Nintendo 3DS Game."
                   $regions = ["GB", "JP", "KR", "TW", "US"];
                   // Match ID with game title if possible
                   $id = strtoupper($exif['Software']);
                   foreach($regions as $region) { // FOR EACH REGION!!
                     $json=json_decode(file_get_contents('titlelist/list_'.$region.'.json'));
                     foreach($json as $game) {
+                      
+                      // IDS STARTING WITH 000400000 ARE GAMES
                       if ($game->TitleID == '000400000'.$id.'00') {
                         // Update software name
                         
 
                         $software = str_replace("\u2122", "", $game->Name);
                         break 2; // in order to break fully of 2 foreachs.
+                      }
+                      
+                      // IDS STARTING WITH 0004000E0 ARE UPDATES(needed to fix animal crossing as the title id used is for the welcome amiibo update... maybe other games idk)
+                      if($game->TitleId == '0004000E0'.$id.'00'){
+                        $software = str_replace("\u2122", "", $game->Name); // It will most likely show as <game name> <update ver> but it is what it is...
+                        break 2;
                       }
                     }
                   }
