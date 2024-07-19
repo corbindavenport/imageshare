@@ -86,14 +86,14 @@
         if(isset($_POST['submit'])){
 
           // Set initial info
-          $software = 'ImageShare Upload';
+          $software_label = 'ImageShare Upload';
           $description = 'Uploaded with ImageShare: https://github.com/corbindavenport/imageshare';
           
           // Open image
           // For testing: var_dump($_FILES['img']);
           $img = $_FILES['img'];
           $filename = $img['tmp_name'];
-          $handle = fopen($filename, "r");
+          $handle = fopen($filename, "r"); // We need to catch that.
           $data = fread($handle, filesize($filename));
 
           // Only read EXIF data from JPEG images
@@ -126,8 +126,9 @@
     
                   */
                   // DEFAULT IMAGE NAME FOR 3DS TITLES SO ITS NOT UGLY
-                  $software = "An ImageShare Image from a Nintendo 3DS Game."
-                  $regions = ["GB", "JP", "KR", "TW", "US"];
+                  $software_label = "An ImageShare Image from a Nintendo 3DS Game.";
+                  $software = array(); // stores all the matching software.
+                  $regions = ["GB", "JP", "KR", "TW", "US"]; // GB = PAL(Europe & Australia & africa), JP = japan only, KR = Korea, TW = Taiwan/Hong Kong, US = NTSC-U
                   // Match ID with game title if possible
                   $id = strtoupper($exif['Software']);
                   foreach($regions as $region) { // FOR EACH REGION!!
@@ -137,20 +138,30 @@
                       // IDS STARTING WITH 000400000 ARE GAMES
                       if ($game->TitleID == '000400000'.$id.'00') {
                         // Update software name
-                        
-
-                        $software = str_replace("\u2122", "", $game->Name);
-                        break 2; // in order to break fully of 2 foreachs.
+                        array_push($software, $game); // Push element to the end of the array(similar to .append in python)
                       }
-                      
                       // IDS STARTING WITH 0004000E0 ARE UPDATES(needed to fix animal crossing as the title id used is for the welcome amiibo update... maybe other games idk)
-                      if($game->TitleId == '0004000E0'.$id.'00'){
-                        $software = str_replace("\u2122", "", $game->Name); // It will most likely show as <game name> <update ver> but it is what it is...
-                        break 2;
+                      elseif($game->TitleID == '0004000E0'.$id.'00'){
+                        array_push($software, $game); // Push element to the end of the array
                       }
                     }
                   }
-                }
+              // OK that's ugly mess but: 
+              // Usually there's only one game that matches the software EXIF TAG
+              // BUT sometimes(quite a lot of times actually.) there are updates that use the same EXIF TAG(Pokémon Sun/X are examples where both the game and their updates are matching...)
+              // I still need to check for updates in case(for example to fix animal crossing, somehow) but i want priority on the games themselves
+              // Since Games titleId are the same length as updates titleids and that E is after 0(000400000 vs 0004000E0)
+              // i can sort the titleId string then and pretty much garantee that the game will be first.
+              //i'm using usort() which is a function that sorts arrays using inputted user function.
+              // I think it's pretty much guaranteed that the game will be before the updates and i don't think there will be more than 2 entries(i checked on a few games(Pokémon X/Sun, Smash bros, Mario vs Donkey Kong) all of them had one entry for their game and one for their update.)
+              // so i can just pick the first element of the array and afterwards discard the array.
+              usort($software, function ($a, $b){return strcmp($a->TitleID, $b->TitleID);});
+              
+              $software_label = $software[0]->Name; // We take the name of the game.
+              unset($software); // We destroy the array.
+              }
+
+        
             }
           }
 
@@ -171,7 +182,7 @@
               CURLOPT_POSTFIELDS => array(
                 'image' => $data,
                 'type' => 'file',
-                'title' => $software,
+                'title' => $software_label,
                 'description' => $description
               ),
               CURLOPT_HTTPHEADER => array(
@@ -208,7 +219,7 @@
               CURLOPT_CUSTOMREQUEST => 'POST',
               CURLOPT_POSTFIELDS => array(
                 'key' => $_COOKIE["imgbb_key"],
-                'name' => $software,
+                'name' => $software_label,
                 'image' => base64_encode($data)
               )
             ));
@@ -251,7 +262,7 @@
           }
           $out = '
             <div class="panel qr-panel">
-              <div class="panel-title">'.$software.'</div>
+              <div class="panel-title">'.$software_label.'</div>
               <div class="body">
                 <center>
                   <a href="'.$img_url.'" target="_blank">
