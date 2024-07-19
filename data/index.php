@@ -134,18 +134,22 @@
                   foreach($regions as $region) { // FOR EACH REGION!!
                     $json=json_decode(file_get_contents('titlelist/list_'.$region.'.json'));
                     foreach($json as $game) {
-                      
+
+                      // We are only checking for 3DS games & updates, skipping anything else
+                      // str_contains is a PHP 8 thing, pretty handy ngl
+                      if(str_contains($game->{"Product Code"}, "CTR")){
                       // IDS STARTING WITH 000400000 ARE GAMES
-                      if ($game->TitleID == '000400000'.$id.'00') {
+                        if ($game->TitleID == '000400000'.$id.'00') {
                         // Update software name
-                        array_push($software, $game); // Push element to the end of the array(similar to .append in python)
-                      }
+                          array_push($software, $game); // Push element to the end of the array(similar to .append in python)
+                        }
                       // IDS STARTING WITH 0004000E0 ARE UPDATES(needed to fix animal crossing as the title id used is for the welcome amiibo update... maybe other games idk)
-                      elseif($game->TitleID == '0004000E0'.$id.'00'){
-                        array_push($software, $game); // Push element to the end of the array
-                      }
+                        elseif($game->TitleID == '0004000E0'.$id.'00'){
+                          array_push($software, $game); // Push element to the end of the array
+                        }
                     }
                   }
+                }
               // OK that's ugly mess but: 
               // Usually there's only one game that matches the software EXIF TAG
               // BUT sometimes(quite a lot of times actually.) there are updates that use the same EXIF TAG(Pokémon Sun/X are examples where both the game and their updates are matching...)
