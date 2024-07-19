@@ -97,6 +97,7 @@
           $data = fread($handle, filesize($filename));
 
           // Only read EXIF data from JPEG images
+          if ($img['type'] === 'image/jpeg') {
             // Get EXIF data
             $exif = exif_read_data($handle);
             if (is_array($exif) && array_key_exists('Model', $exif)) {
