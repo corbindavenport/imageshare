@@ -97,7 +97,6 @@
           $data = fread($handle, filesize($filename));
 
           // Only read EXIF data from JPEG images
-          if ($img['type'] === 'image/jpeg') {
             // Get EXIF data
             $exif = exif_read_data($handle);
             if (is_array($exif) && array_key_exists('Model', $exif)) {
@@ -155,10 +154,12 @@
               //i'm using usort() which is a function that sorts arrays using inputted user function.
               // I think it's pretty much guaranteed that the game will be before the updates and i don't think there will be more than 2 entries(i checked on a few games(Pokémon X/Sun, Smash bros, Mario vs Donkey Kong) all of them had one entry for their game and one for their update.)
               // so i can just pick the first element of the array and afterwards discard the array.
-              usort($software, function ($a, $b){return strcmp($a->TitleID, $b->TitleID);});
               
-              $software_label = $software[0]->Name; // We take the name of the game.
-              unset($software); // We destroy the array.
+              if(!empty($software)){
+                usort($software, function ($a, $b){return strcmp($a->TitleID, $b->TitleID);});
+                $software_label = $software[0]->Name; // We take the name of the game.
+              } 
+              unset($software);// We destroy the array.
               }
 
         
