@@ -1,0 +1,167 @@
+body,
+html {
+	border: 0px !important;
+}
+
+body {
+	background: #ffffff;
+	font-family: "Lato", "Helvetica Neue", Helvetica, Arial, sans-serif;
+	margin: 0;
+	padding: 0;
+	font-size: 15px;
+	color: #2c3e50;
+	text-align: center;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+hr {
+	border: 1px solid #ecf0f1;
+	margin: 0 -15px;
+}
+
+.button {
+	color: #ffffff;
+	background-color: #95a5a6;
+	border-color: #95a5a6;
+	border-width: 2px;
+	line-height: 38px;
+	padding: 0px 15px;
+	text-align: center;
+	border-radius: 4px;
+	behavior: url(css/PIE.htc);
+	display: inline-block;
+}
+
+.button:hover {
+	color: #ffffff;
+	background-color: #798d8f;
+	text-decoration: none !important;
+}
+
+.share-button {
+	width: 100%;
+	padding: 0 !important;
+}
+
+.header {
+	background: #7e57c2;
+	color: #FFFFFF;
+	font-size: 19px;
+	line-height: 40px;
+	padding-left: 15px;
+	text-align: left;
+}
+
+.container {
+	max-width: 800px;
+	padding: 15px;
+	display: inline-block;
+	text-align: left;
+}
+
+.panel {
+	background-color: #ffffff;
+	border: 1px solid #ecf0f1;
+	border-radius: 4px;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	margin-bottom: 15px;
+}
+
+.panel .panel-title {
+	background-color: #ecf0f1;
+	padding: 10px 15px;
+}
+
+.panel .title {
+	font-size: 36px;
+	margin-bottom: 0px;
+	margin-top: 15px;
+}
+
+.panel .body {
+	padding-left: 15px;
+	padding-right: 15px;
+}
+
+input[type="button"],
+input[type="submit"],
+input[type="text"] {
+	display: block;
+	/* For browsers that don't support calc */
+	width: 97.5%;
+	/* For modern browsers */
+	width: calc(100% - 30px);
+}
+
+/* QR code styles for ancient web browsers */
+.qr-panel img {
+	border: 0;
+	/* Exactly 1/2 of the native 350px size for best rendering */
+	width: 175px;
+	height: 175px;
+}
+
+/* QR code styles for newer browsers that support viewport units */
+@supports (max-height: 60vh) {
+	.qr-panel img {
+		width: 100%;
+		height: auto;
+		max-width: 350px;
+		max-height: 60vh;
+		object-fit: scale-down;
+	}
+}
+
+.qr-panel a {
+	outline: none;
+}
+
+/* Large screens */
+@media screen and (min-width: 800px) {
+
+	.header {
+		line-height: 60px;
+	}
+
+	.panel {
+		float: left;
+		vertical-align: top;
+		margin-left: 5px;
+		margin-right: 5px;
+		width: 365px;
+	}
+
+}
+
+/* Very small screens (like Nintendo 3DS Browser) */
+
+@media screen and (max-width: 350px) {
+
+	body {
+		background: #FFF;
+		overflow: hidden;
+	}
+
+	.container {
+		padding: 0;
+	}
+
+	.header {
+		display: none;
+	}
+
+	.panel {
+		border: 0;
+	}
+
+}
