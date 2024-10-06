@@ -2,9 +2,9 @@
   "name": "imageshare",
   "version": "1.0.0",
   "description": "A lightweight web app for uploading images, created for the Nintendo 3DS and other legacy web browsers.",
-  "main": "dist/app.js",
+  "main": "src/app.js",
   "scripts": {
-    "start": "tsc && node dist/app.js",
+    "start": "node src/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Corbin Davenport",
@@ -17,17 +17,6 @@
     "multer": "^1.4.5-lts.1",
     "path": "^0.12.7",
     "qrcode": "^1.5.3",
-    "serve-static": "^1.15.0",
-    "tsx": "^4.16.2",
-    "typescript": "^5.5.4"
-  },
-  "devDependencies": {
-    "@types/express": "^4.17.21",
-    "@types/mime": "^3.0.4",
-    "@types/minimist": "^1.2.5",
-    "@types/multer": "^1.4.11",
-    "@types/node": "^22.0.2",
-    "@types/qrcode": "^1.5.5",
-    "@types/serve-static": "^1.15.7"
+    "serve-static": "^1.15.0"
   }
 }

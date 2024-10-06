@@ -1,6 +1,6 @@
 // TODO: Implement analytics, env variables passthrough
 
-import express, { Request, Response } from 'express';
+import express from 'express';
 import serveStatic from 'serve-static';
 import path from 'path';
 import multer from 'multer';
@@ -18,6 +18,10 @@ const app = express();
 const webDomain = (args.domain || getLocalIP());
 // Time delay for automatically deleting images, 
 const deleteDelay = (parseInt(args.delay) || 2);
+// Paths to primary directories
+const publicDir = path.resolve(import.meta.dirname, '../public');
+const uploadsDir = path.resolve(import.meta.dirname, '../uploads');
+const mainDir = path.resolve(import.meta.dirname, '../');
 // External directory for storing images
 // This is not intended for public servers, automatic deletion is not enabled
 const externalDir = args.dir;
@@ -35,33 +39,32 @@ if (fs.existsSync('uploads')) {
 }
 fs.mkdirSync('uploads');
 
-// Settings for uploads
 const storage = multer.diskStorage({
-  // Set upload directory
-  destination: (req: Request, file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) => {
+  destination: function (req, file, cb) {
     if (externalDir) {
       cb(null, externalDir);
     } else {
       cb(null, 'uploads');
     }
   },
-  // Create unique UUID file name for each upload
-  filename: (req: Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) => {
+  filename: function (req, file, cb) {
     const uniqueSuffix = crypto.randomUUID();
     const extension = path.extname(file.originalname);
     cb(null, `${uniqueSuffix}${extension}`);
   }
 });
+
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: (10 * 1024 * 1024) // 10 MB
+    fileSize: 10 * 1024 * 1024 // 10 MB
   }
 });
 
+
 // Function to get local IP address
 // This is used to send images when a domain is not specified
-function getLocalIP(): string | null {
+function getLocalIP() {
   const networkInterfaces = os.networkInterfaces();
   for (const interfaceName in networkInterfaces) {
     const addresses = networkInterfaces[interfaceName];
@@ -77,7 +80,7 @@ function getLocalIP(): string | null {
 }
 
 // Function to render header for HTML pages
-function renderHead(userAgent: string) {
+function renderHead(userAgent) {
   // Set hardcoded viewport for old Nintendo 3DS, set full-size viewport for New Nintendo 3DS and other browsers
   let viewportEl = ''
   if (userAgent.includes('Nintendo 3DS') && (!(userAgent.includes('New Nintendo 3DS')))) {
@@ -126,14 +129,8 @@ function renderHead(userAgent: string) {
   return htmlString;
 }
 
-// Function to render main index page
-interface RenderData {
-  userAgent: string;
-  uploadUrl?: string;
-  secure?: boolean;
-}
 
-function renderMain({ userAgent = '', uploadUrl = '', secure = false }: RenderData) {
+function renderMain(userAgent = '', uploadUrl = '', secure = false) {
   // Render initial header elements
   let htmlString = `
   <!DOCTYPE html>
@@ -198,7 +195,7 @@ function renderMain({ userAgent = '', uploadUrl = '', secure = false }: RenderDa
 }
 
 // Function to display QR code for uploaded image
-function renderImage(userAgent: string, isSecure: boolean, imageUploadUrl: string) {
+function renderImage(userAgent, isSecure, imageUploadUrl) {
   const htmlString = `
   <!DOCTYPE html>
   ${renderHead(userAgent)}
@@ -223,10 +220,10 @@ function renderImage(userAgent: string, isSecure: boolean, imageUploadUrl: strin
 }
 
 // Set up serve-static middleware to serve files from the 'public' folder
-app.use(serveStatic(path.join(__dirname, 'data')));
+app.use(serveStatic(publicDir));
 
 // Handle POST requests with enctype="multipart/form-data"
-app.post('*', upload.single('img'), async function (req: Request, res: Response, err) {
+app.post('*', upload.single('img'), async function (req, res, err) {
   if (req && req.file && req.file.path) {
     console.log(`Uploaded image: ${req.file.path}`);
     // Set public links to image upload and QR code
@@ -235,7 +232,7 @@ app.post('*', upload.single('img'), async function (req: Request, res: Response,
     // Schedule timeout to delete image
     if (!externalDir) {
       const delay = deleteDelay * 60 * 1000;
-      setTimeout(async (path: string) => {
+      setTimeout(async (path) => {
         if (req.file) {
           fs.unlinkSync(req.file.path);
           console.log(`Deleted image: ${req.file.path}`);
@@ -244,11 +241,7 @@ app.post('*', upload.single('img'), async function (req: Request, res: Response,
     }
     // Display result page
     res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.end(renderMain({
-      userAgent: String(req.get('User-Agent')),
-      uploadUrl: imageUploadUrl,
-      secure: req.secure
-    }));
+    res.end(renderMain(String(req.get('User-Agent')), imageUploadUrl, req.secure));
   } else {
     console.error('Invalid upload');
     res.sendStatus(500);
@@ -257,17 +250,15 @@ app.post('*', upload.single('img'), async function (req: Request, res: Response,
 
 // Handle requests for main page with a custom-rendered interface
 // The / and /index.html paths are required, the /index.php path retains compatibility with bookmarks for the older PHP-based ImageShare
-app.get(['/', '/index.html', '/index.php'], (req: Request, res: Response) => {
+app.get(['/', '/index.html', '/index.php'], (req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/html' });
-  res.end(renderMain({
-    userAgent: String(req.get('User-Agent'))
-  }));
+  res.end(renderMain(String(req.get('User-Agent'))));
 });
 
 // Handle requests for images with direct file access
-app.get('/uploads/*', async (req: Request, res: Response) => {
+app.get('/uploads/*', async (req, res) => {
   try {
-    const filePath = path.join(__dirname, req.url);
+    const filePath = path.join(mainDir, req.url);
     let data = await fs.promises.readFile(filePath);
     const mimeType = mime.getType(filePath);
     if (mimeType) {
@@ -281,7 +272,7 @@ app.get('/uploads/*', async (req: Request, res: Response) => {
 });
 
 // Handle requests for QR codes
-app.get('/qr/*', async (req: Request, res: Response) => {
+app.get('/qr/*', async (req, res) => {
   const imgUrl = req.params[0]; // Example: 0fbb2132-296b-455e-bcbc-107ca9f103e9.jpg
   // TODO: check for HTTPS/SSL and use that instead if present
   const qrText = `http://${webDomain}:80/uploads/${imgUrl}`;
