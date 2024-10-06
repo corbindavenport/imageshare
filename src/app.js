@@ -227,8 +227,7 @@ app.post('*', upload.single('img'), async function (req, res, err) {
   if (req && req.file && req.file.path) {
     console.log(`Uploaded image: ${req.file.path}`);
     // Set public links to image upload and QR code
-    // TODO: check for HTTPS and use that instead if present
-    const imageUploadUrl = `http://${webDomain}:80/${req.file.path}`;
+    const imageUploadUrl = `/${req.file.path}`;
     // Schedule timeout to delete image
     if (!externalDir) {
       const delay = deleteDelay * 60 * 1000;
@@ -293,6 +292,6 @@ app.get('/qr/*', async (req, res) => {
 });
 
 // Start the HTTP server
-app.listen(80, () => {
-  console.log(`Server is running on http://${webDomain}:80`);
+app.listen(8080, () => {
+  console.log(`Server is running on http://${webDomain}:8080`);
 });
