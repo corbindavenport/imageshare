@@ -37,7 +37,7 @@ services:
     volumes:
       - ./:/home/node/app:rw
     command: >
-      sh -c "npm install && npm start"
+      sh -c "mkdir -p /home/node/app/node_modules && chown -R node:node /home/node/app && npm install && npm start"
     networks:
       - internal
 
