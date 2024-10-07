@@ -36,7 +36,8 @@ services:
       - "8080:8080"
     volumes:
       - ./:/home/node/app:rw
-    command: "npm install && npm start"
+    command: >
+      sh -c "npm install && npm start"
     networks:
       - internal
 
