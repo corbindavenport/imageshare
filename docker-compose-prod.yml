@@ -1,41 +1,55 @@
 version: "3"
+
 services:
-  nginx:
-    restart: always
-    build:
-      context: .
-      dockerfile: nginx/production/Dockerfile
+  webserver:
+    image: nginx:mainline-alpine
+    container_name: webserver
+    restart: unless-stopped
     environment:
       NGINX_ENVSUBST_TEMPLATE_SUFFIX: ".conf"
       DOMAIN: ${DOMAIN}
     ports: 
-      - 80:80
-      - 443:443
+      - "80:80"
     networks:
       - internal
     volumes:
       - ./nginx/production/templates:/etc/nginx/templates/
-      - ./data/:/var/www/html/
+      - ./public/:/var/www/html/
       - ./logs/nginx:/var/log/nginx/
       - ./certbot/www:/var/www/certbot/:ro
       - ./certbot/conf/:/etc/nginx/ssl/:ro
-  certbot:
-    image: certbot/certbot:latest
-    volumes:
-      - ./certbot/www/:/var/www/certbot/:rw
-      - ./certbot/conf/:/etc/letsencrypt/:rw
-  php:
-    restart: always
-    build:
-      context: .
-      dockerfile: php/Dockerfile-production
+    depends_on:
+      - nodejs
+  
+  nodejs:
+    container_name: "nodejs"
+    image: "node:22-alpine"
+    user: "node"
+    working_dir: /home/node/app
+    restart: unless-stopped
     environment:
       IMGUR_KEY: ${IMGUR_KEY}
       IMGBB_KEY: ${IMGBB_KEY}
       DOMAIN: ${DOMAIN}
       PLAUSIBLE_DOMAIN: ${PLAUSIBLE_DOMAIN}
+    ports: 
+      - "8080:8080"
+    volumes:
+      - ./:/home/node/app
+    command: "npm start"
     networks:
       - internal
+
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - ./certbot/www/:/var/www/certbot/:rw
+      - ./certbot/conf/:/etc/letsencrypt/:rw
+    depends_on:
+      - webserver
+    command: certonly --webroot --webroot-path=/var/www/certbot/ --email ${EMAIL} --agree-tos --no-eff-email --staging -d ${DOMAIN} -d www.${DOMAIN}
+
 networks:
   internal:
     driver: bridge
