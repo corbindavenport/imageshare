@@ -23,24 +23,15 @@ services:
   
   nodejs:
     container_name: "nodejs"
-    image: "node:22-alpine"
-    user: "node"
-    working_dir: /home/node/app
-    restart: unless-stopped
+    image: "nodejs"
+    build:
+      context: .
+      dockerfile: Dockerfile
     environment:
       IMGUR_KEY: ${IMGUR_KEY}
       IMGBB_KEY: ${IMGBB_KEY}
       DOMAIN: ${DOMAIN}
       PLAUSIBLE_DOMAIN: ${PLAUSIBLE_DOMAIN}
-    ports: 
-      - "8080:8080"
-    volumes:
-      - ./:/home/node/app:rw
-    command: >
-      sh -c "chown -R node:node /home/node/app &&
-        mkdir -p /home/node/app/node_modules
-        npm install &&
-        npm start"
     networks:
       - internal
 
