@@ -4,7 +4,7 @@ html {
 }
 
 body {
-	background: #ffffff;
+	background: #f5f5f7;
 	font-family: "Lato", "Helvetica Neue", Helvetica, Arial, sans-serif;
 	margin: 0;
 	padding: 0;
@@ -23,84 +23,63 @@ a:hover {
 
 hr {
 	border: 1px solid #ecf0f1;
-	margin: 0 -15px;
-}
-
-.button {
-	color: #ffffff;
-	background-color: #95a5a6;
-	border-color: #95a5a6;
-	border-width: 2px;
-	line-height: 38px;
-	padding: 0px 15px;
-	text-align: center;
-	border-radius: 4px;
-	behavior: url(css/PIE.htc);
-	display: inline-block;
-}
-
-.button:hover {
-	color: #ffffff;
-	background-color: #798d8f;
-	text-decoration: none !important;
-}
-
-.share-button {
-	width: 100%;
-	padding: 0 !important;
 }
 
 .header {
 	background: #7e57c2;
 	color: #FFFFFF;
 	font-size: 19px;
-	line-height: 40px;
+	height: 44px;
+	line-height: 44px;
 	padding-left: 15px;
+	padding-right: 5px;
 	text-align: left;
+	border-bottom: 2px solid #d6d6d6;
 }
 
 .container {
 	max-width: 800px;
-	padding: 15px;
+	padding: 20px;
 	display: inline-block;
-	text-align: left;
+	margin: 0 auto;
 }
 
 .panel {
 	background-color: #ffffff;
-	border: 1px solid #ecf0f1;
-	border-radius: 4px;
-	-webkit-border-radius: 4px;
-	-moz-border-radius: 4px;
-	-webkit-border-radius: 4px;
-	-moz-border-radius: 4px;
+	border-radius: 14px;
+	-webkit-border-radius: 14px;
+	-moz-border-radius: 14px;
+	border: 2px solid #d6d6d6;
 	margin-bottom: 15px;
 }
 
-.panel .panel-title {
-	background-color: #ecf0f1;
-	padding: 10px 15px;
+@supports (box-shadow: 2px 4px 12px #00000014) {
+	.panel, .header {
+		border: 0;
+		box-shadow: 2px 4px 12px #00000014;
+	}
 }
 
-.panel .title {
-	font-size: 36px;
-	margin-bottom: 0px;
-	margin-top: 15px;
+.panel .panel-title {
+	text-align: left;
+	color: #6e6e73;
+	font-size: 13px;
+	text-transform: uppercase;
+	padding: 15px;
 }
 
 .panel .body {
+	text-align: left;
 	padding-left: 15px;
 	padding-right: 15px;
+	padding-bottom: 10px;
 }
 
 input[type="button"],
 input[type="submit"],
 input[type="text"] {
 	display: block;
-	/* For browsers that don't support calc */
-	width: 97.5%;
-	/* For modern browsers */
-	width: calc(100% - 30px);
+	width: 100%;
 }
 
 /* QR code styles for ancient web browsers */
@@ -127,18 +106,18 @@ input[type="text"] {
 }
 
 /* Large screens */
-@media screen and (min-width: 800px) {
+@media screen and (min-width: 835px) {
 
-	.header {
-		line-height: 60px;
+	.container {
+		padding-top: 35px;
 	}
 
 	.panel {
-		float: left;
+		display: inline-block;
 		vertical-align: top;
-		margin-left: 5px;
-		margin-right: 5px;
-		width: 365px;
+		margin-left: 10px;
+		margin-right: 10px;
+		width: 360px;
 	}
 
 }
@@ -149,7 +128,6 @@ input[type="text"] {
 
 	body {
 		background: #FFF;
-		overflow: hidden;
 	}
 
 	.container {
@@ -161,7 +139,20 @@ input[type="text"] {
 	}
 
 	.panel {
+		border-radius: 0;
+		-webkit-border-radius: 0;
+		-moz-border-radius: 0;
 		border: 0;
+		box-shadow: none;
+		margin: 0;
+	}
+
+	.panel .panel-title {
+		background: #7e57c2;
+		color: #FFFFFF;
+		padding-top: 8px;
+		padding-bottom: 8px;
+		border-bottom: 2px solid #d6d6d6;
 	}
 
 }

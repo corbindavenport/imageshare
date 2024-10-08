@@ -15,7 +15,9 @@ const args = minimist(process.argv.slice(2));
 // Initialize Express
 const app = express();
 // Domain used for the web server and image URLs
-const webDomain = (args.domain || getLocalIP());
+const webDomain = (process.env.DOMAIN || getLocalIP());
+// Domain used for Plausible analytics
+const plausibleDomain = process.env.PLAUSIBLE_DOMAIN;
 // Time delay for automatically deleting images, 
 const deleteDelay = (parseInt(args.delay) || 2);
 // Paths to primary directories
@@ -106,7 +108,9 @@ function renderHead(userAgent) {
     <link rel="stylesheet" type="text/css" href="styles.css">
     <meta name="description" content="ImageShare is a lightweight web app for uploading images, created for the Nintendo 3DS and other legacy web browsers.">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="ImageShare">
+    <meta name="theme-color" content="#7e57c2" />
     ${viewportEl}
     ${iconEl}
     <!-- Web app manifest and Windows tile -->
@@ -184,8 +188,6 @@ function renderMain(userAgent = '', uploadUrl = '', secure = false) {
           <hr />
           <p>Join Discord server: <a href="https://discord.gg/tqJDRsmQVn" target="_blank">discord.gg/tqJDRsmQVn</a></p>
           <p>Follow on Mastodon: <a href="https://toot.community/@corbin" target="_blank">@corbin@toot.community</a>
-          <hr />
-          <p>ImageShare v24.06</p>
         </div>
       </div>
     </div>
@@ -238,6 +240,24 @@ app.post('*', upload.single('img'), async function (req, res, err) {
         }
       }, delay);
     }
+    // Send async Plausible analytics page view if enabled
+    if (plausibleDomain) {
+      const data = {
+        name: 'Upload',
+        props: JSON.stringify({ 'Upload Mode': 'Native'}),
+        url: '/',
+        domain: plausibleDomain
+      }
+      fetch('https://plausible.io/api/event', {
+        method: 'POST',
+        headers: {
+          'User-Agent': String(req.get('User-Agent')),
+          'X-Forwarded-For': req.ip,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+    }
     // Display result page
     res.writeHead(200, { 'Content-Type': 'text/html' });
     res.end(renderMain(String(req.get('User-Agent')), imageUploadUrl, req.secure));
@@ -250,6 +270,24 @@ app.post('*', upload.single('img'), async function (req, res, err) {
 // Handle requests for main page with a custom-rendered interface
 // The / and /index.html paths are required, the /index.php path retains compatibility with bookmarks for the older PHP-based ImageShare
 app.get(['/', '/index.html', '/index.php'], (req, res) => {
+  // Send async Plausible analytics page view if enabled
+  if (plausibleDomain) {
+    const data = {
+      name: 'pageview',
+      url: '/',
+      domain: plausibleDomain,
+    }
+    fetch('https://plausible.io/api/event', {
+      method: 'POST',
+      headers: {
+        'User-Agent': String(req.get('User-Agent')),
+        'X-Forwarded-For': req.ip,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+  }
+  // Send page
   res.writeHead(200, { 'Content-Type': 'text/html' });
   res.end(renderMain(String(req.get('User-Agent'))));
 });
