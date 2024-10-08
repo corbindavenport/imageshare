@@ -18,6 +18,8 @@ const app = express();
 const webDomain = (process.env.DOMAIN || getLocalIP());
 // Domain used for Plausible analytics
 const plausibleDomain = process.env.PLAUSIBLE_DOMAIN;
+// File size limit for uploads
+const uploadLimit = Number(process.env.UPLOAD_LIMIT);
 // Time delay for automatically deleting images, 
 const deleteDelay = (parseInt(args.delay) || 2);
 // Paths to primary directories
@@ -59,7 +61,7 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 10 * 1024 * 1024 // 10 MB
+    fileSize: uploadLimit * 1024 * 1024 // X MB
   }
 });
 
