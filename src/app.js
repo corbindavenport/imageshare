@@ -181,6 +181,7 @@ function renderMain(userAgent = '', uploadUrl = '', secure = false) {
           <form action="/" id="upload-form" enctype="multipart/form-data" method="POST">
             <p><input name="img" id="img-btn" type="file" accept="image/*" /></p>
             <p><input name="submit" type="submit" value="Upload" /></p>
+            <p><i>Maximum file size: ${uploadLimit} MB</i></p>
           </form>
           <hr>
           <p>ImageShare is a lightweight web app for uploading images with QR codes, created for the Nintendo 3DS and other legacy web browsers. See <a href="https://github.com/corbindavenport/imageshare" target="_blank">tinyurl.com/imgsharegit</a> for more information.</p>
