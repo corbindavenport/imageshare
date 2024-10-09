@@ -9,6 +9,8 @@ import os from 'os';
 import mime from 'mime';
 import QRCode from 'qrcode';
 import minimist from 'minimist';
+import ExifReader from 'exifreader';
+import { XMLParser, XMLBuilder, XMLValidator} from 'fast-xml-parser';
 
 // Initialize command line arguments
 const args = minimist(process.argv.slice(2));
@@ -29,6 +31,10 @@ const mainDir = path.resolve(import.meta.dirname, '../');
 // External directory for storing images
 // This is not intended for public servers, automatic deletion is not enabled
 const externalDir = args.dir;
+// Load 3DS game title library
+const xmlFile = fs.readFileSync(path.resolve(import.meta.dirname, '3dsreleases.xml'), 'utf-8');
+const xmlParser = new XMLParser();
+const json3DS = xmlParser.parse(xmlFile);
 
 // Print settings
 console.log(`
@@ -81,6 +87,21 @@ function getLocalIP() {
     }
   }
   return null;
+}
+
+// Function to detect 3DS game title from image
+async function getSoftwareTitle(imgFile) {
+  const tags = await ExifReader.load(imgFile);
+  if (tags['Model']?.description === 'Nintendo 3DS' && tags['Software']?.description) {
+    // Search for game in 3DS game database
+    const gamesData = json3DS['releases']['release'];
+    const match = gamesData.find(game => game.titleid.toString().includes(tags['Software'].description));
+    if (match) {
+      return match.name;
+    }
+  }
+  // Return default software title if none is detected
+  return 'ImageShare Upload';
 }
 
 // Function to render header for HTML pages
@@ -136,7 +157,7 @@ function renderHead(userAgent) {
 }
 
 
-function renderMain(userAgent = '', uploadUrl = '', secure = false) {
+function renderMain(userAgent = '', uploadUrl = '', secure = false, softwareTitle = 'ImageShare Upload') {
   // Render initial header elements
   let htmlString = `
   <!DOCTYPE html>
@@ -150,7 +171,7 @@ function renderMain(userAgent = '', uploadUrl = '', secure = false) {
     // No QR code is available for images uploaded to a custom directory
     htmlString += `
     <div class="panel qr-panel">
-        <div class="panel-title">ImageShare Upload</div>
+        <div class="panel-title">${softwareTitle}</div>
         <div class="body">
           <p>Image now available at <b>${externalDir}</b>.</p>
           <p>The image will not be automatically deleted.</p>
@@ -161,7 +182,7 @@ function renderMain(userAgent = '', uploadUrl = '', secure = false) {
     // Show QR code
     htmlString += `
     <div class="panel qr-panel">
-        <div class="panel-title">ImageShare Upload</div>
+         <div class="panel-title">${softwareTitle}</div>
         <div align="center">
             <a href="${uploadUrl}" target="_blank">
               <img alt="QR code (click to open page in new window)" src="${uploadUrl.replace('/uploads/', '/qr/')}">
@@ -181,7 +202,7 @@ function renderMain(userAgent = '', uploadUrl = '', secure = false) {
           <form action="/" id="upload-form" enctype="multipart/form-data" method="POST">
             <p><input name="img" id="img-btn" type="file" accept="image/*" /></p>
             <p><input name="submit" type="submit" value="Upload" /></p>
-            <p><i>Maximum file size: ${uploadLimit} MB</i></p>
+            <p>Maximum file size: ${uploadLimit} MB</p>
           </form>
           <hr>
           <p>ImageShare is a lightweight web app for uploading images with QR codes, created for the Nintendo 3DS and other legacy web browsers. See <a href="https://github.com/corbindavenport/imageshare" target="_blank">tinyurl.com/imgsharegit</a> for more information.</p>
@@ -233,6 +254,8 @@ app.post('*', upload.single('img'), async function (req, res, err) {
     console.log(`Uploaded image: ${req.file.path}`);
     // Set public links to image upload and QR code
     const imageUploadUrl = `/${req.file.path}`;
+    // Detect software title
+    const softwareTitle = await getSoftwareTitle(req.file.path);
     // Schedule timeout to delete image
     if (!externalDir) {
       const delay = deleteDelay * 60 * 1000;
@@ -263,7 +286,7 @@ app.post('*', upload.single('img'), async function (req, res, err) {
     }
     // Display result page
     res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.end(renderMain(String(req.get('User-Agent')), imageUploadUrl, req.secure));
+    res.end(renderMain(String(req.get('User-Agent')), imageUploadUrl, req.secure, softwareTitle));
   } else {
     console.error('Invalid upload');
     res.sendStatus(500);
@@ -298,12 +321,16 @@ app.get(['/', '/index.html', '/index.php'], (req, res) => {
 // Handle requests for images with direct file access
 app.get('/uploads/*', async (req, res) => {
   try {
+    // Load the image
     const filePath = path.join(mainDir, req.url);
     let data = await fs.promises.readFile(filePath);
+    // Set MIME type on image download
     const mimeType = mime.getType(filePath);
-    if (mimeType) {
-      res.setHeader('Content-Type', mimeType);
-    }
+    res.setHeader('Content-Type', mimeType);
+    // Set image file name, and force browser to download instead of preview
+    const softwareTitle = await getSoftwareTitle(data);
+    res.setHeader('Content-Disposition', `Attachment;filename=${softwareTitle}${path.extname(filePath)}`);
+    // Send image to client
     res.send(data);
   } catch (e) {
     console.log(e);

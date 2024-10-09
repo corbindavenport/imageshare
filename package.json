@@ -10,7 +10,9 @@
   "author": "Corbin Davenport",
   "license": "GPL-3.0",
   "dependencies": {
+    "exifreader": "^4.23.7",
     "express": "^4.19.2",
+    "fast-xml-parser": "^4.5.0",
     "fs": "^0.0.1-security",
     "mime": "^3.0.0",
     "minimist": "^1.2.8",
