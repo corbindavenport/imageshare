@@ -11,6 +11,7 @@ import QRCode from 'qrcode';
 import minimist from 'minimist';
 import ExifReader from 'exifreader';
 import { XMLParser, XMLBuilder, XMLValidator} from 'fast-xml-parser';
+import { spawn } from 'node:child_process';
 
 // Initialize command line arguments
 const args = minimist(process.argv.slice(2));
@@ -24,6 +25,8 @@ const plausibleDomain = process.env.PLAUSIBLE_DOMAIN;
 const uploadLimit = Number(process.env.UPLOAD_LIMIT);
 // Time delay for automatically deleting images, 
 const deleteDelay = (parseInt(args.delay) || 2);
+// Default name for image uploads
+const defaultImgTitle = 'ImageShare Upload';
 // Paths to primary directories
 const publicDir = path.resolve(import.meta.dirname, '../public');
 const uploadsDir = path.resolve(import.meta.dirname, '../uploads');
@@ -101,7 +104,7 @@ async function getSoftwareTitle(imgFile) {
     }
   }
   // Return default software title if none is detected
-  return 'ImageShare Upload';
+  return defaultImgTitle;
 }
 
 // Function to render header for HTML pages
@@ -157,7 +160,7 @@ function renderHead(userAgent) {
 }
 
 
-function renderMain(userAgent = '', uploadUrl = '', secure = false, softwareTitle = 'ImageShare Upload') {
+function renderMain(userAgent = '', uploadUrl = '', secure = false, softwareTitle = defaultImgTitle) {
   // Render initial header elements
   let htmlString = `
   <!DOCTYPE html>
@@ -220,31 +223,6 @@ function renderMain(userAgent = '', uploadUrl = '', secure = false, softwareTitl
   return htmlString;
 }
 
-// Function to display QR code for uploaded image
-function renderImage(userAgent, isSecure, imageUploadUrl) {
-  const htmlString = `
-  <!DOCTYPE html>
-  ${renderHead(userAgent)}
-  <body>
-    <div class="header">ImageShare</div>
-    <div class="container">
-      <div class="panel qr-panel">
-        <div class="panel-title">ImageShare Upload</div>
-        <div align="center">
-            <a href="${imageUploadUrl}" target="_blank">
-              <img alt="QR code (click to open page in new window)" src="${imageUploadUrl.replace('/uploads/', '/qr/')}">
-            </a>
-        </div>
-        <div class="body">
-          <p>You have two minutes to save your image before it is deleted.</p>
-        </div>
-      </div>
-    </div>
-  </body>
-  </html>`;
-  return htmlString;
-}
-
 // Set up serve-static middleware to serve files from the 'public' folder
 app.use(serveStatic(publicDir));
 
@@ -256,6 +234,14 @@ app.post('*', upload.single('img'), async function (req, res, err) {
     const imageUploadUrl = `/${req.file.path}`;
     // Detect software title
     const softwareTitle = await getSoftwareTitle(req.file.path);
+    // If custom software title is detected, try running exiftool to save it to the image description
+    if (softwareTitle != defaultImgTitle) {
+      try {
+        spawn('exiftool', [`-Description=${softwareTitle}`, req.file.path]);
+      } catch (e) {
+        console.log(`Error running exiftool: ${e}`);
+      }
+    }
     // Schedule timeout to delete image
     if (!externalDir) {
       const delay = deleteDelay * 60 * 1000;
@@ -327,9 +313,8 @@ app.get('/uploads/*', async (req, res) => {
     // Set MIME type on image download
     const mimeType = mime.getType(filePath);
     res.setHeader('Content-Type', mimeType);
-    // Set image file name, and force browser to download instead of preview
-    const softwareTitle = await getSoftwareTitle(data);
-    res.setHeader('Content-Disposition', `Attachment;filename=${softwareTitle}${path.extname(filePath)}`);
+    // Force browser to download instead of preview
+    res.setHeader('Content-Disposition', 'Attachment;');
     // Send image to client
     res.send(data);
   } catch (e) {
