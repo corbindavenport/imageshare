@@ -239,7 +239,7 @@ app.post('*', upload.single('img'), async function (req, res, err) {
     const softwareTitle = await getSoftwareTitle(req.file.path);
     // If custom software title is detected, run exiftool to save it to the image description
     if (softwareTitle != defaultImgTitle) {
-      spawn('exiftool', [`-Caption-Abstract=${softwareTitle}`, req.file.path]);
+      spawn('exiftool', [`-Caption-Abstract=${softwareTitle}`, `-ImageDescription=${softwareTitle}`, req.file.path]);
     }
     // Schedule timeout to delete image
     if (!externalDir) {
