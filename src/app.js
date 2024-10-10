@@ -263,7 +263,7 @@ app.post('*', upload.single('img'), async function (req, res, err) {
         method: 'POST',
         headers: {
           'User-Agent': String(req.get('User-Agent')),
-          'X-Forwarded-For': req.ip,
+          'X-Forwarded-For': (req.headers['x-forwarded-for'] || req.ip),
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
@@ -292,7 +292,7 @@ app.get(['/', '/index.html', '/index.php'], (req, res) => {
       method: 'POST',
       headers: {
         'User-Agent': String(req.get('User-Agent')),
-        'X-Forwarded-For': req.ip,
+        'X-Forwarded-For': (req.headers['x-forwarded-for'] || req.ip),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(data),
