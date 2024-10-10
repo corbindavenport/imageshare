@@ -92,13 +92,16 @@ function getLocalIP() {
   return null;
 }
 
-// Function to detect 3DS game title from image
+// Function to detect software title from image
 async function getSoftwareTitle(imgFile) {
   const tags = await ExifReader.load(imgFile);
   if (tags['Model']?.description === 'Nintendo 3DS' && tags['Software']?.description) {
-    // Search for game in 3DS game database
+    // Image is from a Nintendo 3DS game
     const gamesData = json3DS['releases']['release'];
-    const match = gamesData.find(game => game.titleid.toString().includes(tags['Software'].description));
+    // The image contains a shortened game ID (e.g. Animal Crossing New Leaf is 0863 in image and 0004000000086300 in database)
+    // Game IDs with letters can have a mixed casing between the image and database (e.g. a Pokemon X screenshot contains ID 0055d but is ID 0004000000055D00 in database), so we need to run toLowerCase() on both values for a match
+    const gameId = tags['Software'].description.toLowerCase();
+    const match = gamesData.find(game => game.titleid.toString().toLowerCase().includes(gameId));
     if (match) {
       return match.name;
     }
@@ -234,13 +237,9 @@ app.post('*', upload.single('img'), async function (req, res, err) {
     const imageUploadUrl = `/${req.file.path}`;
     // Detect software title
     const softwareTitle = await getSoftwareTitle(req.file.path);
-    // If custom software title is detected, try running exiftool to save it to the image description
+    // If custom software title is detected, run exiftool to save it to the image description
     if (softwareTitle != defaultImgTitle) {
-      try {
-        spawn('exiftool', [`-Description=${softwareTitle}`, req.file.path]);
-      } catch (e) {
-        console.log(`Error running exiftool: ${e}`);
-      }
+      spawn('exiftool', [`-Description=${softwareTitle}`, req.file.path]);
     }
     // Schedule timeout to delete image
     if (!externalDir) {
