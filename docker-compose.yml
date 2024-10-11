@@ -24,6 +24,7 @@ services:
   
   nodejs:
     container_name: "nodejs"
+    restart: unless-stopped
     image: "nodejs"
     build:
       context: .
