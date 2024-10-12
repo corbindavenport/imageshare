@@ -77,7 +77,8 @@ hr {
 
 input[type="button"],
 input[type="submit"],
-input[type="text"] {
+input[type="text"],
+input[type="file"] {
 	display: block;
 	width: 100%;
 }
