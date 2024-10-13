@@ -1,16 +1,10 @@
 # ImageShare
 
-ImageShare is a lightweight web app for uploading and sharing images. It was originally designed as a replacement for the [Nintendo 3DS Image Share Service](https://web.archive.org/web/20170822055326/https://www.nintendo.com/3ds/image-share), accessible through the Nintendo 3DS/2DS Browser, but it also works on many other basic/legacy web browsers. After the image upload, a QR code is provided to scan with another device.
+ImageShare is a lightweight web app for sending images to another device, designed for low-end and legacy web browsers like Internet Explorer, the Nintendo 3DS and Wii U browsers, KaiOS, Windows Phone, and others. You can upload an image, and ImageShare will generate a QR code for downloading the image on another device.
 
-### Features
+ImageShare was originally designed as a replacement for the [Nintendo 3DS Image Share Service](https://web.archive.org/web/20170822055326/https://www.nintendo.com/3ds/image-share). It supports both HTTP and HTTPS, doesn't require creating user accounts, and uses a minimal layout with no client-side JavaScript for the fastest possible performance. ImageShare can also detect Nintendo 3DS games and add the game's title to the image metadata.
 
-- Uploads images to [Imgur](https://imgur.com) or [ImgBB](https://imgbb.com/) and creates a QR code for the link
-- Fast performance using server-side PHP code and no client-side JavaScript
-- Does not require account creation or a login
-- Compatible with many old and low-end web browsers¹ using either HTTP or HTTPS
-- Self-hostable on any server with Docker (see [DEV.md](DEV.md))
-- Enhanced support for iOS, Windows Phone, and Windows 10 Mobile
-- Automatic game title detection for Nintendo 3DS uploads ([example](https://imgur.com/4Fb4HI6))
+You can [self-host ImageShare](DEV.md) on any server, NAS, home computer, or other device using Docker.
 
 ### How to use
 
