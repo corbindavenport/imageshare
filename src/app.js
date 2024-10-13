@@ -31,6 +31,17 @@ const defaultImgTitle = 'ImageShare Upload';
 const publicDir = path.resolve(import.meta.dirname, '../public');
 const uploadsDir = path.resolve(import.meta.dirname, '../uploads');
 const mainDir = path.resolve(import.meta.dirname, '../');
+// List of supported MIME types for uploads
+const supportedFileTypes = [
+  'image/jpeg',
+  'image/jpg',
+  'image/gif',
+  'image/png',
+  'image/apng',
+  'image/webp',
+  'image/avif'
+];
+const supportedFileString = supportedFileTypes.map(type => type.split('/')[1].toUpperCase()).join(', ');
 // External directory for storing images
 // This is not intended for public servers, automatic deletion is not enabled
 const externalDir = args.dir;
@@ -206,9 +217,9 @@ function renderMain(userAgent = '', uploadUrl = '', secure = false, softwareTitl
         <div class="panel-title">Upload Image</div>
         <div class="body">
           <form action="/" id="upload-form" enctype="multipart/form-data" method="POST">
-            <p><input name="img" id="img-btn" type="file" accept="image/*" /></p>
+            <p><input name="img" id="img-btn" type="file" accept="${supportedFileTypes.toString()}" /></p>
             <p><input name="submit" type="submit" value="Upload" /></p>
-            <p>Maximum file size: ${uploadLimit} MB</p>
+            <p>${supportedFileString} (${uploadLimit}MB maximum)</p>
           </form>
           <hr>
           <p>ImageShare is a lightweight web app for uploading images with QR codes, created for the Nintendo 3DS and other legacy web browsers. See <a href="https://github.com/corbindavenport/imageshare" target="_blank">tinyurl.com/imgsharegit</a> for more information.</p>
@@ -231,8 +242,15 @@ app.use(serveStatic(publicDir));
 
 // Handle POST requests with enctype="multipart/form-data"
 app.post('*', upload.single('img'), async function (req, res, err) {
+  // Check if file type is supported
+  if (!supportedFileTypes.includes(req?.file?.mimetype)) {
+    console.error('Invalid upload');
+    res.sendStatus(500);
+    return;
+  }
+  // Process image upload
   if (req && req.file && req.file.path) {
-    console.log(`Uploaded image: ${req.file.path}`);
+    console.log(`Uploaded image: ${req.file.path}, MIME type ${req.file.mimetype}`);
     // Set public links to image upload and QR code
     const imageUploadUrl = `/${req.file.path}`;
     // Detect software title
