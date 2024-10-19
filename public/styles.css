@@ -3,6 +3,10 @@ html {
 	border: 0px !important;
 }
 
+div {
+	border: none;
+}
+
 body {
 	background: #f5f5f7;
 	font-family: "Lato", "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -29,11 +33,17 @@ hr {
 	background: #7e57c2;
 	color: #FFFFFF;
 	font-size: 19px;
-	height: 44px;
+	line-height: 2;
 	line-height: 44px;
 	padding-left: 15px;
 	padding-right: 5px;
 	text-align: left;
+	/* This is required for Netscape 4.x: http://www.richinstyle.com/bugs/netscape4.html#color */
+	width: 100%;
+	border: none;
+	/* Overrides for more modern browsers */
+	box-sizing: border-box;
+	height: 44px;
 	border-bottom: 2px solid #d6d6d6;
 }
 
@@ -45,7 +55,7 @@ hr {
 }
 
 .panel {
-	background-color: #ffffff;
+	background: #ffffff;
 	border-radius: 14px;
 	-webkit-border-radius: 14px;
 	-moz-border-radius: 14px;
@@ -54,7 +64,9 @@ hr {
 }
 
 @supports (box-shadow: 2px 4px 12px #00000014) {
-	.panel, .header {
+
+	.panel,
+	.header {
 		border: 0;
 		box-shadow: 2px 4px 12px #00000014;
 	}
@@ -75,16 +87,14 @@ hr {
 	padding-bottom: 10px;
 }
 
-input[type="button"],
-input[type="submit"],
-input[type="text"],
-input[type="file"] {
+input {
 	display: block;
+	box-sizing: border-box;
 	width: 100%;
 }
 
 /* QR code styles for ancient web browsers */
-.qr-panel img {
+.qr-img {
 	border: 0;
 	/* Exactly 1/2 of the native 350px size for best rendering */
 	width: 175px;
@@ -93,7 +103,7 @@ input[type="file"] {
 
 /* QR code styles for newer browsers that support viewport units */
 @supports (max-height: 60vh) {
-	.qr-panel img {
+	.qr-img {
 		width: 100%;
 		height: auto;
 		max-width: 350px;
@@ -102,7 +112,7 @@ input[type="file"] {
 	}
 }
 
-.qr-panel a {
+.qr-img-link {
 	outline: none;
 }
 

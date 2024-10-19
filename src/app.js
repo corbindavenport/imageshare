@@ -105,6 +105,11 @@ function getLocalIP() {
 
 // Function to detect software title from image
 async function getSoftwareTitle(imgFile) {
+  const imgExt = path.extname(imgFile).toLowerCase();
+  // Exit early if file is not JPG or PNG format
+  if ((imgExt != '.png') || (imgExt != '.jpg') || (imgExt != '.jpeg')) {
+    return defaultImgTitle;
+  }
   const tags = await ExifReader.load(imgFile);
   if (tags['Model']?.description === 'Nintendo 3DS' && tags['Software']?.description) {
     // Image is from a Nintendo 3DS game
@@ -145,7 +150,7 @@ function renderHead(userAgent) {
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>ImageShare</title>
-    <link rel="stylesheet" type="text/css" href="styles.css">
+    <link rel="stylesheet" type="text/css" href="/styles.css">
     <meta name="description" content="ImageShare is a lightweight web app for uploading images, created for the Nintendo 3DS and other legacy web browsers.">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -176,10 +181,11 @@ function renderHead(userAgent) {
 
 function renderMain(userAgent = '', uploadUrl = '', secure = false, softwareTitle = defaultImgTitle) {
   // Render initial header elements
+  // Margin is defined in <body> attributes for ancient browsers, like Netscape 4.x
   let htmlString = `
   <!DOCTYPE html>
   ${renderHead(userAgent)}
-  <body>
+  <body marginheight="0" marginwidth="0">
     <div class="header">ImageShare</div>
     <div class="container">
   `;
@@ -187,7 +193,7 @@ function renderMain(userAgent = '', uploadUrl = '', secure = false, softwareTitl
   if (externalDir && uploadUrl) {
     // No QR code is available for images uploaded to a custom directory
     htmlString += `
-    <div class="panel qr-panel">
+    <div class="panel">
         <div class="panel-title">${softwareTitle}</div>
         <div class="body">
           <p>Image now available at <b>${externalDir}</b>.</p>
@@ -198,11 +204,11 @@ function renderMain(userAgent = '', uploadUrl = '', secure = false, softwareTitl
   } else if (uploadUrl) {
     // Show QR code
     htmlString += `
-    <div class="panel qr-panel">
-         <div class="panel-title">${softwareTitle}</div>
+    <div class="panel">
+        <div class="panel-title">${softwareTitle}</div>
         <div align="center">
-            <a href="${uploadUrl}" target="_blank">
-              <img alt="QR code (click to open page in new window)" src="${uploadUrl.replace('/uploads/', '/qr/')}">
+            <a class="qr-img-link" href="/${uploadUrl}" target="_blank">
+              <img class="qr-img" alt="QR code (click to open page in new window)" src="/${uploadUrl.replace('uploads/', 'qr/')}">
             </a>
         </div>
         <div class="body">
@@ -213,7 +219,7 @@ function renderMain(userAgent = '', uploadUrl = '', secure = false, softwareTitl
   }
   // Render rest of page
   htmlString += `
-      <div class="panel upload-panel">
+      <div class="panel">
         <div class="panel-title">Upload Image</div>
         <div class="body">
           <form action="/" id="upload-form" enctype="multipart/form-data" method="POST">
@@ -251,8 +257,6 @@ app.post('*', upload.single('img'), async function (req, res, err) {
   // Process image upload
   if (req && req.file && req.file.path) {
     console.log(`Uploaded image: ${req.file.path}, MIME type ${req.file.mimetype}`);
-    // Set public links to image upload and QR code
-    const imageUploadUrl = `/${req.file.path}`;
     // Detect software title
     const softwareTitle = await getSoftwareTitle(req.file.path);
     // If custom software title is detected, run exiftool to save it to the image description
@@ -289,7 +293,7 @@ app.post('*', upload.single('img'), async function (req, res, err) {
     }
     // Display result page
     res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.end(renderMain(String(req.get('User-Agent')), imageUploadUrl, req.secure, softwareTitle));
+    res.end(renderMain(String(req.get('User-Agent')), req.file.path, req.secure, softwareTitle));
   } else {
     console.error('Invalid upload');
     res.sendStatus(500);
