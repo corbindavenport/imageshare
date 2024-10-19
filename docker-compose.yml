@@ -9,7 +9,7 @@ services:
       NGINX_ENVSUBST_TEMPLATE_SUFFIX: ".conf"
       DOMAIN: ${DOMAIN}
       UPLOAD_LIMIT: ${UPLOAD_LIMIT}
-    ports: 
+    ports:
       - "80:80"
     networks:
       - internal
@@ -21,7 +21,7 @@ services:
       - ./certbot/conf/:/etc/nginx/ssl/:ro
     depends_on:
       - nodejs
-  
+
   nodejs:
     container_name: "nodejs"
     restart: unless-stopped
@@ -38,6 +38,15 @@ services:
     networks:
       - internal
 
+certbot:
+  image: certbot/certbot
+  container_name: certbot
+  volumes:
+    - ./certbot/www/:/var/www/certbot/:rw
+    - ./certbot/conf/:/etc/letsencrypt/:rw
+  depends_on:
+    - webserver
+  command: certonly --webroot --webroot-path=/var/www/certbot/ --email ${EMAIL} --agree-tos --no-eff-email --staging -d ${DOMAIN} -d www.${DOMAIN}
 
 networks:
   internal:
