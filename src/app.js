@@ -10,7 +10,7 @@ import mime from 'mime';
 import QRCode from 'qrcode';
 import minimist from 'minimist';
 import ExifReader from 'exifreader';
-import { XMLParser, XMLBuilder, XMLValidator} from 'fast-xml-parser';
+import { XMLParser, XMLBuilder, XMLValidator } from 'fast-xml-parser';
 import { spawn } from 'node:child_process';
 
 // Initialize command line arguments
@@ -105,11 +105,11 @@ function getLocalIP() {
 
 // Function to detect software title from image
 async function getSoftwareTitle(imgFile) {
-  const imgExt = path.extname(imgFile).toLowerCase();
   // Exit early if file is not JPG or PNG format
-  if ((imgExt != '.png') || (imgExt != '.jpg') || (imgExt != '.jpeg')) {
-    return defaultImgTitle;
-  }
+  const imgExt = path.extname(imgFile).toLowerCase();
+  const allowedExt = ['.png', '.jpg', '.jpeg'];
+  if (!allowedExt.includes(imgExt)) return defaultImgTitle;
+  // Continue reading EXIF data
   const tags = await ExifReader.load(imgFile);
   if (tags['Model']?.description === 'Nintendo 3DS' && tags['Software']?.description) {
     // Image is from a Nintendo 3DS game
@@ -144,22 +144,25 @@ function renderHead(userAgent) {
     <link rel="icon" type="image/png" sizes="16x16" href="img/favicon_x16.png">
     <link rel="icon" type="image/png" sizes="24x24" href="img/favicon_x24.png">`
   }
-  // Return string
+  // Generate  full header string
+  // Documentation for Windows tile: https://learn.microsoft.com/en-us/previous-versions/windows/internet-explorer/ie-developer/platform-apis/dn255024(v=vs.85)
+  // CSS is embedded using @import statement so old browsers (IE 3, Netscape 4.x, etc.) get the plain HTML version
   const htmlString = `
-  <head>
+    <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>ImageShare</title>
-    <link rel="stylesheet" type="text/css" href="/styles.css">
     <meta name="description" content="ImageShare is a lightweight web app for uploading images, created for the Nintendo 3DS and other legacy web browsers.">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="ImageShare">
     <meta name="theme-color" content="#7e57c2" />
+    <style>
+    @import url("/styles.css");
+    </style>
     ${viewportEl}
     ${iconEl}
     <!-- Web app manifest and Windows tile -->
-    <!-- Documentation for Windows tile: https://learn.microsoft.com/en-us/previous-versions/windows/internet-explorer/ie-developer/platform-apis/dn255024(v=vs.85) -->
     <link rel="manifest" href="manifest.json">
     <meta name="application-name" content="ImageShare">
     <meta name="msapplication-TileColor" content="#7e57c2">
@@ -181,12 +184,14 @@ function renderHead(userAgent) {
 
 function renderMain(userAgent = '', uploadUrl = '', secure = false, softwareTitle = defaultImgTitle) {
   // Render initial header elements
-  // Margin is defined in <body> attributes for ancient browsers, like Netscape 4.x
-  let htmlString = `
-  <!DOCTYPE html>
+  // Background color is defined in <body> attributes for ancient browsers, like Netscape 4.x
+  let htmlString = `<!DOCTYPE html>
+  <html lang="en">
   ${renderHead(userAgent)}
-  <body marginheight="0" marginwidth="0">
-    <div class="header">ImageShare</div>
+  <body bgcolor="#FFFFFF" text="#2c3e50" link="#0d6efd" vlink="#0d6efd" alink="#0a58ca">
+    <div class="header">
+      <h1>ImageShare</h1>
+    </div>
     <div class="container">
   `;
   // Show QR code if an image has been uploaded
@@ -194,7 +199,7 @@ function renderMain(userAgent = '', uploadUrl = '', secure = false, softwareTitl
     // No QR code is available for images uploaded to a custom directory
     htmlString += `
     <div class="panel">
-        <div class="panel-title">${softwareTitle}</div>
+        <h3 class="panel-title">${softwareTitle}</h3>
         <div class="body">
           <p>Image now available at <b>${externalDir}</b>.</p>
           <p>The image will not be automatically deleted.</p>
@@ -205,7 +210,7 @@ function renderMain(userAgent = '', uploadUrl = '', secure = false, softwareTitl
     // Show QR code
     htmlString += `
     <div class="panel">
-        <div class="panel-title">${softwareTitle}</div>
+        <h3 class="panel-title">${softwareTitle}</h3>
         <div align="center">
             <a class="qr-img-link" href="/${uploadUrl}" target="_blank">
               <img class="qr-img" alt="QR code (click to open page in new window)" src="/${uploadUrl.replace('uploads/', 'qr/')}">
@@ -220,7 +225,7 @@ function renderMain(userAgent = '', uploadUrl = '', secure = false, softwareTitl
   // Render rest of page
   htmlString += `
       <div class="panel">
-        <div class="panel-title">Upload Image</div>
+        <h3 class="panel-title">Upload Image</h3>
         <div class="body">
           <form action="/" id="upload-form" enctype="multipart/form-data" method="POST">
             <p><input name="img" id="img-btn" type="file" accept="${supportedFileTypes.toString()}" /></p>
@@ -277,7 +282,7 @@ app.post('*', upload.single('img'), async function (req, res, err) {
     if (plausibleDomain) {
       const data = {
         name: 'Upload',
-        props: JSON.stringify({ 'Upload Mode': 'Native'}),
+        props: JSON.stringify({ 'Upload Mode': 'Native' }),
         url: '/',
         domain: plausibleDomain
       }
