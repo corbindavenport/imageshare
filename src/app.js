@@ -227,7 +227,7 @@ function renderMain(userAgent = '', uploadUrl = '', secure = false, softwareTitl
       <div class="panel">
         <h3 class="panel-title">Upload Image</h3>
         <div class="body">
-          <form action="/" id="upload-form" enctype="multipart/form-data" method="POST">
+          <form action="/" id="upload-form" enctype="multipart/form-data" method="POST" onsubmit="document.getElementById('loading-img').style.display='block';">
             <p><input name="img" id="img-btn" type="file" accept="${supportedFileTypes.toString()}" /></p>
             <p><input name="submit" type="submit" value="Upload" /></p>
             <p>${supportedFileString} (${uploadLimit}MB maximum)</p>
@@ -243,6 +243,7 @@ function renderMain(userAgent = '', uploadUrl = '', secure = false, softwareTitl
         </div>
       </div>
     </div>
+    <img id="loading-img" src="/img/loading.gif" alt="Loading" style="display:none;">
   </body>
   </html>`;
   return htmlString;
