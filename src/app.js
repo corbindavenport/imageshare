@@ -363,3 +363,11 @@ app.get('/qr/*', async (req, res) => {
 app.listen(8080, () => {
   console.log(`Server is running on http://${webDomain}:8080`);
 });
+
+// Listen for termination signals
+const gracefulShutdown = () => {
+  console.log('Received shutdown signal, closing server...');
+  process.exit(0);
+};
+process.on('SIGINT', gracefulShutdown);
+process.on('SIGTERM', gracefulShutdown);
