@@ -31,17 +31,6 @@ const defaultImgTitle = 'ImageShare Upload';
 const publicDir = path.resolve(import.meta.dirname, '../public');
 const uploadsDir = path.resolve(import.meta.dirname, '../uploads');
 const mainDir = path.resolve(import.meta.dirname, '../');
-// List of supported MIME types for uploads
-const supportedFileTypes = [
-  'image/jpeg',
-  'image/jpg',
-  'image/gif',
-  'image/png',
-  'image/apng',
-  'image/webp',
-  'image/avif'
-];
-const supportedFileString = supportedFileTypes.map(type => type.split('/')[1].toUpperCase()).join(', ');
 // External directory for storing images
 // This is not intended for public servers, automatic deletion is not enabled
 const externalDir = args.dir;
@@ -104,11 +93,13 @@ function getLocalIP() {
 }
 
 // Function to detect software title from image
-async function getSoftwareTitle(imgFile) {
-  // Exit early if file is not JPG or PNG format
-  const imgExt = path.extname(imgFile).toLowerCase();
-  const allowedExt = ['.png', '.jpg', '.jpeg'];
-  if (!allowedExt.includes(imgExt)) return defaultImgTitle;
+async function getSoftwareTitle(imgFile, mimeType) {
+  // Exit early if file is not a supported file type
+  const supportedFileTypes = [
+    'image/jpeg',
+    'image/png'
+  ];
+  if (!supportedFileTypes.includes(mimeType)) return defaultImgTitle;
   // Continue reading EXIF data
   const tags = await ExifReader.load(imgFile);
   if (tags['Model']?.description === 'Nintendo 3DS' && tags['Software']?.description) {
@@ -212,8 +203,8 @@ function renderMain(userAgent = '', uploadUrl = '', secure = false, softwareTitl
     <div class="panel">
         <h3 class="panel-title">${softwareTitle}</h3>
         <div align="center">
-            <a class="qr-img-link" href="/${uploadUrl}" target="_blank">
-              <img class="qr-img" alt="QR code (click to open page in new window)" src="/${uploadUrl.replace('uploads/', 'qr/')}">
+            <a class="qr-img-link" href="/${uploadUrl}" target="_blank" style="outline: none;">
+              <img class="qr-img" alt="QR code" width="175" height="175" border="0" src="/${uploadUrl.replace('uploads/', 'qr/')}">
             </a>
         </div>
         <div class="body">
@@ -224,13 +215,17 @@ function renderMain(userAgent = '', uploadUrl = '', secure = false, softwareTitl
   }
   // Render rest of page
   htmlString += `
+      <!-- Main upload panel -->
       <div class="panel">
         <h3 class="panel-title">Upload Image</h3>
         <div class="body">
-          <form action="/" id="upload-form" enctype="multipart/form-data" method="POST" onsubmit="document.getElementById('loading-img').style.display='block';">
-            <p><input name="img" id="img-btn" type="file" accept="${supportedFileTypes.toString()}" /></p>
+          <form action="/" id="upload-form" enctype="multipart/form-data" method="POST" onsubmit="document.getElementById('loading-container').style.display='block';">
+            <p><input name="img" id="img-btn" type="file" accept="image/*" /></p>
             <p><input name="submit" type="submit" value="Upload" /></p>
-            <p>${supportedFileString} (${uploadLimit}MB maximum)</p>
+            <p id="loading-container" style="display:none;" align="center">
+              <img src="/img/loading.gif" alt="Loading">
+            </p>
+            <p>Maximum file size: ${uploadLimit} MB</p>
           </form>
           <hr>
           <p>ImageShare is a lightweight web app for uploading images with QR codes, created for the Nintendo 3DS and other legacy web browsers. See <a href="https://github.com/corbindavenport/imageshare" target="_blank">tinyurl.com/imgsharegit</a> for more information.</p>
@@ -243,7 +238,7 @@ function renderMain(userAgent = '', uploadUrl = '', secure = false, softwareTitl
         </div>
       </div>
     </div>
-    <img id="loading-img" src="/img/loading.gif" alt="Loading" style="display:none;">
+    <p class="footer"><i>${userAgent}</i></p>
   </body>
   </html>`;
   return htmlString;
@@ -254,17 +249,10 @@ app.use(serveStatic(publicDir));
 
 // Handle POST requests with enctype="multipart/form-data"
 app.post('*', upload.single('img'), async function (req, res, err) {
-  // Check if file type is supported
-  if (!supportedFileTypes.includes(req?.file?.mimetype)) {
-    console.error('Invalid upload');
-    res.sendStatus(500);
-    return;
-  }
-  // Process image upload
   if (req && req.file && req.file.path) {
     console.log(`Uploaded image: ${req.file.path}, MIME type ${req.file.mimetype}`);
     // Detect software title
-    const softwareTitle = await getSoftwareTitle(req.file.path);
+    const softwareTitle = await getSoftwareTitle(req.file.path, req.file.mimetype);
     // If custom software title is detected, run exiftool to save it to the image description
     if (softwareTitle != defaultImgTitle) {
       spawn('exiftool', [`-Caption-Abstract=${softwareTitle}`, `-ImageDescription=${softwareTitle}`, req.file.path]);
