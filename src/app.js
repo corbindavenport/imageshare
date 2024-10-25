@@ -1,5 +1,3 @@
-// TODO: Implement analytics, env variables passthrough
-
 import express from 'express';
 import serveStatic from 'serve-static';
 import path from 'path';
@@ -13,8 +11,6 @@ import ExifReader from 'exifreader';
 import { XMLParser, XMLBuilder, XMLValidator } from 'fast-xml-parser';
 import { spawn } from 'node:child_process';
 
-// Initialize command line arguments
-const args = minimist(process.argv.slice(2));
 // Initialize Express
 const app = express();
 // Domain used for the web server and image URLs
@@ -23,17 +19,13 @@ const webDomain = (process.env.DOMAIN || getLocalIP());
 const plausibleDomain = process.env.PLAUSIBLE_DOMAIN;
 // File size limit for uploads
 const uploadLimit = Number(process.env.UPLOAD_LIMIT);
-// Time delay for automatically deleting images, 
-const deleteDelay = (parseInt(args.delay) || 2);
+// Time delay for automatically deleting images, in minutes
+const deleteDelay = (parseInt(process.env.AUTODELETE_TIME, 10) || 2);
 // Default name for image uploads
 const defaultImgTitle = 'ImageShare Upload';
 // Paths to primary directories
 const publicDir = path.resolve(import.meta.dirname, '../public');
-const uploadsDir = path.resolve(import.meta.dirname, '../uploads');
 const mainDir = path.resolve(import.meta.dirname, '../');
-// External directory for storing images
-// This is not intended for public servers, automatic deletion is not enabled
-const externalDir = args.dir;
 // Load 3DS game title library
 const xmlFile = fs.readFileSync(path.resolve(import.meta.dirname, '3dsreleases.xml'), 'utf-8');
 const xmlParser = new XMLParser();
@@ -43,7 +35,6 @@ const json3DS = xmlParser.parse(xmlFile);
 console.log(`
 Domain: ${webDomain}
 Image delete delay: ${deleteDelay} minute(s)
-Image upload directory: ${(externalDir || 'Default')}
 `);
 
 // Create uploads folder, and delete existing one if present
@@ -54,11 +45,7 @@ fs.mkdirSync('uploads');
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    if (externalDir) {
-      cb(null, externalDir);
-    } else {
-      cb(null, 'uploads');
-    }
+    cb(null, 'uploads');
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = crypto.randomUUID();
@@ -186,18 +173,7 @@ function renderMain(userAgent = '', uploadUrl = '', secure = false, softwareTitl
     <div class="container">
   `;
   // Show QR code if an image has been uploaded
-  if (externalDir && uploadUrl) {
-    // No QR code is available for images uploaded to a custom directory
-    htmlString += `
-    <div class="panel">
-        <h3 class="panel-title">${softwareTitle}</h3>
-        <div class="body">
-          <p>Image now available at <b>${externalDir}</b>.</p>
-          <p>The image will not be automatically deleted.</p>
-        </div>
-      </div>
-    `;
-  } else if (uploadUrl) {
+  if (uploadUrl) {
     // Show QR code
     htmlString += `
     <div class="panel">
@@ -258,15 +234,13 @@ app.post('*', upload.single('img'), async function (req, res, err) {
       spawn('exiftool', [`-Caption-Abstract=${softwareTitle}`, `-ImageDescription=${softwareTitle}`, req.file.path]);
     }
     // Schedule timeout to delete image
-    if (!externalDir) {
-      const delay = deleteDelay * 60 * 1000;
-      setTimeout(async (path) => {
-        if (req.file) {
-          fs.unlinkSync(req.file.path);
-          console.log(`Deleted image: ${req.file.path}`);
-        }
-      }, delay);
-    }
+    const delay = deleteDelay * 60 * 1000;
+    setTimeout(async (path) => {
+      if (req.file) {
+        fs.unlinkSync(req.file.path);
+        console.log(`Deleted image: ${req.file.path}`);
+      }
+    }, delay);
     // Send async Plausible analytics page view if enabled
     if (plausibleDomain) {
       const data = {
