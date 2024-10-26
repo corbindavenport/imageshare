@@ -10,9 +10,9 @@ You can [self-host ImageShare](DEV.md) on any server, NAS, home computer, or oth
 
 The main ImageShare server is hosted at [theimageshare.com](http://theimageshare.com/). If your device can scan QR codes with a camera, scan one of the below codes to open ImageShare. The site uses an non-secure HTTP connection by default for best compatibility, but your data is not encrypted in transit. If you have a more modern browser or device that supports the [Let's Encrypt ISRG Root X1 certificate](https://letsencrypt.org/docs/certificate-compatibility/), you can use ImageShare over an encrypted HTTPS connection.
 
-**Nintendo console users:** You can scan QR codes with the Nintendo 3DS by pressing the L + R buttons on the home screen. If you can't connect, check that the date and time is correct on your device, then try again.
+**Nintendo console users:** You can scan QR codes with the Nintendo 3DS by pressing the L + R buttons on the home screen, then pressing the QR code button. If you can't connect, check that the date and time is correct on your device, then try again.
 
-| Secure connection (modern devices) | Not secure connection (3DS, Wii U, legacy browsers) |
+| Secure connection: modern devices and browsers | Not secure connection: 3DS, Wii U, legacy browsers |
 | :---: | :---: |
 | ![QR code](/qr-img-https.png) | ![QR code](/qr-img-http.png) |
 
