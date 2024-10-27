@@ -1,7 +1,7 @@
 {
     "name": "ImageShare",
     "short_name": "ImageShare",
-    "description": "Lightweight web app for uploading images, created for the Nintendo 3DS and other legacy web browsers.",
+    "description": "Web app for sending images and videos to another device, designed for low-end and legacy web browsers.",
     "icons": [
         {
             "src": "/img/maskable_icon_x192.png",

@@ -1,7 +1,7 @@
 {
   "name": "imageshare",
   "version": "1.0.0",
-  "description": "A lightweight web app for uploading images, created for the Nintendo 3DS and other legacy web browsers.",
+  "description": "Web app for sending images and videos to another device, designed for low-end and legacy web browsers.",
   "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
