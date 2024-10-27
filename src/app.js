@@ -14,7 +14,7 @@ import { spawn } from 'node:child_process';
 // Initialize Express
 const app = express();
 // Domain used for the web server and uploaded file URLs
-const webDomain = (process.env.DOMAIN || getLocalIP());
+const webDomain = process.env.DOMAIN;
 // Domain used for Plausible analytics
 const plausibleDomain = process.env.PLAUSIBLE_DOMAIN;
 // File size limit for uploads
@@ -33,7 +33,7 @@ const json3DS = xmlParser.parse(xmlFile);
 
 // Print settings
 console.log(`
-Domain: ${webDomain}
+Domain: ${(webDomain || 'Not specified')}
 File delete delay: ${deleteDelay} minute(s)
 File upload limit: ${uploadLimit} MB
 Plausible analytics domain: ${(plausibleDomain || 'None')}
@@ -64,23 +64,6 @@ const upload = multer({
 });
 
 
-// Function to get local IP address
-// This is used to send files when a domain is not specified
-function getLocalIP() {
-  const networkInterfaces = os.networkInterfaces();
-  for (const interfaceName in networkInterfaces) {
-    const addresses = networkInterfaces[interfaceName];
-    if (addresses) {
-      for (const address of addresses) {
-        if (address.family === 'IPv4' && !address.internal) {
-          return address.address;
-        }
-      }
-    }
-  }
-  return null;
-}
-
 // Function to detect software title from image EXIF data
 async function getSoftwareTitle(imgFile, mimeType) {
   // Exit early if file is not a supported file type
@@ -107,7 +90,7 @@ async function getSoftwareTitle(imgFile, mimeType) {
 }
 
 // Function to render header for HTML pages
-function renderHead(userAgent) {
+function renderHead(userAgent, webHost) {
   // Set hardcoded viewport for old Nintendo 3DS, set full-size viewport for New Nintendo 3DS and other browsers
   let viewportEl = ''
   if (userAgent.includes('Nintendo 3DS') && (!(userAgent.includes('New Nintendo 3DS')))) {
@@ -153,8 +136,8 @@ function renderHead(userAgent) {
     <meta property="og:description" content="ImageShare is a web app for sending images and videos to another device, designed for low-end and legacy web browsers." />
     <meta property="og:image:width" content="512" />
     <meta property="og:image:height" content="512" />
-    <meta property="og:url" content="https://${webDomain}" />
-    <meta property="og:image" content="https://${webDomain}/img/maskable_icon_x512.png" />
+    <meta property="og:url" content="https://${webHost}" />
+    <meta property="og:image" content="https://${webHost}/img/maskable_icon_x512.png" />
     <meta name="og:image:alt" content="ImageShare app icon" />
     <meta name="twitter:card" content="summary" />
   </head>`;
@@ -162,12 +145,12 @@ function renderHead(userAgent) {
 }
 
 
-function renderMain(userAgent = '', uploadUrl = '', secure = false, softwareTitle = defaultFileTitle) {
+function renderMain(userAgent = '', webHost, uploadUrl = '', secure = false, softwareTitle = defaultFileTitle) {
   // Render initial header elements
   // Background color is defined in <body> attributes for ancient browsers, like Netscape 4.x
   let htmlString = `<!DOCTYPE html>
   <html lang="en">
-  ${renderHead(userAgent)}
+  ${renderHead(userAgent, webHost)}
   <body bgcolor="#FFFFFF" text="#2c3e50" link="#0d6efd" vlink="#0d6efd" alink="#0a58ca">
     <div class="header">
       <h1>ImageShare</h1>
@@ -226,6 +209,8 @@ app.use(serveStatic(publicDir));
 
 // Handle POST requests with enctype="multipart/form-data"
 app.post('*', upload.single('img'), async function (req, res, err) {
+  // Use provided domain name if possible, or connected hostname as fallback
+  const connectedHost = (webDomain || req.headers['host']);
   if (req && req.file && req.file.path) {
     console.log(`Uploaded file: ${req.file.path}, MIME type ${req.file.mimetype}`);
     // Detect software title
@@ -262,7 +247,7 @@ app.post('*', upload.single('img'), async function (req, res, err) {
     }
     // Display result page
     res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.end(renderMain(String(req.get('User-Agent')), req.file.path, req.secure, softwareTitle));
+    res.end(renderMain(String(req.get('User-Agent')), connectedHost, req.file.path, req.secure, softwareTitle));
   } else {
     console.error('Invalid upload');
     res.sendStatus(500);
@@ -272,6 +257,8 @@ app.post('*', upload.single('img'), async function (req, res, err) {
 // Handle requests for main page with a custom-rendered interface
 // The / and /index.html paths are required, the /index.php path retains compatibility with bookmarks for the older PHP-based ImageShare
 app.get(['/', '/index.html', '/index.php'], (req, res) => {
+  // Use provided domain name if possible, or connected hostname as fallback
+  const connectedHost = (webDomain || req.headers['host']);
   // Send async Plausible analytics page view if enabled
   if (plausibleDomain) {
     const data = {
@@ -291,7 +278,7 @@ app.get(['/', '/index.html', '/index.php'], (req, res) => {
   }
   // Send page
   res.writeHead(200, { 'Content-Type': 'text/html' });
-  res.end(renderMain(String(req.get('User-Agent'))));
+  res.end(renderMain(String(req.get('User-Agent')), connectedHost));
 });
 
 // Handle requests for uploaded file with direct file access
@@ -315,9 +302,11 @@ app.get('/uploads/*', async (req, res) => {
 
 // Handle requests for QR codes
 app.get('/qr/*', async (req, res) => {
-  const imgUrl = req.params[0]; // Example: 0fbb2132-296b-455e-bcbc-107ca9f103e9.jpg
+  // Use provided domain name if possible, or connected hostname as fallback
+  const connectedHost = (webDomain || req.headers['host']);
+  const fileName = req.params[0]; // Example: 0fbb2132-296b-455e-bcbc-107ca9f103e9.jpg
   // TODO: check for HTTPS/SSL and use that instead if present
-  const qrText = `http://${webDomain}:80/uploads/${imgUrl}`;
+  const qrText = `http://${connectedHost}:80/uploads/${fileName}`;
   try {
     // Generate the QR code
     const qrCodeDataURL = await QRCode.toDataURL(qrText, {
@@ -336,7 +325,7 @@ app.get('/qr/*', async (req, res) => {
 
 // Start the HTTP server
 app.listen(8080, () => {
-  console.log(`Server is running on http://${webDomain}:8080`);
+  console.log(`Server is running`);
 });
 
 // Listen for termination signals
