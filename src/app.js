@@ -13,15 +13,15 @@ import { spawn } from 'node:child_process';
 
 // Initialize Express
 const app = express();
-// Domain used for the web server and image URLs
+// Domain used for the web server and uploaded file URLs
 const webDomain = (process.env.DOMAIN || getLocalIP());
 // Domain used for Plausible analytics
 const plausibleDomain = process.env.PLAUSIBLE_DOMAIN;
 // File size limit for uploads
 const uploadLimit = Number(process.env.UPLOAD_LIMIT);
-// Time delay for automatically deleting images, in minutes
+// Time delay for automatically deleting files, in minutes
 const deleteDelay = (parseInt(process.env.AUTODELETE_TIME, 10) || 2);
-// Default name for image uploads
+// Default name for file uploads
 const defaultFileTitle = 'ImageShare Upload';
 // Paths to primary directories
 const publicDir = path.resolve(import.meta.dirname, '../public');
@@ -34,7 +34,7 @@ const json3DS = xmlParser.parse(xmlFile);
 // Print settings
 console.log(`
 Domain: ${webDomain}
-Image delete delay: ${deleteDelay} minute(s)
+File delete delay: ${deleteDelay} minute(s)
 File upload limit: ${uploadLimit} MB
 Plausible analytics domain: ${(plausibleDomain || 'None')}
 `);
@@ -65,7 +65,7 @@ const upload = multer({
 
 
 // Function to get local IP address
-// This is used to send images when a domain is not specified
+// This is used to send files when a domain is not specified
 function getLocalIP() {
   const networkInterfaces = os.networkInterfaces();
   for (const interfaceName in networkInterfaces) {
@@ -81,7 +81,7 @@ function getLocalIP() {
   return null;
 }
 
-// Function to detect software title from image
+// Function to detect software title from image EXIF data
 async function getSoftwareTitle(imgFile, mimeType) {
   // Exit early if file is not a supported file type
   const supportedFileTypes = [
@@ -174,7 +174,7 @@ function renderMain(userAgent = '', uploadUrl = '', secure = false, softwareTitl
     </div>
     <div class="container">
   `;
-  // Show QR code if an image has been uploaded
+  // Show QR code if a file has been uploaded
   if (uploadUrl) {
     // Show QR code
     htmlString += `
@@ -195,7 +195,7 @@ function renderMain(userAgent = '', uploadUrl = '', secure = false, softwareTitl
   htmlString += `
       <!-- Main upload panel -->
       <div class="panel">
-        <h3 class="panel-title">Upload Image</h3>
+        <h3 class="panel-title">Upload File</h3>
         <div class="body">
           <form action="/" id="upload-form" enctype="multipart/form-data" method="POST" onsubmit="document.getElementById('loading-container').style.display='block';">
             <p><input name="img" id="img-btn" type="file" accept="image/*,video/*" /></p>
@@ -227,19 +227,19 @@ app.use(serveStatic(publicDir));
 // Handle POST requests with enctype="multipart/form-data"
 app.post('*', upload.single('img'), async function (req, res, err) {
   if (req && req.file && req.file.path) {
-    console.log(`Uploaded image: ${req.file.path}, MIME type ${req.file.mimetype}`);
+    console.log(`Uploaded file: ${req.file.path}, MIME type ${req.file.mimetype}`);
     // Detect software title
     const softwareTitle = await getSoftwareTitle(req.file.path, req.file.mimetype);
     // If custom software title is detected, run exiftool to save it to the image description
     if (softwareTitle != defaultFileTitle) {
       spawn('exiftool', [`-Caption-Abstract=${softwareTitle}`, `-ImageDescription=${softwareTitle}`, req.file.path]);
     }
-    // Schedule timeout to delete image
+    // Schedule timeout to delete file
     const delay = deleteDelay * 60 * 1000;
     setTimeout(async (path) => {
       if (req.file) {
         fs.unlinkSync(req.file.path);
-        console.log(`Deleted image: ${req.file.path}`);
+        console.log(`Deleted file: ${req.file.path}`);
       }
     }, delay);
     // Send async Plausible analytics page view if enabled
@@ -294,10 +294,10 @@ app.get(['/', '/index.html', '/index.php'], (req, res) => {
   res.end(renderMain(String(req.get('User-Agent'))));
 });
 
-// Handle requests for images with direct file access
+// Handle requests for uploaded file with direct file access
 app.get('/uploads/*', async (req, res) => {
   try {
-    // Load the image
+    // Load the file
     const filePath = path.join(mainDir, req.url);
     let data = await fs.promises.readFile(filePath);
     // Set MIME type on image download
@@ -305,7 +305,7 @@ app.get('/uploads/*', async (req, res) => {
     res.setHeader('Content-Type', mimeType);
     // Force browser to download instead of preview
     res.setHeader('Content-Disposition', 'Attachment;');
-    // Send image to client
+    // Send file to client
     res.send(data);
   } catch (e) {
     console.log(e);
