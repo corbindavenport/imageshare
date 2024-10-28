@@ -23,6 +23,8 @@ const uploadLimit = Number(process.env.UPLOAD_LIMIT);
 const deleteDelay = (parseInt(process.env.AUTODELETE_TIME, 10) || 2);
 // Default name for file uploads
 const defaultFileTitle = 'ImageShare Upload';
+// Check if production mode is enabled, so we can default to SSL for image links and other actions
+const prodModeEnabled = (process.env.PROD_MODE === 'true');
 // Paths to primary directories
 const publicDir = path.resolve(import.meta.dirname, '../public');
 const mainDir = path.resolve(import.meta.dirname, '../');
@@ -37,6 +39,7 @@ Domain: ${(webDomain || 'Not specified')}
 File delete delay: ${deleteDelay} minute(s)
 File upload limit: ${uploadLimit} MB
 Plausible analytics domain: ${(plausibleDomain || 'None')}
+Production mode: ${prodModeEnabled}
 `);
 
 // Create uploads folder, and delete existing one if present
@@ -45,6 +48,7 @@ if (fs.existsSync('uploads')) {
 }
 fs.mkdirSync('uploads');
 
+// Set storage for uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, 'uploads');
@@ -56,6 +60,7 @@ const storage = multer.diskStorage({
   }
 });
 
+// Set file size limits for uploads
 const upload = multer({
   storage: storage,
   limits: {
@@ -63,6 +68,18 @@ const upload = multer({
   }
 });
 
+// Function to asynchronously send analytics data
+function sendAnalytics(userAgent, clientIp, data) {
+  fetch('https://plausible.io/api/event', {
+    method: 'POST',
+    headers: {
+      'User-Agent': userAgent,
+      'X-Forwarded-For': clientIp,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+}
 
 // Function to detect software title from image EXIF data
 async function getSoftwareTitle(imgFile, mimeType) {
@@ -235,15 +252,7 @@ app.post('*', upload.single('img'), async function (req, res, err) {
         url: '/',
         domain: plausibleDomain
       }
-      fetch('https://plausible.io/api/event', {
-        method: 'POST',
-        headers: {
-          'User-Agent': String(req.get('User-Agent')),
-          'X-Forwarded-For': (req.headers['x-forwarded-for'] || req.ip),
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
+      sendAnalytics(req.get('User-Agent'), (req.headers['x-forwarded-for'] || req.ip), data);
     }
     // Display result page
     res.writeHead(200, { 'Content-Type': 'text/html' });
@@ -266,15 +275,7 @@ app.get(['/', '/index.html', '/index.php'], (req, res) => {
       url: '/',
       domain: plausibleDomain,
     }
-    fetch('https://plausible.io/api/event', {
-      method: 'POST',
-      headers: {
-        'User-Agent': String(req.get('User-Agent')),
-        'X-Forwarded-For': (req.headers['x-forwarded-for'] || req.ip),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
+    sendAnalytics(req.get('User-Agent'), (req.headers['x-forwarded-for'] || req.ip), data);
   }
   // Send page
   res.writeHead(200, { 'Content-Type': 'text/html' });
@@ -305,8 +306,10 @@ app.get('/qr/*', async (req, res) => {
   // Use provided domain name if possible, or connected hostname as fallback
   const connectedHost = (webDomain || req.headers['host']);
   const fileName = req.params[0]; // Example: 0fbb2132-296b-455e-bcbc-107ca9f103e9.jpg
-  // TODO: check for HTTPS/SSL and use that instead if present
-  const qrText = `http://${connectedHost}:80/uploads/${fileName}`;
+  // Use HTTPS for the link if server is in production mode, or HTTP if not
+  const protocol = prodModeEnabled ? 'https' : 'http';
+  // Create QR code text string
+  const qrText = `${protocol}://${connectedHost}/uploads/${fileName}`;
   try {
     // Generate the QR code
     const qrCodeDataURL = await QRCode.toDataURL(qrText, {

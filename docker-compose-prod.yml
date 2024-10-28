@@ -29,6 +29,7 @@ services:
       context: .
       dockerfile: Dockerfile
     environment:
+      PROD_MODE: "true"
       IMGUR_KEY: ${IMGUR_KEY}
       IMGBB_KEY: ${IMGBB_KEY}
       DOMAIN: ${DOMAIN}
