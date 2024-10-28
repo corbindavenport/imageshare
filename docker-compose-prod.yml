@@ -30,8 +30,6 @@ services:
       dockerfile: Dockerfile
     environment:
       PROD_MODE: "true"
-      IMGUR_KEY: ${IMGUR_KEY}
-      IMGBB_KEY: ${IMGBB_KEY}
       DOMAIN: ${DOMAIN}
       UPLOAD_LIMIT: ${UPLOAD_LIMIT}
       AUTODELETE_TIME: ${AUTODELETE_TIME}
