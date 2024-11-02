@@ -32,6 +32,8 @@ const mainDir = path.resolve(import.meta.dirname, '../');
 const xmlFile = fs.readFileSync(path.resolve(import.meta.dirname, '3dsreleases.xml'), 'utf-8');
 const xmlParser = new XMLParser();
 const json3DS = xmlParser.parse(xmlFile);
+// Object to store temporary shortlinks
+const shortLinkObj = {};
 
 // Print settings
 console.log(`
@@ -162,7 +164,7 @@ function renderHead(userAgent, webHost) {
 }
 
 
-function renderMain(userAgent = '', webHost, uploadUrl = '', secure = false, softwareTitle = defaultFileTitle) {
+function renderMain(userAgent = '', webHost, uploadUrl = '', shortLink = '', softwareTitle = defaultFileTitle) {
   // Render initial header elements
   // Background color is defined in <body> attributes for ancient browsers, like Netscape 4.x
   let htmlString = `<!DOCTYPE html>
@@ -181,11 +183,10 @@ function renderMain(userAgent = '', webHost, uploadUrl = '', secure = false, sof
     <div class="panel">
         <h3 class="panel-title">${softwareTitle}</h3>
         <div align="center">
-            <a class="qr-img-link" href="/${uploadUrl}" target="_blank" style="outline: none;">
-              <img class="qr-img" alt="QR code" width="175" height="175" border="0" src="/${uploadUrl.replace('uploads/', 'qr/')}">
-            </a>
+          <img class="qr-img" alt="QR code" width="175" height="175" border="0" src="/${uploadUrl.replace('uploads/', 'qr/')}">
         </div>
         <div class="body">
+          <p class="shortcode-container"><a href="/${uploadUrl}" target="_blank">${shortLink}</a></p>
           <p>You have ${deleteDelay} minute(s) to save your file before it is deleted.</p>
         </div>
       </div>
@@ -225,7 +226,10 @@ function renderMain(userAgent = '', webHost, uploadUrl = '', secure = false, sof
 app.use(serveStatic(publicDir));
 
 // Handle POST requests with enctype="multipart/form-data"
-app.post('*', upload.single('img'), async function (req, res, err) {
+app.post('/', upload.single('img'), async function (req, res, err) {
+  // Use HTTPS for shortlink if server is in production mode, or HTTP if not
+  const protocol = prodModeEnabled ? 'https' : 'http';
+  // TODO check MIME type is video or image
   // Use provided domain name if possible, or connected hostname as fallback
   const connectedHost = (webDomain || req.headers['host']);
   if (req && req.file && req.file.path) {
@@ -236,9 +240,20 @@ app.post('*', upload.single('img'), async function (req, res, err) {
     if (softwareTitle != defaultFileTitle) {
       spawn('exiftool', [`-Caption-Abstract=${softwareTitle}`, `-ImageDescription=${softwareTitle}`, req.file.path]);
     }
-    // Schedule timeout to delete file
+    // Create unique shortlink that isn't already in storage
+    let shortLink;
+    do {
+      shortLink = crypto.randomUUID().toString().substring(0, 5);
+    } while (shortLinkObj[shortLink]);
+    shortLinkObj[shortLink] = req.file.path;
+    console.log(`Created shortlink: ${protocol}://${connectedHost}/i/${shortLink}`);
+    // Schedule timeout to delete file and shortlink
     const delay = deleteDelay * 60 * 1000;
-    setTimeout(async (path) => {
+    setTimeout(async () => {
+      // Delete shortlink
+      delete shortLinkObj[shortLink];
+      console.log(`Deleted shortlink: ${protocol}://${connectedHost}/i/${shortLink}`);
+      // Delete file
       if (req.file) {
         fs.unlinkSync(req.file.path);
         console.log(`Deleted file: ${req.file.path}`);
@@ -256,7 +271,7 @@ app.post('*', upload.single('img'), async function (req, res, err) {
     }
     // Display result page
     res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.end(renderMain(String(req.get('User-Agent')), connectedHost, req.file.path, req.secure, softwareTitle));
+    res.end(renderMain(String(req.get('User-Agent')), connectedHost, req.file.path, `${protocol}://${connectedHost}/i/${shortLink}`, softwareTitle));
   } else {
     console.error('Invalid upload');
     res.sendStatus(500);
@@ -283,16 +298,27 @@ app.get(['/', '/index.html', '/index.php'], (req, res) => {
 });
 
 // Handle requests for uploaded file with direct file access
-app.get('/uploads/*', async (req, res) => {
+app.get(['/uploads/*', '/i/*'], async (req, res) => {
+  let reqPath = '';
+  if (req.path.startsWith('/i/')) {
+    // Request from shortlink
+    let shortLinkCode = req.url.replace('/i/', '');
+    if (shortLinkCode in shortLinkObj) {
+      reqPath = shortLinkObj[shortLinkCode];
+    }
+  } else {
+    // Request from full path
+    reqPath = req.url;
+  }
   try {
     // Load the file
-    const filePath = path.join(mainDir, req.url);
+    const filePath = path.join(mainDir, reqPath);
     let data = await fs.promises.readFile(filePath);
     // Set MIME type on image download
     const mimeType = mime.getType(filePath);
     res.setHeader('Content-Type', mimeType);
     // Force browser to download instead of preview
-    res.setHeader('Content-Disposition', 'Attachment;');
+    res.setHeader('Content-Disposition', `Attachment;filename="${path.basename(filePath)}"`);
     // Send file to client
     res.send(data);
   } catch (e) {
