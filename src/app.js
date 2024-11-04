@@ -65,6 +65,7 @@ console.log(`
 Domain: ${(webDomain || 'Not specified')}
 File delete delay: ${deleteDelay} minute(s)
 File upload limit: ${uploadLimit} MB
+Nintendo 3DS game detection: ${gameList3DS.length} titles loaded
 Plausible analytics domain: ${(plausibleDomain || 'None')}
 Production mode: ${prodModeEnabled}
 `);
