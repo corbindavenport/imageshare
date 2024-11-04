@@ -1,14 +1,11 @@
-import express from 'express';
+import express, { json } from 'express';
 import serveStatic from 'serve-static';
 import path from 'path';
 import multer from 'multer';
 import fs from 'fs';
-import os from 'os';
 import mime from 'mime';
 import QRCode from 'qrcode';
-import minimist from 'minimist';
 import ExifReader from 'exifreader';
-import { XMLParser, XMLBuilder, XMLValidator } from 'fast-xml-parser';
 import { spawn } from 'node:child_process';
 
 // Initialize Express
@@ -28,10 +25,38 @@ const prodModeEnabled = (process.env.PROD_MODE === 'true');
 // Paths to primary directories
 const publicDir = path.resolve(import.meta.dirname, '../public');
 const mainDir = path.resolve(import.meta.dirname, '../');
-// Load 3DS game title library
-const xmlFile = fs.readFileSync(path.resolve(import.meta.dirname, '3dsreleases.xml'), 'utf-8');
-const xmlParser = new XMLParser();
-const json3DS = xmlParser.parse(xmlFile);
+// Load and sort 3DS game title library using hax0kartik database: https://hax0kartik.github.io/3dsdb
+const gameList3DS = [];
+const titleDatabases = [
+  path.resolve(import.meta.dirname, 'list_GB.json'),
+  path.resolve(import.meta.dirname, 'list_JP.json'),
+  path.resolve(import.meta.dirname, 'list_KR.json'),
+  path.resolve(import.meta.dirname, 'list_TW.json'),
+  path.resolve(import.meta.dirname, 'list_US.json')
+];
+titleDatabases.forEach(filePath => {
+  // Load all JSON files and combine their entries into the gameList3DS array
+  const fileData = fs.readFileSync(filePath, 'utf8');
+  const jsonData = JSON.parse(fileData);
+  gameList3DS.push(...jsonData);
+});
+gameList3DS.sort((a, b) => {
+  // This updates the sorting on the game list, so all games are listed before their respective updated versions
+  // Example: Pokémon Sun is in the databse as TitleID 0004000000164800, Pokémon Sun v1.2 update is TitleID 0004000E00164800
+  // Image EXIF data doesn't include the section that indicates the update, but sorting the original titles first ensures the title match will be the original title (Pokémon Sun) instead of the modified version (Pokémon Sun Update Ver. 1.2) wherever possible
+  // Games with TitleIDs starting with 000400000 are the original games, titles starting with 0004000E0 are the updates
+  const aTitleIdPrefix = a.TitleID.slice(0, 10);
+  const bTitleIdPrefix = b.TitleID.slice(0, 10);
+  // Prioritize TitleIDs starting with 000400000 (the original games)
+  if (aTitleIdPrefix === '000400000' && bTitleIdPrefix !== '000400000') {
+    return -1;
+  } else if (bTitleIdPrefix === '000400000' && aTitleIdPrefix !== '000400000') {
+    return 1;
+  } else {
+    // If both or neither start with 000400000, use a default sorting criteria (e.g., sort by TitleID alphabetically)
+    return a.TitleID.localeCompare(b.TitleID);
+  }
+});
 // Object to store temporary shortlinks
 const shortLinkObj = {};
 
@@ -94,14 +119,24 @@ async function getSoftwareTitle(imgFile, mimeType) {
   // Continue reading EXIF data
   const tags = await ExifReader.load(imgFile);
   if (tags['Model']?.description === 'Nintendo 3DS' && tags['Software']?.description) {
-    // Image is from a Nintendo 3DS game
-    const gamesData = json3DS['releases']['release'];
+    // Get game ID from screenshot
+    const gameId = tags['Software'].description.toLowerCase();
+    if (gameId === '00204') {
+      // This is most likely a camera photo
+      return 'Nintendo 3DS Camera';
+    } else if (gameId === '0008f') {
+      // This matches several games and screenshots from the home screen, so just skip it
+      return defaultFileTitle;
+    }
     // The image contains a shortened game ID (e.g. Animal Crossing New Leaf is 0863 in image and 0004000000086300 in database)
     // Game IDs with letters can have a mixed casing between the image and database (e.g. a Pokemon X screenshot contains ID 0055d but is ID 0004000000055D00 in database), so we need to run toLowerCase() on both values for a match
-    const gameId = tags['Software'].description.toLowerCase();
-    const match = gamesData.find(game => game.titleid.toString().toLowerCase().includes(gameId));
-    if (match) {
-      return match.name;
+    for (const game in gameList3DS) {
+      if (gameList3DS[game].TitleID?.toString().toLowerCase().includes(gameId)) {
+        // Game title is a match, remove TM symbol (\u2122) and registered ® sign (\u00ae)
+        const gameTitleMatch = gameList3DS[game].Name.replace(/\u00ae|\u2122/g, '');
+        // Return game title
+        return gameTitleMatch;
+      }
     }
   }
   // Return default software title if none is detected
@@ -165,6 +200,10 @@ function renderHead(userAgent, webHost) {
 
 
 function renderMain(userAgent = '', webHost, uploadUrl = '', shortLink = '', softwareTitle = defaultFileTitle) {
+  // Shorten rendered software title for Nintendo 3DS, because text-overflow: ellipsis doesn't work on responsive-width containers
+  if (userAgent.includes('Nintendo 3DS') && (softwareTitle.length > 32)) {
+    softwareTitle = softwareTitle.substring(0, 32) + ' ...';
+  }
   // Render initial header elements
   // Background color is defined in <body> attributes for ancient browsers, like Netscape 4.x
   let htmlString = `<!DOCTYPE html>

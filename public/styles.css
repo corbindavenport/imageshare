@@ -15,6 +15,7 @@ body {
 	font-size: 15px;
 	color: #2c3e50;
 	text-align: center;
+	overflow-wrap: break-word;
 }
 
 a,
@@ -83,6 +84,7 @@ hr {
 		border: 0;
 		box-shadow: 2px 4px 12px #00000014;
 	}
+
 }
 
 .panel .panel-title {
@@ -116,7 +118,7 @@ input {
 }
 
 .shortcode-container a {
-	font-family: monospace, monospace;
+	font-family: Consolas, Menlo, "courier new", monospace !important;
 	color: #2c3e50;
 }
 
