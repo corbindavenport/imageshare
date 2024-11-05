@@ -226,8 +226,12 @@ function renderMain(userAgent = '', webHost, uploadUrl = '', shortLink = '', sof
           <img class="qr-img" alt="QR code" width="175" height="175" border="0" src="/${uploadUrl.replace('uploads/', 'qr/')}">
         </div>
         <div class="body">
-          <p class="shortcode-container"><a href="/${uploadUrl}" target="_blank">${shortLink}</a></p>
-          <p>You have ${deleteDelay} minute(s) to save your file before it is deleted.</p>
+          <p class="shortcode-container" align="center">
+            <font face="courier new, monospace">
+              <a href="/${uploadUrl}" target="_blank">${shortLink}</a>
+            </font>
+          </p>
+          <p>You have ${deleteDelay} ${deleteDelay === 1 ? 'minute' : 'minutes'} to save your file before it is deleted.</p>
         </div>
       </div>
     `;
