@@ -25,38 +25,9 @@ const prodModeEnabled = (process.env.PROD_MODE === 'true');
 // Paths to primary directories
 const publicDir = path.resolve(import.meta.dirname, '../public');
 const mainDir = path.resolve(import.meta.dirname, '../');
-// Load and sort 3DS game title library using hax0kartik database: https://hax0kartik.github.io/3dsdb
-const gameList3DS = [];
-const titleDatabases = [
-  path.resolve(import.meta.dirname, 'list_GB.json'),
-  path.resolve(import.meta.dirname, 'list_JP.json'),
-  path.resolve(import.meta.dirname, 'list_KR.json'),
-  path.resolve(import.meta.dirname, 'list_TW.json'),
-  path.resolve(import.meta.dirname, 'list_US.json')
-];
-titleDatabases.forEach(filePath => {
-  // Load all JSON files and combine their entries into the gameList3DS array
-  const fileData = fs.readFileSync(filePath, 'utf8');
-  const jsonData = JSON.parse(fileData);
-  gameList3DS.push(...jsonData);
-});
-gameList3DS.sort((a, b) => {
-  // This updates the sorting on the game list, so all games are listed before their respective updated versions
-  // Example: Pokémon Sun is in the databse as TitleID 0004000000164800, Pokémon Sun v1.2 update is TitleID 0004000E00164800
-  // Image EXIF data doesn't include the section that indicates the update, but sorting the original titles first ensures the title match will be the original title (Pokémon Sun) instead of the modified version (Pokémon Sun Update Ver. 1.2) wherever possible
-  // Games with TitleIDs starting with 000400000 are the original games, titles starting with 0004000E0 are the updates
-  const aTitleIdPrefix = a.TitleID.slice(0, 10);
-  const bTitleIdPrefix = b.TitleID.slice(0, 10);
-  // Prioritize TitleIDs starting with 000400000 (the original games)
-  if (aTitleIdPrefix === '000400000' && bTitleIdPrefix !== '000400000') {
-    return -1;
-  } else if (bTitleIdPrefix === '000400000' && aTitleIdPrefix !== '000400000') {
-    return 1;
-  } else {
-    // If both or neither start with 000400000, use a default sorting criteria (e.g., sort by TitleID alphabetically)
-    return a.TitleID.localeCompare(b.TitleID);
-  }
-});
+// Load and sort game title libraries
+const gameList3DS = init3DSTitles();
+const gameListWiiU = initWiiUTitles();
 // Object to store temporary shortlinks
 const shortLinkObj = {};
 
@@ -65,7 +36,8 @@ console.log(`
 Domain: ${(webDomain || 'Not specified')}
 File delete delay: ${deleteDelay} minute(s)
 File upload limit: ${uploadLimit} MB
-Nintendo 3DS game detection: ${gameList3DS.length} titles loaded
+Nintendo 3DS game detection: ${gameList3DS.length} titles
+Nintendo Wii U game detection: ${gameListWiiU.length} titles
 Plausible analytics domain: ${(plausibleDomain || 'None')}
 Production mode: ${prodModeEnabled}
 `);
@@ -96,6 +68,55 @@ const upload = multer({
   }
 });
 
+// Function to initialize database of Nintendo 3DS games
+function init3DSTitles() {
+  const gameList = [];
+  // hax0kartik database: https://hax0kartik.github.io/3dsdb
+  const titleDatabases = [
+    path.resolve(import.meta.dirname, 'list_GB.json'),
+    path.resolve(import.meta.dirname, 'list_JP.json'),
+    path.resolve(import.meta.dirname, 'list_KR.json'),
+    path.resolve(import.meta.dirname, 'list_TW.json'),
+    path.resolve(import.meta.dirname, 'list_US.json')
+  ];
+  titleDatabases.forEach(filePath => {
+    // Load all JSON files and combine their entries into the gameList array
+    const fileData = fs.readFileSync(filePath, 'utf8');
+    const jsonData = JSON.parse(fileData);
+    gameList.push(...jsonData);
+  });
+  gameList.sort((a, b) => {
+    // This updates the sorting on the game list, so all games are listed before their respective updated versions
+    // Example: Pokémon Sun is in the databse as TitleID 0004000000164800, Pokémon Sun v1.2 update is TitleID 0004000E00164800
+    // Image EXIF data doesn't include the section that indicates the update, but sorting the original titles first ensures the title match will be the original title (Pokémon Sun) instead of the modified version (Pokémon Sun Update Ver. 1.2) wherever possible
+    // Games with TitleIDs starting with 000400000 are the original games, titles starting with 0004000E0 are the updates
+    const aTitleIdPrefix = a.TitleID.slice(0, 10);
+    const bTitleIdPrefix = b.TitleID.slice(0, 10);
+    // Prioritize TitleIDs starting with 000400000 (the original games)
+    if (aTitleIdPrefix === '000400000' && bTitleIdPrefix !== '000400000') {
+      return -1;
+    } else if (bTitleIdPrefix === '000400000' && aTitleIdPrefix !== '000400000') {
+      return 1;
+    } else {
+      // If both or neither start with 000400000, use a default sorting criteria (e.g., sort by TitleID alphabetically)
+      return a.TitleID.localeCompare(b.TitleID);
+    }
+  });
+  return gameList;
+}
+
+// Function to initialize database of Nintendo Wii U games
+function initWiiUTitles() {
+  const gameList = [];
+  // JSON file is based on data from WiiUBrew: https://wiiubrew.org/wiki/Title_database
+  // The "eShop and disc titles", "eShop title DLC", "eShop title updates", and "Kiosk Interactive Demo and eShop Demo" tables were converted from the live HTML table to JSON using TableConvert: https://tableconvert.com/html-to-json 
+  // The table data was slightly modified to remove line breaks, and replace "Title ID-" with "Title ID", 
+  const fileData = fs.readFileSync(path.resolve(import.meta.dirname, 'wiiu.json'), 'utf8');
+  const jsonData = JSON.parse(fileData);
+  gameList.push(...jsonData);
+  return gameList;
+}
+
 // Function to asynchronously send analytics data
 function sendAnalytics(userAgent, clientIp, data) {
   fetch('https://plausible.io/api/event', {
@@ -109,8 +130,8 @@ function sendAnalytics(userAgent, clientIp, data) {
   });
 }
 
-// Function to detect software title from image EXIF data
-async function getSoftwareTitle(imgFile, mimeType) {
+// Function to detect software title from image EXIF data or file name
+async function getSoftwareTitle(imgFile, mimeType, originalFileName) {
   // Exit early if file is not a supported file type
   const supportedFileTypes = [
     'image/jpeg',
@@ -119,8 +140,21 @@ async function getSoftwareTitle(imgFile, mimeType) {
   if (!supportedFileTypes.includes(mimeType)) return defaultFileTitle;
   // Continue reading EXIF data
   const tags = await ExifReader.load(imgFile);
-  if (tags['Model']?.description === 'Nintendo 3DS' && tags['Software']?.description) {
-    // Get game ID from screenshot
+  if (originalFileName.startsWith('WiiU_')) {
+    // Nintendo Wii U screenshot
+    // Game ID is at the end of the screenshot file name (e.g. Mario Kart 8 EU is 010ED, file name is WiiU_screenshot_TV_010ED.jpg)
+    const gameIdRegex = /(.{5})(?:\.)/;
+    const gameMatch = originalFileName.match(gameIdRegex);
+    if (gameMatch) {
+      // Check for ID in Wii U game database until a match is found
+      for (const game in gameListWiiU) {
+        if (gameListWiiU[game]['Title ID']?.toString().includes(gameMatch[1])) {
+          return gameListWiiU[game]['Description'];
+        }
+      }
+    }
+  } else if (tags['Model']?.description === 'Nintendo 3DS' && tags['Software']?.description) {
+    // Nintendo 3DS game saved image
     const gameId = tags['Software'].description.toLowerCase();
     if (gameId === '00204') {
       // This is most likely a camera photo
@@ -207,11 +241,12 @@ function renderMain(userAgent = '', webHost, uploadUrl = '', shortLink = '', sof
   }
   // Render initial header elements
   // Background color is defined in <body> attributes for ancient browsers, like Netscape 4.x
+  // Header bar is hidden on Wii U browsers in JS because it can't be easily checked with CSS media queries
   let htmlString = `<!DOCTYPE html>
   <html lang="en">
   ${renderHead(userAgent, webHost)}
   <body bgcolor="#FFFFFF" text="#2c3e50" link="#0d6efd" vlink="#0d6efd" alink="#0a58ca">
-    <div class="header">
+    <div class="header" ${userAgent.includes('Nintendo WiiU') ? 'style="display:none"' : ''}>
       <h1>ImageShare</h1>
     </div>
     <div class="container">
@@ -277,11 +312,14 @@ app.post('/', upload.single('img'), async function (req, res, err) {
   // Use provided domain name if possible, or connected hostname as fallback
   const connectedHost = (webDomain || req.headers['host']);
   if (req && req.file && req.file.path) {
-    console.log(`Uploaded file: ${req.file.path}, MIME type ${req.file.mimetype}`);
+    console.log(`Uploaded file: ${req.file.originalname}, MIME type ${req.file.mimetype}`);
     // Detect software title
-    const softwareTitle = await getSoftwareTitle(req.file.path, req.file.mimetype);
+    const softwareTitle = await getSoftwareTitle(req.file.path, req.file.mimetype, req.file.originalname);
     // If custom software title is detected, run exiftool to save it to the image description
-    if (softwareTitle != defaultFileTitle) {
+    // If the image is a detected Wii U software title, also add the make and model to the EXIF data
+    if (req.file.originalname.startsWith('WiiU_') && (softwareTitle != defaultFileTitle)) {
+      spawn('exiftool', [`-Caption-Abstract=${softwareTitle}`, `-ImageDescription=${softwareTitle}`, '-Model=Nintendo Wii U', '-Make=Nintendo', req.file.path]);
+    } else if (softwareTitle != defaultFileTitle) {
       spawn('exiftool', [`-Caption-Abstract=${softwareTitle}`, `-ImageDescription=${softwareTitle}`, req.file.path]);
     }
     // Create unique shortlink that isn't already in storage
