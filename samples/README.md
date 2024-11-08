@@ -1,0 +1,1 @@
+This directory contains unmodified screenshots from the Nintendo Wii U and Nintendo 3DS, for testing the game title detection features in ImageShare.
