@@ -191,3 +191,39 @@ input {
 	}
 
 }
+
+/* Dark mode styles */
+
+@media (prefers-color-scheme: dark) {
+
+	body,
+	.panel .panel-title,
+	.shortcode-container a,
+	.footer {
+		color: #86868b;
+	}
+
+	body,
+	.shortcode-container {
+		background: #000000;
+	}
+
+	.header,
+	.panel {
+		background: #1c1c1e;
+		box-shadow: none;
+	}
+
+	.header {
+		border-bottom: 1px solid #4a4a4b;
+	}
+
+	hr {
+		border-color: #4a4a4b;
+	}
+
+	.qr-img {
+		filter: brightness(0.7);
+	}
+
+}
