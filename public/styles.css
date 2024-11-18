@@ -26,6 +26,7 @@ a,
 a:visited {
 	color: #0d6efd;
 	text-decoration: none;
+	word-break: break-all;
 }
 
 a:hover {
