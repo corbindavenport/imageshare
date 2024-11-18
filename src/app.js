@@ -143,6 +143,7 @@ async function getSoftwareTitle(imgFile, mimeType, originalFileName) {
   if (originalFileName.startsWith('WiiU_')) {
     // Nintendo Wii U screenshot
     // Game ID is at the end of the screenshot file name (e.g. Mario Kart 8 EU is 010ED, file name is WiiU_screenshot_TV_010ED.jpg)
+    // The 'screenshot_TV' string indicates it is a TV screenshot, 'screenshot_GamePad' indicates a game pad screenshot
     const gameIdRegex = /(.{5})(?:\.)/;
     const gameMatch = originalFileName.match(gameIdRegex);
     if (gameMatch) {
@@ -241,7 +242,6 @@ function renderMain(userAgent = '', webHost, uploadUrl = '', shortLink = '', sof
   }
   // Render initial header elements
   // Background color is defined in <body> attributes for ancient browsers, like Netscape 4.x
-  // Header bar is hidden on Wii U browsers in JS because it can't be easily checked with CSS media queries
   let htmlString = `<!DOCTYPE html>
   <html lang="en">
   ${renderHead(userAgent, webHost)}
