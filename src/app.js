@@ -246,9 +246,6 @@ function renderMain(userAgent = '', webHost, uploadUrl = '', shortLink = '', sof
   <html lang="en">
   ${renderHead(userAgent, webHost)}
   <body bgcolor="#FFFFFF" text="#2c3e50" link="#0d6efd" vlink="#0d6efd" alink="#0a58ca">
-    <div class="header" ${userAgent.includes('Nintendo WiiU') ? 'style="display:none"' : ''}>
-      <h1>ImageShare</h1>
-    </div>
     <div class="container">
   `;
   // Show QR code if a file has been uploaded

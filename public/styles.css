@@ -12,10 +12,14 @@ body {
 	font-family: "Lato", "Helvetica Neue", Helvetica, Arial, sans-serif;
 	margin: 0;
 	padding: 0;
-	font-size: 15px;
-	color: #2c3e50;
 	text-align: center;
 	overflow-wrap: break-word;
+	color: #2c3e50;
+}
+
+body,
+input {
+	font-size: 15px;
 }
 
 a,
@@ -31,25 +35,6 @@ a:hover {
 
 hr {
 	border: 1px solid #ecf0f1;
-}
-
-.header {
-	background: #7e57c2;
-	padding-left: 15px;
-	padding-right: 5px;
-	text-align: left;
-	box-sizing: border-box;
-	height: 44px;
-	border-bottom: 2px solid #d6d6d6;
-}
-
-.header h1 {
-	color: #FFFFFF;
-	font-size: 19px;
-	line-height: 2;
-	line-height: 44px;
-	margin: 0;
-	font-weight: normal;
 }
 
 .container {
@@ -79,8 +64,7 @@ hr {
 
 @supports (box-shadow: 2px 4px 12px #00000014) {
 
-	.panel,
-	.header {
+	.panel {
 		border: 0;
 		box-shadow: 2px 4px 12px #00000014;
 	}
@@ -169,10 +153,6 @@ input {
 		padding: 0;
 	}
 
-	.header {
-		display: none;
-	}
-
 	.panel {
 		border-radius: 0;
 		-webkit-border-radius: 0;
@@ -200,30 +180,45 @@ input {
 	.panel .panel-title,
 	.shortcode-container a,
 	.footer {
-		color: #86868b;
+		color: #FFFFFF;
 	}
 
 	body,
-	.shortcode-container {
+	input[type="submit"]:active,
+	input[type=file]::file-selector-button:active {
 		background: #000000;
 	}
 
-	.header,
+	.shortcode-container,
+	input[type="submit"],
+	input[type=file]::file-selector-button {
+		background: #252527;
+	}
+
 	.panel {
 		background: #1c1c1e;
 		box-shadow: none;
 	}
 
-	.header {
-		border-bottom: 1px solid #4a4a4b;
+	.panel .panel-title {
+		background: none;
+		color: #6e6e73;
+		border-color: #6e6e73;
 	}
 
 	hr {
-		border-color: #4a4a4b;
+		border-color: #6e6e73;
 	}
 
 	.qr-img {
 		filter: brightness(0.7);
+	}
+
+	input[type="submit"],
+	input[type=file]::file-selector-button {
+		color: #FFFFFF;
+		border: 1px solid #6e6e73;
+		border-radius: 4px;
 	}
 
 }
