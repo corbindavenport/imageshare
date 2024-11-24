@@ -363,7 +363,6 @@ app.post('/', upload.single('img'), async function (req, res, err) {
 // Handle requests for main page with a custom-rendered interface
 // The / and /index.html paths are required, the /index.php path retains compatibility with bookmarks for the older PHP-based ImageShare
 app.get(['/', '/index.html', '/index.php'], (req, res) => {
-  console.log(req)
   // Use provided domain name if possible, or connected hostname as fallback
   const connectedHost = (webDomain || req.headers['host']);
   // Send async Plausible analytics page view if enabled
