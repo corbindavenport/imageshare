@@ -116,7 +116,7 @@ docker compose -f docker-compose.yml up --build
 
 If you're using the production application, replace `docker-compose.yml` with `docker-compose-prod.yml`.
 
-### List of ImageShare settings
+## List of ImageShare settings
 
 This is a complete list of configuration options in ImageShare with the `.env` file.
 
