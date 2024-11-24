@@ -14,8 +14,8 @@ const app = express();
 const webDomain = process.env.DOMAIN;
 // Domain used for Plausible analytics
 const plausibleDomain = process.env.PLAUSIBLE_DOMAIN;
-// File size limit for uploads
-const uploadLimit = Number(process.env.UPLOAD_LIMIT);
+// File size limit for uploads in MB
+const uploadLimit = parseInt(process.env.UPLOAD_LIMIT, 10);
 // Time delay for automatically deleting files, in minutes
 const deleteDelay = (parseInt(process.env.AUTODELETE_TIME, 10) || 2);
 // Default name for file uploads
