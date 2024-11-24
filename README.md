@@ -6,7 +6,7 @@ ImageShare was originally designed as a replacement for the [Nintendo 3DS Image 
 
 You can [self-host ImageShare](DEV.md) on any server, NAS, home computer, or other device using Docker.
 
-![QR code](/screenshot.png)
+![Screenshot of ImageShare on two phones and a Nintendo 3DS](/screenshot.png)
 
 ### How to use ImageShare
 
