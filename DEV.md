@@ -22,13 +22,14 @@ git clone https://github.com/corbindavenport/imageshare.git
 cd imageshare
 ```
 
-Create a new plain text file in the root directory (same folder as this readme) called `.env`. This is where the settings are saved. Only one setting is required: the file size limit for uploaded files. Type the below line in the `.env` file to set the limit at 20 MB, as an example:
+Create a new plain text file in the root directory (same folder as this document) called `.env`, with `UPLOAD_LIMIT=20` as the only line. You can do it manually or with this command:
 
 ```
-UPLOAD_LIMIT=20
+echo "UPLOAD_LIMIT=20" > .env
 ```
+This sets the file size limit for uploaded files at 20MB, and leaves all other options as the defaults. See the [full list of settings](#list-of-imageshare-settings) for more information.
 
-Save and exit the text file, then start the ImageShare server like this:
+Finally, start the ImageShare server like this:
 
 ```
 docker compose -f docker-compose.yml up --build
