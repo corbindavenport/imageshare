@@ -211,8 +211,8 @@ function renderHead(userAgent, webHost) {
     <meta name="apple-mobile-web-app-title" content="ImageShare">
     <!-- Theme colors -->
     <meta name="color-scheme" content="dark light">
-    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#FFF">
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000">
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f5f5f7">
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000">
     <style>
     @import url("/styles.css");
     </style>
