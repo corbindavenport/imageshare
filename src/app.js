@@ -266,7 +266,7 @@ function renderMain(userAgent = '', webHost, uploadUrl = '', shortLink = '', sof
               <a href="/${uploadUrl}" target="_blank">${shortLink}</a>
             </font>
           </p>
-          <p>You have ${deleteDelay} ${deleteDelay === 1 ? 'minute' : 'minutes'} to save your file before it is deleted.</p>
+          <p>Scan the QR code or type the link on another device to download the file. You have ${deleteDelay} ${deleteDelay === 1 ? 'minute' : 'minutes'} to save your file before it is deleted.</p>
         </div>
       </div>
     `;
@@ -292,6 +292,27 @@ function renderMain(userAgent = '', webHost, uploadUrl = '', shortLink = '', sof
           <p>If you find ImageShare useful, please consider donating to support development and server costs!</p>
           <p style="text-align: center; font-weight: bold;"><a href="https://www.patreon.com/corbindavenport" target="_blank">patreon.com/corbindavenport</a></p>
           <p style="text-align: center; font-weight: bold;"><a href="https://cash.app/$corbdav" target="_blank">cash.app/$corbdav</a> • <a href="https://paypal.me/corbindav" target="_blank">paypal.me/corbindav</a></p>
+        </div>
+      </div>
+    </div>
+    <p class="footer"><i>${userAgent}</i></p>
+  </body>
+  </html>`;
+  return htmlString;
+}
+
+// Function to render error and information messages with a link back to the main page
+function renderMessage(userAgent = '', webHost, message = '') {
+  let htmlString = `<!DOCTYPE html>
+  <html lang="en">
+  ${renderHead(userAgent, webHost)}
+  <body bgcolor="#FFFFFF" text="#2c3e50" link="#0d6efd" vlink="#0d6efd" alink="#0a58ca">
+    <div class="container">
+      <div class="panel">
+        <h3 class="panel-title">Message</h3>
+        <div class="body">
+          <p>${message}</p>
+          <p style="text-align: center; font-weight: bold;"><a href="/">OK</a></p>
         </div>
       </div>
     </div>
@@ -355,8 +376,8 @@ app.post('/', upload.single('img'), async function (req, res, err) {
     res.writeHead(200, { 'Content-Type': 'text/html' });
     res.end(renderMain(String(req.get('User-Agent')), connectedHost, req.file.path, `${protocol}://${connectedHost}/i/${shortLink}`, softwareTitle));
   } else {
-    console.error('Invalid upload');
-    res.sendStatus(500);
+    res.writeHead(200, { 'Content-Type': 'text/html' });
+    res.end(renderMessage(String(req.get('User-Agent')), connectedHost, 'You did not select a file, or the file you uploaded was invalid.'));
   }
 });
 
@@ -381,6 +402,9 @@ app.get(['/', '/index.html', '/index.php'], (req, res) => {
 
 // Handle requests for uploaded file with direct file access
 app.get(['/uploads/*', '/i/*'], async (req, res) => {
+  // Use provided domain name if possible, or connected hostname as fallback
+  const connectedHost = (webDomain || req.headers['host']);
+  // Get file path
   let reqPath = '';
   if (req.path.startsWith('/i/')) {
     // Request from shortlink
@@ -392,8 +416,8 @@ app.get(['/uploads/*', '/i/*'], async (req, res) => {
     // Request from full path
     reqPath = req.url;
   }
+  // Load the file
   try {
-    // Load the file
     const filePath = path.join(mainDir, reqPath);
     let data = await fs.promises.readFile(filePath);
     // Set MIME type on image download
@@ -404,8 +428,9 @@ app.get(['/uploads/*', '/i/*'], async (req, res) => {
     // Send file to client
     res.send(data);
   } catch (e) {
-    console.log(e);
-    res.sendStatus(500);
+    const errorMessage = `This upload could not be found, it may have already been deleted. File uploads on this server are set to expire after ${deleteDelay} ${deleteDelay === 1 ? 'minute' : 'minutes'}.`
+    res.writeHead(200, { 'Content-Type': 'text/html' });
+    res.end(renderMessage(String(req.get('User-Agent')), connectedHost, errorMessage));
   }
 });
 
