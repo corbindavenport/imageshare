@@ -22,7 +22,7 @@ If you have a more modern browser or device that supports the [Let's Encrypt ISR
 
 ## Privacy Policy & Terms of Service
 
-ImageShare uses [Plausible Analytics](https://plausible.io) to report anonymous usage data, including how many times the app is used and the browser/device used. Uploaded images are only stored on ImageShare servers until the upload to the third-party service is complete, then the copy on ImageShare is deleted.
+ImageShare uses [Plausible Analytics](https://plausible.io) to report anonymous usage data, including how many times the app is used and the browser/device used. Uploaded files are only stored on the ImageShare service for a few minutes, then they are permanently deleted.
 
 ## Credits
 
