@@ -140,7 +140,7 @@ UPLOAD_LIMIT=5
 
 ## Enable Plausible Analytics
 
-ImageShare can optionally use [Plausible Analytics](https://plausible.io/) to track pageviews and uploads. The collected data includes pageviews, upload events (not the contents of the upload), and the upload method. The analytics is handled server-side, using the client's user agent and IP address.
+ImageShare can optionally use [Plausible Analytics](https://plausible.io/) to track pageviews and uploads. The collected data includes pageviews, upload events, and the upload method. The analytics is handled server-side, using the client's user agent and IP address. Analytics does not contain any data about the contents of the upload.
 
 To get started, [create a website in Plausible](https://plausible.io/sites/new). The Plausible domain doesn't have to match the actual site URL.
 
@@ -148,7 +148,7 @@ You have to create custom events and goals to track uploads and the type of uplo
 
 ![Add goal screenshot](https://i.imgur.com/CnQwZdi.png)
 
-Next, open the Custom Properties page, and create a new property called "Upload Mode". This is used to track which upload method (anonymous Imgur, registered ImbBB, etc.) is used on each upload event.
+Next, open the Custom Properties page, and create a new property called "Upload Mode". This was previously used to track different upload methods (Imgur, ImgBB, etc.), but as of [ImageShare 3.0](https://github.com/corbindavenport/imageshare/releases/tag/v3.0), there is only one "Native" upload method. If more upload methods are [added in future updates](https://github.com/corbindavenport/imageshare/issues/31), they will use this property.
 
 ![Add custom event screenshot](https://i.imgur.com/fYQ2jej.png)
 
