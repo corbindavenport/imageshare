@@ -55,7 +55,7 @@ const storage = multer.diskStorage({
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = crypto.randomUUID();
-    const extension = path.extname(file.originalname);
+    const extension = (path.extname(file.originalname) || getFileExtension(file.mimetype));
     cb(null, `${uniqueSuffix}${extension}`);
   }
 });
@@ -67,6 +67,20 @@ const upload = multer({
     fileSize: uploadLimit * 1024 * 1024 // X MB
   }
 });
+
+// Function to return file extension from detected MIME type
+function getFileExtension(mimeType) {
+  let detectedType = mime.getExtension(mimeType);
+  if (detectedType) {
+    return `.${detectedType}`;
+  } else if (file.mimetype === 'image/x-pict') {
+    // Mac PICT image format
+    return `.pict`
+  } else {
+    // Return a blank string if no file ending can be found
+    return '';
+  }
+}
 
 // Function to initialize database of Nintendo 3DS games
 function init3DSTitles() {
@@ -329,7 +343,6 @@ app.use(serveStatic(publicDir));
 app.post('/', upload.single('img'), async function (req, res, err) {
   // Use HTTPS for shortlink if server is in production mode, or HTTP if not
   const protocol = prodModeEnabled ? 'https' : 'http';
-  // TODO check MIME type is video or image
   // Use provided domain name if possible, or connected hostname as fallback
   const connectedHost = (webDomain || req.headers['host']);
   if (req && req.file && req.file.path) {
