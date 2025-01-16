@@ -73,7 +73,7 @@ function getFileExtension(mimeType) {
   let detectedType = mime.getExtension(mimeType);
   if (detectedType) {
     return `.${detectedType}`;
-  } else if (file.mimetype === 'image/x-pict') {
+  } else if (mimeType === 'image/x-pict') {
     // Mac PICT image format
     return `.pict`
   } else {
