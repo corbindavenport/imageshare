@@ -194,7 +194,7 @@ async function getSoftwareTitle(imgFile, mimeType, originalFileName) {
 }
 
 // Function to render header for HTML pages
-function renderHead(userAgent, webHost) {
+function renderHead(userAgent, webHost, forceMobileMode = false) {
   // Set hardcoded viewport for old Nintendo 3DS, set full-size viewport for New Nintendo 3DS and other browsers
   let viewportEl = ''
   if (userAgent.includes('Nintendo 3DS') && (!(userAgent.includes('New Nintendo 3DS')))) {
@@ -211,7 +211,12 @@ function renderHead(userAgent, webHost) {
     <link rel="icon" type="image/png" sizes="16x16" href="img/favicon_x16.png">
     <link rel="icon" type="image/png" sizes="24x24" href="img/favicon_x24.png">`
   }
-  // Generate  full header string
+  // Generate CSS code
+  let cssString = '@import url("/styles.css"); @import url("/small.css") (max-width: 350px);';
+  if (forceMobileMode) {
+    cssString = '@import url("/styles.css"); @import url("/small.css");';
+  }
+  // Generate full header string
   // Documentation for Windows tile: https://learn.microsoft.com/en-us/previous-versions/windows/internet-explorer/ie-developer/platform-apis/dn255024(v=vs.85)
   // CSS is embedded using @import statement so old browsers (IE 3, Netscape 4.x, etc.) get the plain HTML version
   const htmlString = `
@@ -228,7 +233,7 @@ function renderHead(userAgent, webHost) {
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f5f5f7">
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000">
     <style>
-    @import url("/styles.css");
+    ${cssString}
     </style>
     ${viewportEl}
     ${iconEl}
@@ -252,32 +257,47 @@ function renderHead(userAgent, webHost) {
 }
 
 
-function renderMain(userAgent = '', webHost, uploadUrl = '', shortLink = '', softwareTitle = defaultFileTitle) {
+function renderMain(passedOptions) {
+  // Set options
+  let data = {
+    // User agent string of the connected client
+    userAgent: passedOptions.userAgent || undefined,
+    // The web domain of the public ImageShare instance (e.g. 'localhost', 'example.com', '192.68.50.100')
+    webHost: passedOptions.webHost,
+    // Setting to force small-screen interface
+    forceMobileMode: false || passedOptions.forceMobileMode,
+    // Path to an uploaded image (e.g. 'uploads/319747f3-a0c2-4492-af05-736da74f6bac.jpg')
+    uploadUrl: undefined || passedOptions.uploadUrl,
+    // Path to the shortlink redirecting to the uploaded image (e.g. 'http://localhost/i/e220f')
+    shortLink: undefined || passedOptions.shortLink,
+    // Software title detected from image (e.g. 'THE LEGEND OF ZELDA The Wind Waker HD')
+    softwareTitle: passedOptions.softwareTitle || defaultFileTitle
+  }
   // Shorten rendered software title for Nintendo 3DS, because text-overflow: ellipsis doesn't work on responsive-width containers
-  if (userAgent.includes('Nintendo 3DS') && (softwareTitle.length > 32)) {
-    softwareTitle = softwareTitle.substring(0, 32) + ' ...';
+  if (data.userAgent.includes('Nintendo 3DS') && (data.softwareTitle.length > 32)) {
+    data.softwareTitle = data.softwareTitle.substring(0, 32) + ' ...';
   }
   // Render initial header elements
   // Background color is defined in <body> attributes for ancient browsers, like Netscape 4.x
   let htmlString = `<!DOCTYPE html>
   <html lang="en">
-  ${renderHead(userAgent, webHost)}
+  ${renderHead(data.userAgent, data.webHost, data.forceMobileMode)}
   <body bgcolor="#FFFFFF" text="#2c3e50" link="#0d6efd" vlink="#0d6efd" alink="#0a58ca">
     <div class="container">
   `;
   // Show QR code if a file has been uploaded
-  if (uploadUrl) {
+  if (data.uploadUrl) {
     // Show QR code
     htmlString += `
     <div class="panel">
-        <h3 class="panel-title">${softwareTitle}</h3>
+        <h3 class="panel-title">${data.softwareTitle}</h3>
         <div align="center">
-          <img class="qr-img" alt="QR code" width="175" height="175" border="0" src="/${uploadUrl.replace('uploads/', 'qr/')}">
+          <img class="qr-img" alt="QR code" width="175" height="175" border="0" src="/${data.uploadUrl.replace('uploads/', 'qr/')}">
         </div>
         <div class="body">
           <p class="shortcode-container" align="center">
             <font face="courier new, monospace">
-              <a href="/${uploadUrl}" target="_blank">${shortLink}</a>
+              <a href="/${data.uploadUrl}" target="_blank">${data.shortLink}</a>
             </font>
           </p>
           <p>Scan the QR code or type the link on another device to download the file. You have ${deleteDelay} ${deleteDelay === 1 ? 'minute' : 'minutes'} to save your file before it is deleted.</p>
@@ -291,7 +311,7 @@ function renderMain(userAgent = '', webHost, uploadUrl = '', shortLink = '', sof
       <div class="panel">
         <h3 class="panel-title">Upload File</h3>
         <div class="body">
-          <form action="/" id="upload-form" enctype="multipart/form-data" method="POST" onsubmit="document.getElementById('loading-container').style.display='block';">
+          <form action="${data.forceMobileMode ? '/m/' : '/'}" id="upload-form" enctype="multipart/form-data" method="POST" onsubmit="document.getElementById('loading-container').style.display='block';">
             <p><input name="img" id="img-btn" type="file" accept="image/*,video/*" /></p>
             <p><input name="submit" type="submit" value="Upload" /></p>
             <p id="loading-container" style="display:none;" align="center">
@@ -309,28 +329,31 @@ function renderMain(userAgent = '', webHost, uploadUrl = '', shortLink = '', sof
         </div>
       </div>
     </div>
-    <p class="footer"><i>${userAgent}</i></p>
+    <p class="footer">
+        ${data.forceMobileMode ? 'Forced mobile mode is <b>enabled</b>, <a href="/">click here</a> to disable it.' : 'Forced mobile mode is disabled, <a href="/m/">click here</a> or visit ' + data.webHost + '/m/ to enable it.'}
+        <br /><br />
+        ${data.userAgent}
+    </p>
   </body>
   </html>`;
   return htmlString;
 }
 
 // Function to render error and information messages with a link back to the main page
-function renderMessage(userAgent = '', webHost, message = '') {
+function renderMessage(userAgent = '', webHost, forceMobileMode = false, message = '') {
   let htmlString = `<!DOCTYPE html>
   <html lang="en">
-  ${renderHead(userAgent, webHost)}
+  ${renderHead(userAgent, webHost, forceMobileMode)}
   <body bgcolor="#FFFFFF" text="#2c3e50" link="#0d6efd" vlink="#0d6efd" alink="#0a58ca">
     <div class="container">
       <div class="panel">
         <h3 class="panel-title">Message</h3>
         <div class="body">
           <p>${message}</p>
-          <p style="text-align: center; font-weight: bold;"><a href="/">OK</a></p>
+          <p style="text-align: center; font-weight: bold;"><a href="${forceMobileMode ? '/m/' : '/'}">OK</a></p>
         </div>
       </div>
     </div>
-    <p class="footer"><i>${userAgent}</i></p>
   </body>
   </html>`;
   return htmlString;
@@ -340,7 +363,7 @@ function renderMessage(userAgent = '', webHost, message = '') {
 app.use(serveStatic(publicDir));
 
 // Handle POST requests with enctype="multipart/form-data"
-app.post('/', upload.single('img'), async function (req, res, err) {
+app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err) {
   // Use HTTPS for shortlink if server is in production mode, or HTTP if not
   const protocol = prodModeEnabled ? 'https' : 'http';
   // Use provided domain name if possible, or connected hostname as fallback
@@ -387,16 +410,24 @@ app.post('/', upload.single('img'), async function (req, res, err) {
     }
     // Display result page
     res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.end(renderMain(String(req.get('User-Agent')), connectedHost, req.file.path, `${protocol}://${connectedHost}/i/${shortLink}`, softwareTitle));
+    res.end(renderMain({
+      userAgent: String(req.get('User-Agent')),
+      webHost: connectedHost,
+      forceMobileMode: req.path.startsWith('/m'),
+      uploadUrl: req.file.path,
+      shortLink: `${protocol}://${connectedHost}/i/${shortLink}`,
+      softwareTitle: softwareTitle
+    }));
   } else {
     res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.end(renderMessage(String(req.get('User-Agent')), connectedHost, 'You did not select a file, or the file you uploaded was invalid.'));
+    res.end(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), 'You did not select a file, or the file you uploaded was invalid.'));
   }
 });
 
 // Handle requests for main page with a custom-rendered interface
 // The / and /index.html paths are required, the /index.php path retains compatibility with bookmarks for the older PHP-based ImageShare
-app.get(['/', '/index.html', '/index.php'], (req, res) => {
+// The /m and /m/ paths will force enable the small screen mobile layout
+app.get(['/', '/m', '/m/', '/index.html', '/index.php'], (req, res) => {
   // Use provided domain name if possible, or connected hostname as fallback
   const connectedHost = (webDomain || req.headers['host']);
   // Send async Plausible analytics page view if enabled
@@ -410,7 +441,11 @@ app.get(['/', '/index.html', '/index.php'], (req, res) => {
   }
   // Send page
   res.writeHead(200, { 'Content-Type': 'text/html' });
-  res.end(renderMain(String(req.get('User-Agent')), connectedHost));
+  res.end(renderMain({
+    userAgent: String(req.get('User-Agent')),
+    webHost: connectedHost,
+    forceMobileMode: req.path.startsWith('/m')
+  }));
 });
 
 // Handle requests for uploaded file with direct file access
@@ -443,7 +478,7 @@ app.get(['/uploads/*', '/i/*'], async (req, res) => {
   } catch (e) {
     const errorMessage = `This upload could not be found, it may have already been deleted. File uploads on this server are set to expire after ${deleteDelay} ${deleteDelay === 1 ? 'minute' : 'minutes'}.`
     res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.end(renderMessage(String(req.get('User-Agent')), connectedHost, errorMessage));
+    res.end(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), errorMessage));
   }
 });
 

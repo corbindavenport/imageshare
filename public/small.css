@@ -1,0 +1,42 @@
+/* CSS styles for small screens, like Nintendo 3DS Browser, KaiOS, old Windows Phone */
+/* This is automatically used on small devices that support CSS media queries, or force enabled if the /m/ path is used */
+
+body {
+    background: #FFF;
+}
+
+.container,
+.panel {
+    width: 100% !important;
+    max-width: none !important;
+}
+
+.container {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+}
+
+.panel {
+    border-radius: 0;
+    -webkit-border-radius: 0;
+    -moz-border-radius: 0;
+    border: 0;
+    box-shadow: none;
+    margin: 0;
+}
+
+.panel .panel-title {
+    background: #7e57c2;
+    color: #FFFFFF;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid;
+    border-color: #d6d6d6;
+}
+
+.footer {
+    padding-top: 10px;
+    border-top: 2px solid;
+	border-color: #ecf0f1;
+}

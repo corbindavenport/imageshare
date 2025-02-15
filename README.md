@@ -18,6 +18,8 @@ The main ImageShare server is hosted at [theimageshare.com](http://theimageshare
 
 Once you have ImageShare open, bookmark it or add it to your home screen for easy access. If you have a more modern browser or device that supports the [Let's Encrypt ISRG Root X1 certificate](https://letsencrypt.org/docs/certificate-compatibility/), you can use ImageShare over an encrypted HTTPS connection. You can try it by opening `https://theimageshare.com` instead of `http://theimageshare.com`.
 
+You can also force the small-screen mobile layout by navigating to the `/m/` page. This is useful for old phones, PDAs, and other small devices that can't switch automatically.
+
 ## Privacy Policy & Terms of Service
 
 ImageShare uses [Plausible Analytics](https://plausible.io) to report anonymous usage data, including how many times the app is used and the browser/device used. Uploaded files are only stored on the ImageShare service for a few minutes, then they are permanently deleted.

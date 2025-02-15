@@ -1,3 +1,5 @@
+/* Main CSS styles for desktop layouts, modern mobile browsers, and dark mode */
+
 body,
 html {
 	border: 0px !important;
@@ -26,7 +28,9 @@ a,
 a:visited {
 	color: #0d6efd;
 	text-decoration: none;
-	word-break: break-all;
+	word-wrap:wrap-word;
+    word-break:break-all;
+    display:inline-block;
 }
 
 a:hover {
@@ -35,7 +39,8 @@ a:hover {
 }
 
 hr {
-	border: 1px solid #ecf0f1;
+	border: 1px solid;
+	border-color: #ecf0f1;
 }
 
 .container {
@@ -55,10 +60,10 @@ hr {
 }
 
 .footer {
-	padding-top: 0;
-	padding-bottom: 20px;
-	padding-left: 20px;
-	padding-right: 20px;
+	margin-top: 0;
+	margin-bottom: 20px;
+	margin-left: 20px;
+	margin-right: 20px;
 	font-size: 12px;
 	color: #8b8b8b;
 }
@@ -143,36 +148,6 @@ input {
 
 }
 
-/* Very small screens (like Nintendo 3DS Browser) */
-@media screen and (max-width: 350px) {
-
-	body {
-		background: #FFF;
-	}
-
-	.container {
-		padding: 0;
-	}
-
-	.panel {
-		border-radius: 0;
-		-webkit-border-radius: 0;
-		-moz-border-radius: 0;
-		border: 0;
-		box-shadow: none;
-		margin: 0;
-	}
-
-	.panel .panel-title {
-		background: #7e57c2;
-		color: #FFFFFF;
-		padding-top: 8px;
-		padding-bottom: 8px;
-		border-bottom: 2px solid #d6d6d6;
-	}
-
-}
-
 /* Dark mode styles */
 
 @media (prefers-color-scheme: dark) {
@@ -187,7 +162,7 @@ input {
 	body,
 	input[type="submit"]:active,
 	input[type=file]::file-selector-button:active {
-		background: #000000;
+		background: #000000 !important;
 	}
 
 	.shortcode-container,
@@ -204,11 +179,15 @@ input {
 	.panel .panel-title {
 		background: none;
 		color: #6e6e73;
-		border-color: #6e6e73;
+		border-color: #5c3f8e !important;
 	}
 
 	hr {
-		border-color: #6e6e73;
+		border-color: #6e6e73 !important;
+	}
+
+	.footer {
+		border: none !important;
 	}
 
 	.qr-img {
