@@ -22,7 +22,7 @@ You can also force the small-screen mobile layout by navigating to the `/m/` pag
 
 ## Privacy Policy & Terms of Service
 
-ImageShare uses [Plausible Analytics](https://plausible.io) to report anonymous usage data, including how many times the app is used and the browser/device used. Uploaded files are only stored on the ImageShare service for a few minutes, then they are permanently deleted.
+The main ImageShare server stores uploaded files for a brief a period of time displayed on the upload result, then the files are permanently deleted. It also uses [Plausible Analytics](https://plausible.io) to transmit and store anonymous usage data. See the [Privacy Policy](PRIVACY.md) for more information.
 
 ## Credits
 

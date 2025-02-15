@@ -32,6 +32,7 @@ services:
       UPLOAD_LIMIT: ${UPLOAD_LIMIT}
       AUTODELETE_TIME: ${AUTODELETE_TIME}
       PLAUSIBLE_DOMAIN: ${PLAUSIBLE_DOMAIN}
+      PRIVACY_POLICY: ${PRIVACY_POLICY}
     networks:
       - internal
 

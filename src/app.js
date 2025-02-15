@@ -22,6 +22,9 @@ const deleteDelay = (parseInt(process.env.AUTODELETE_TIME, 10) || 2);
 const defaultFileTitle = 'ImageShare Upload';
 // Check if production mode is enabled, so we can default to SSL for image links and other actions
 const prodModeEnabled = (process.env.PROD_MODE === 'true');
+// Privacy statement
+const privacyUrl = process.env.PRIVACY_POLICY;
+
 // Paths to primary directories
 const publicDir = path.resolve(import.meta.dirname, '../public');
 const mainDir = path.resolve(import.meta.dirname, '../');
@@ -330,7 +333,8 @@ function renderMain(passedOptions) {
       </div>
     </div>
     <p class="footer">
-        ${data.forceMobileMode ? 'Forced mobile mode is <b>enabled</b>, <a href="/">click here</a> to disable it.' : 'Forced mobile mode is disabled, <a href="/m/">click here</a> or visit ' + data.webHost + '/m/ to enable it.'}
+
+        ${data.forceMobileMode ? '<a href="/">Disable mobile mode</a>' : '<a href="/m/">Mobile mode</a>'} • <a href="privacy/">Privacy policy</a>
         <br /><br />
         ${data.userAgent}
     </p>
@@ -504,6 +508,20 @@ app.get('/qr/*', async (req, res) => {
     res.send(Buffer.from(qrCodeDataURL.split(',')[1], 'base64'));
   } catch (error) {
     res.status(500).send('Error generating QR code');
+  }
+});
+
+// Link to privacy policy
+app.get(['/privacy', '/privacy/', '/m/privacy', '/m/privacy/'], (req, res) => {
+  // Use provided domain name if possible, or connected hostname as fallback
+  const connectedHost = (webDomain || req.headers['host']);
+  // Redirect to privacy policy
+  if (privacyUrl) {
+    res.redirect(privacyUrl);
+  } else {
+    let errorMessage = 'Your server administrator has not specified a privacy policy.';
+    res.writeHead(200, { 'Content-Type': 'text/html' });
+    res.end(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), errorMessage));
   }
 });
 

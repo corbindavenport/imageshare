@@ -36,6 +36,8 @@ body {
 }
 
 .footer {
+    display: block !important;
+    max-width: none !important;
     padding-top: 10px;
     border-top: 2px solid;
 	border-color: #ecf0f1;

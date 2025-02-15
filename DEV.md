@@ -54,13 +54,16 @@ cd imageshare
 
 You need a web doman to use for public access. If you want to retain compatibility with legacy web browsers, you may need to use an old top-level domain (e.g. `.com` or `.net`) instead of newer TLDs.
 
-Create a new plain text file in the root directory (same folder as this readme) called `.env` to store your settings. The only required settings are the domain, the file size limit on uploads (in megabytes), and the email address to be used for the Let's Encrypt certificate:
+Create a new plain text file in the root directory (same folder as this readme) called `.env` to store your settings. The only required settings are the domain, the file size limit on uploads (in megabytes), and the email address to be used for the Let's Encrypt certificate. However, specifying a privacy policy page is recommended.
 
 ```
 DOMAIN=yourwebsitegoeshere.com
 EMAIL=youremail@example.com
 UPLOAD_LIMIT=20
+PRIVACY_POLICY="https://www.example.com/privacy/"
 ```
+
+If there isn't a `PRIVACY_POLICY` defined, ImageShare will display a message that the server administrator has not set a privacy policy.
 
 Next, set the DNS settings for your domain like this:
 
