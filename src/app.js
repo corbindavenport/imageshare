@@ -8,6 +8,7 @@ import QRCode from 'qrcode';
 import ExifReader from 'exifreader';
 import request from 'request';
 import { spawn } from 'node:child_process';
+import { link } from 'node:fs';
 
 // Initialize Express
 const app = express();
@@ -271,7 +272,7 @@ function renderMain(passedOptions) {
     // Setting to force small-screen interface
     forceMobileMode: false || passedOptions.forceMobileMode,
     // Path to an uploaded image (e.g. 'uploads/319747f3-a0c2-4492-af05-736da74f6bac.jpg')
-    uploadUrl: undefined || passedOptions.uploadUrl,
+    qrLink: undefined || passedOptions.qrLink,
     // Path to the shortlink redirecting to the uploaded image (e.g. 'http://localhost/i/e220f')
     shortLink: undefined || passedOptions.shortLink,
     // Software title detected from image (e.g. 'THE LEGEND OF ZELDA The Wind Waker HD')
@@ -290,18 +291,18 @@ function renderMain(passedOptions) {
     <div class="container">
   `;
   // Show QR code if a file has been uploaded
-  if (data.uploadUrl) {
+  if (data.qrLink) {
     // Show QR code
     htmlString += `
     <div class="panel">
         <h3 class="panel-title">${data.softwareTitle}</h3>
         <div align="center">
-          <img class="qr-img" alt="QR code" width="175" height="175" border="0" src="/${data.uploadUrl.replace('uploads/', 'qr/')}">
+          <img class="qr-img" alt="QR code" width="175" height="175" border="0" src="${data.qrLink}">
         </div>
         <div class="body">
           <p class="shortcode-container" align="center">
             <font face="courier new, monospace">
-              <a href="/${data.uploadUrl}" target="_blank">${data.shortLink}</a>
+              <a href="${data.shortLink}" target="_blank">${data.shortLink}</a>
             </font>
           </p>
           <p>Scan the QR code or type the link on another device to download the file. You have ${deleteDelay} ${deleteDelay === 1 ? 'minute' : 'minutes'} to save your file before it is deleted.</p>
@@ -386,17 +387,19 @@ app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err
     }
 
     // Insert upload function call here
-    const uploadResult = await uploadToLocal(req.file, protocol, connectedHost);
+    // const uploadResult = await uploadToLocal(req.file, protocol, connectedHost);
+    // const uploadResult = await uploadToImgur(req.file, softwareTitle);
+
     if (uploadResult.success) {
-      
+
       // Display result page
       res.writeHead(200, { 'Content-Type': 'text/html' });
       res.end(renderMain({
         userAgent: String(req.get('User-Agent')),
         webHost: connectedHost,
         forceMobileMode: req.path.startsWith('/m'),
-        uploadUrl: req.file.path,
-        shortLink: `${protocol}://${connectedHost}/i/${uploadResult.shortLink}`,
+        qrLink: uploadResult.qrLink,
+        shortLink: uploadResult.link,
         softwareTitle: softwareTitle
       }));
     } else {
@@ -440,9 +443,61 @@ async function uploadToLocal(filePath, protocol, connectedHost) {
       }
       sendAnalytics(req.get('User-Agent'), (req.headers['x-forwarded-for'] || req.ip), data);
     }
-
     // Return success and desplay results to user :3
-    resolve({ success: true, shortLink });
+    resolve({ success: true, link:  `${protocol}://${connectedHost}/i/${shortLink}`, qrLink: `${protocol}://${connectedHost}/${filePath.path.replace('uploads/', 'qr/')}` });
+  });
+}
+
+// Function to handle Imgur uploads
+async function uploadToImgur(filePath, softwareTitle) {
+
+  // Send Imgur upload request with the file
+  return new Promise((resolve, reject) => {
+    const options = {
+      method: 'POST',
+      url: 'https://api.imgur.com/3/image',
+      headers: {
+        'Authorization': 'Client-ID 740273babac99b0' // Replace REDACTED with your actual Imgur client ID
+      },
+      formData: {
+        image: fs.createReadStream(filePath.path),
+        type: 'file',
+        title: softwareTitle,
+        description: 'Uploaded by ImageShare (github -> corbindavenport/imageshare)'
+      }
+    };
+
+    // Send Results after we get api results
+    request(options, function (error, response) {
+      if (error) {
+        reject(error);
+      } else {
+        const body = JSON.parse(response.body);
+        if (body.success) {
+          //Remove cached file
+          fs.unlinkSync(filePath.path);
+          console.log(`Deleted file: ${filePath.path}`);
+          // Return success and link
+          resolve({ success: true, link: `https://imgur.com/${body.data.id}`, qrLink: `/qr/${body.data.link}` });
+        } else {
+          // Remove cached file and return failure
+          fs.unlinkSync(filePath.path);
+          console.log(`Deleted file: ${filePath.path}`);
+          resolve({ success: false });
+        }
+      }
+
+      // Send async Plausible analytics page view if enabled
+      if (plausibleDomain) {
+        const data = {
+          name: 'Upload',
+          props: JSON.stringify({ 'Upload Mode': 'Native' }),
+          url: '/',
+          domain: plausibleDomain
+        }
+        sendAnalytics(req.get('User-Agent'), (req.headers['x-forwarded-for'] || req.ip), data);
+      }
+    });
   });
 }
 
@@ -512,10 +567,18 @@ app.get('/qr/*', async (req, res) => {
   // Use HTTPS for the link if server is in production mode, or HTTP if not
   const protocol = prodModeEnabled ? 'https' : 'http';
   // Create QR code text string
-  const qrText = `${protocol}://${connectedHost}/uploads/${fileName}`;
+
+  // Check to see if the fileName has http in its name, if not, add it
+  let qrLink = '';
+  if (fileName.startsWith('http')) {
+    qrLink = fileName;
+  } else { 
+    qrLink = `${protocol}://${connectedHost}/uploads/${fileName}`;
+  }
+
   try {
     // Generate the QR code
-    const qrCodeDataURL = await QRCode.toDataURL(qrText, {
+    const qrCodeDataURL = await QRCode.toDataURL(qrLink, {
       type: 'image/png',
       width: 350,
       margin: 2,
