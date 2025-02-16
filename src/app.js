@@ -6,6 +6,7 @@ import fs from 'fs';
 import mime from 'mime';
 import QRCode from 'qrcode';
 import ExifReader from 'exifreader';
+import request from 'request';
 import { spawn } from 'node:child_process';
 
 // Initialize Express
@@ -259,7 +260,7 @@ function renderHead(userAgent, webHost, forceMobileMode = false) {
   return htmlString;
 }
 
-
+// Function to render main page
 function renderMain(passedOptions) {
   // Set options
   let data = {
@@ -383,13 +384,39 @@ app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err
     } else if (softwareTitle != defaultFileTitle) {
       spawn('exiftool', [`-Caption-Abstract=${softwareTitle}`, `-ImageDescription=${softwareTitle}`, req.file.path]);
     }
+
+    // Insert upload function call here
+    const uploadResult = await uploadToLocal(req.file, protocol, connectedHost);
+    if (uploadResult.success) {
+      
+      // Display result page
+      res.writeHead(200, { 'Content-Type': 'text/html' });
+      res.end(renderMain({
+        userAgent: String(req.get('User-Agent')),
+        webHost: connectedHost,
+        forceMobileMode: req.path.startsWith('/m'),
+        uploadUrl: req.file.path,
+        shortLink: `${protocol}://${connectedHost}/i/${uploadResult.shortLink}`,
+        softwareTitle: softwareTitle
+      }));
+    } else {
+      res.writeHead(200, { 'Content-Type': 'text/html' });
+      res.end(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), 'You did not select a file, or the file you uploaded was invalid.'));
+    }
+  }
+});
+
+// Function to handle local uploads
+async function uploadToLocal(filePath, protocol, connectedHost) {
+  return new Promise((resolve) => {
     // Create unique shortlink that isn't already in storage
     let shortLink;
     do {
       shortLink = crypto.randomUUID().toString().substring(0, 5);
     } while (shortLinkObj[shortLink]);
-    shortLinkObj[shortLink] = req.file.path;
+    shortLinkObj[shortLink] = filePath.path;
     console.log(`Created shortlink: ${protocol}://${connectedHost}/i/${shortLink}`);
+
     // Schedule timeout to delete file and shortlink
     const delay = deleteDelay * 60 * 1000;
     setTimeout(async () => {
@@ -397,11 +424,12 @@ app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err
       delete shortLinkObj[shortLink];
       console.log(`Deleted shortlink: ${protocol}://${connectedHost}/i/${shortLink}`);
       // Delete file
-      if (req.file) {
-        fs.unlinkSync(req.file.path);
-        console.log(`Deleted file: ${req.file.path}`);
+      if (filePath) {
+        fs.unlinkSync(filePath.path);
+        console.log(`Deleted file: ${filePath.path}`);
       }
     }, delay);
+
     // Send async Plausible analytics page view if enabled
     if (plausibleDomain) {
       const data = {
@@ -412,21 +440,11 @@ app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err
       }
       sendAnalytics(req.get('User-Agent'), (req.headers['x-forwarded-for'] || req.ip), data);
     }
-    // Display result page
-    res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.end(renderMain({
-      userAgent: String(req.get('User-Agent')),
-      webHost: connectedHost,
-      forceMobileMode: req.path.startsWith('/m'),
-      uploadUrl: req.file.path,
-      shortLink: `${protocol}://${connectedHost}/i/${shortLink}`,
-      softwareTitle: softwareTitle
-    }));
-  } else {
-    res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.end(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), 'You did not select a file, or the file you uploaded was invalid.'));
-  }
-});
+
+    // Return success and desplay results to user :3
+    resolve({ success: true, shortLink });
+  });
+}
 
 // Handle requests for main page with a custom-rendered interface
 // The / and /index.html paths are required, the /index.php path retains compatibility with bookmarks for the older PHP-based ImageShare
