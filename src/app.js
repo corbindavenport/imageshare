@@ -8,7 +8,6 @@ import QRCode from 'qrcode';
 import ExifReader from 'exifreader';
 import request from 'request';
 import { spawn } from 'node:child_process';
-import { link } from 'node:fs';
 
 // Initialize Express
 const app = express();
@@ -318,6 +317,14 @@ function renderMain(passedOptions) {
         <div class="body">
           <form action="${data.forceMobileMode ? '/m/' : '/'}" id="upload-form" enctype="multipart/form-data" method="POST" onsubmit="document.getElementById('loading-container').style.display='block';">
             <p><input name="img" id="img-btn" type="file" accept="image/*,video/*" /></p>
+            <div class="upload-type">
+              <input type="radio" id="upload-type-imageshare" name="upload-type" value="imageshare" checked>
+              <label for="upload-type-imageshare">Upload to ImageShare (Deletes in 2 Mins.)</label>
+            </div>
+            <div class="upload-type">
+              <input type="radio" id="upload-type-imgur" name="upload-type" value="imgur">
+              <label for="upload-type-imgur">Upload to Imgur</label>
+            </div>
             <p><input name="submit" type="submit" value="Upload" /></p>
             <p id="loading-container" style="display:none;" align="center">
               <img src="/img/loading.gif" alt="Loading">
@@ -386,9 +393,21 @@ app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err
       spawn('exiftool', [`-Caption-Abstract=${softwareTitle}`, `-ImageDescription=${softwareTitle}`, req.file.path]);
     }
 
-    // Insert upload function call here
-    // const uploadResult = await uploadToLocal(req.file, protocol, connectedHost);
-    // const uploadResult = await uploadToImgur(req.file, softwareTitle);
+    //Determine wether the user selected to upload to Imgur or ImageShare
+    let uploadResult;
+    if (req.body['upload-type'] === 'imgur') {
+      // Verify that the file uploaded is supported by imgur (png and jpeg)
+      if (req.file.mimetype !== 'image/jpeg' && req.file.mimetype !== 'image/png') {
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.end(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), 'The file you uploaded is not supported by Imgur. Please select a PNG or JPEG image.'));
+        return;
+      } else {
+        uploadResult = await uploadToImgur(req.file, softwareTitle);
+      }
+    } else {
+      req.body['upload-type'] === 'imageshare'
+      uploadResult = await uploadToLocal(req.file, protocol, connectedHost);
+    }
 
     if (uploadResult.success) {
 
@@ -444,7 +463,7 @@ async function uploadToLocal(filePath, protocol, connectedHost) {
       sendAnalytics(req.get('User-Agent'), (req.headers['x-forwarded-for'] || req.ip), data);
     }
     // Return success and desplay results to user :3
-    resolve({ success: true, link:  `${protocol}://${connectedHost}/i/${shortLink}`, qrLink: `${protocol}://${connectedHost}/${filePath.path.replace('uploads/', 'qr/')}` });
+    resolve({ success: true, link: `${protocol}://${connectedHost}/i/${shortLink}`, qrLink: `${protocol}://${connectedHost}/${filePath.path.replace('uploads/', 'qr/')}` });
   });
 }
 
@@ -572,7 +591,7 @@ app.get('/qr/*', async (req, res) => {
   let qrLink = '';
   if (fileName.startsWith('http')) {
     qrLink = fileName;
-  } else { 
+  } else {
     qrLink = `${protocol}://${connectedHost}/uploads/${fileName}`;
   }
 
