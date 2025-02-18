@@ -6,7 +6,8 @@ import fs from 'fs';
 import mime from 'mime';
 import QRCode from 'qrcode';
 import ExifReader from 'exifreader';
-import request from 'request';
+import axios from 'axios';
+import FormData from 'form-data';
 import { spawn } from 'node:child_process';
 
 // Initialize Express
@@ -25,6 +26,8 @@ const defaultFileTitle = 'ImageShare Upload';
 const prodModeEnabled = (process.env.PROD_MODE === 'true');
 // Privacy statement
 const privacyUrl = process.env.PRIVACY_POLICY;
+// Imgur API client ID
+const imgurClientId = process.env.IMGUR_CLIENT_ID;
 
 // Paths to primary directories
 const publicDir = path.resolve(import.meta.dirname, '../public');
@@ -423,7 +426,7 @@ app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err
       }));
     } else {
       res.writeHead(200, { 'Content-Type': 'text/html' });
-      res.end(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), 'You did not select a file, or the file you uploaded was invalid.'));
+      res.end(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), 'There was an issue uploading your file. Please make sure your upload was valid and try again later.'));
     }
   }
 });
@@ -469,54 +472,58 @@ async function uploadToLocal(filePath, protocol, connectedHost) {
 
 // Function to handle Imgur uploads
 async function uploadToImgur(filePath, softwareTitle) {
-
   // Send Imgur upload request with the file
-  return new Promise((resolve, reject) => {
-    const options = {
-      method: 'POST',
+  return new Promise((resolve) => {
+
+    // Set up Imgur API request
+    const formData = new FormData();
+    formData.append('image', fs.createReadStream(filePath.path));
+    formData.append('type', 'file');
+    formData.append('title', `${softwareTitle}`);
+    formData.append('description', 'Uploaded by ImageShare (github -> corbindavenport/imageshare)');
+
+    let options = {
+      method: 'post',
+      maxBodyLength: Infinity,
       url: 'https://api.imgur.com/3/image',
       headers: {
-        'Authorization': 'Client-ID 740273babac99b0' // Replace REDACTED with your actual Imgur client ID
+        'Authorization': `Client-ID ${imgurClientId}`,
+        ...formData.getHeaders()
       },
-      formData: {
-        image: fs.createReadStream(filePath.path),
-        type: 'file',
-        title: softwareTitle,
-        description: 'Uploaded by ImageShare (github -> corbindavenport/imageshare)'
-      }
+      data: formData
     };
 
     // Send Results after we get api results
-    request(options, function (error, response) {
-      if (error) {
-        reject(error);
-      } else {
-        const body = JSON.parse(response.body);
+    axios.request(options)
+      .then(response => response.data)
+      .then(body => {
+        // Check if upload was successful and handle accordingly
         if (body.success) {
           //Remove cached file
           fs.unlinkSync(filePath.path);
-          console.log(`Deleted file: ${filePath.path}`);
+          console.log(`Deleted cached file: ${filePath.path}`);
           // Return success and link
           resolve({ success: true, link: `https://imgur.com/${body.data.id}`, qrLink: `/qr/${body.data.link}` });
-        } else {
-          // Remove cached file and return failure
-          fs.unlinkSync(filePath.path);
-          console.log(`Deleted file: ${filePath.path}`);
-          resolve({ success: false });
         }
-      }
 
-      // Send async Plausible analytics page view if enabled
-      if (plausibleDomain) {
-        const data = {
-          name: 'Upload',
-          props: JSON.stringify({ 'Upload Mode': 'Native' }),
-          url: '/',
-          domain: plausibleDomain
+        // Send async Plausible analytics page view if enabled
+        if (plausibleDomain) {
+          const data = {
+            name: 'Upload',
+            props: JSON.stringify({ 'Upload Mode': 'Native' }),
+            url: '/',
+            domain: plausibleDomain
+          };
+          sendAnalytics(req.get('User-Agent'), (req.headers['x-forwarded-for'] || req.ip), data);
         }
-        sendAnalytics(req.get('User-Agent'), (req.headers['x-forwarded-for'] || req.ip), data);
-      }
-    });
+      })
+      .catch(error => {
+        // Remove cached file and return failure
+        fs.unlinkSync(filePath.path);
+        console.log(`Deleted cached file: ${filePath.path}`);
+        console.log(`There was an erro uploading to Imgur. Make sure that your API Key is set and you haven't exceeded your rate limit.`);
+        resolve({ success: false });
+      });
   });
 }
 
