@@ -426,7 +426,7 @@ app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err
       }));
     } else {
       res.writeHead(200, { 'Content-Type': 'text/html' });
-      res.end(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), 'There was an issue uploading your file. Please make sure your upload was valid and try again later.'));
+      res.end(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), (uploadResult.reason || 'There was an issue uploading your file. Please make sure your upload was valid and try again later.')));
     }
   }
 });
@@ -474,6 +474,22 @@ async function uploadToLocal(filePath, protocol, connectedHost) {
 async function uploadToImgur(filePath, softwareTitle) {
   // Send Imgur upload request with the file
   return new Promise((resolve) => {
+    //Make sure that the current time stamp is past the rate limit reset time
+    let rateLimitReset = 0;
+    if (fs.existsSync('rateLimitReset.txt')) {
+      rateLimitReset = fs.readFileSync('rateLimitReset.txt', 'utf8');
+    }
+    if (rateLimitReset > Math.floor(Date.now() / 1000)) {
+      // Error to move to catch block and delete the file
+      // Remove cached file and return failure
+      fs.unlinkSync(filePath.path);
+      console.log('Prevented upload to imgur')
+      console.log(`Deleted cached file: ${filePath.path}`);
+      console.log(`There was an error uploading to Imgur. Make sure that your API Key is set and you haven't exceeded your rate limit.`);
+      resolve({ success: false, reason: `Imgur is currently at max capacity, so you will have to try again later. You can still upload to ImageShare though!` });
+      return;
+    }
+
 
     // Set up Imgur API request
     const formData = new FormData();
@@ -495,9 +511,24 @@ async function uploadToImgur(filePath, softwareTitle) {
 
     // Send Results after we get api results
     axios.request(options)
-      .then(response => response.data)
+      // Get header response for x-post-rate-limit-remaining
+      .then(response => {
+        console.log(`Imgur API Rate Limit Remaining: ${response.headers['x-post-rate-limit-remaining']}`);
+        if (response.headers['x-post-rate-limit-remaining'] < 10) {
+          console.log(`Imgur API Rate Limit Remaining is below 10. Please check your rate limit.`);
+          console.log(`You must wait: ${response.headers['x-post-rate-limit-reset']} seconds before you can upload again.`);
+
+          // Get unix timestamp for when the rate limit will be reset
+          const restTime = (Number(Math.floor(Date.now() / 1000)) + Number(response.headers['x-post-rate-limit-reset']));
+          console.log(`UnixTimestamp: ${restTime}`)
+
+          // Create a file with the rate limit reset time (overwrite if it exists already)
+          fs.writeFileSync('rateLimitReset.txt', restTime.toString());
+        }
+        return response.data;
+      })
       .then(body => {
-        // Check if upload was successful and handle accordingly
+        // Check if upload was successful and handle accordingly        
         if (body.success) {
           //Remove cached file
           fs.unlinkSync(filePath.path);
@@ -521,8 +552,7 @@ async function uploadToImgur(filePath, softwareTitle) {
         // Remove cached file and return failure
         fs.unlinkSync(filePath.path);
         console.log(`Deleted cached file: ${filePath.path}`);
-        console.log(`There was an erro uploading to Imgur. Make sure that your API Key is set and you haven't exceeded your rate limit.`);
-        resolve({ success: false });
+        resolve({ success: false, reason: `There was an error uploading to Imgur. Make sure that your API Key is set and you haven't exceeded your rate limit.` });
       });
   });
 }
