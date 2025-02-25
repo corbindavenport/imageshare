@@ -107,7 +107,7 @@ function init3DSTitles() {
   });
   gameList.sort((a, b) => {
     // This updates the sorting on the game list, so all games are listed before their respective updated versions
-    // Example: Pokémon Sun is in the databse as TitleID 0004000000164800, Pokémon Sun v1.2 update is TitleID 0004000E00164800
+    // Example: Pokémon Sun is in the database as TitleID 0004000000164800, Pokémon Sun v1.2 update is TitleID 0004000E00164800
     // Image EXIF data doesn't include the section that indicates the update, but sorting the original titles first ensures the title match will be the original title (Pokémon Sun) instead of the modified version (Pokémon Sun Update Ver. 1.2) wherever possible
     // Games with TitleIDs starting with 000400000 are the original games, titles starting with 0004000E0 are the updates
     const aTitleIdPrefix = a.TitleID.slice(0, 10);
@@ -149,7 +149,7 @@ function sendAnalytics(userAgent, clientIp, data) {
     body: JSON.stringify(data),
   });
 }
-export {sendAnalytics};
+export { sendAnalytics };
 
 // Function to detect software title from image EXIF data or file name
 async function getSoftwareTitle(imgFile, mimeType, originalFileName) {
@@ -396,25 +396,28 @@ app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err
       spawn('exiftool', [`-Caption-Abstract=${softwareTitle}`, `-ImageDescription=${softwareTitle}`, req.file.path]);
     }
 
-    //Determine wether the user selected to upload to Imgur or ImageShare
+    // Determine whether the user selected to upload to Imgur or ImageShare
     let uploadResult;
     if (req.body['upload-type'] === 'imgur') {
       // Verify that the file uploaded is supported by imgur (png and jpeg)
       if (req.file.mimetype !== 'image/jpeg' && req.file.mimetype !== 'image/png') {
+        // Not valid, return error to user :(
         res.writeHead(200, { 'Content-Type': 'text/html' });
         res.end(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), 'The file you uploaded is not supported by Imgur. Please select a PNG or JPEG image.'));
         return;
       } else {
+        // Yippie, the user uploaded a valid file, upload to Imgur (code is located in src/modules/imgur-upload.js)
         uploadResult = await uploadToImgur(req.file, softwareTitle, imgurClientId, plausibleDomain, req);
       }
     } else {
+      // Upload to ImageShare
       req.body['upload-type'] === 'imageshare'
       uploadResult = await uploadToLocal(req.file, protocol, connectedHost, req);
     }
 
+    // Decide if the upload was successful or not
     if (uploadResult.success) {
-
-      // Display result page
+      // Now take the data from the upload response, and display it to the user
       res.writeHead(200, { 'Content-Type': 'text/html' });
       res.end(renderMain({
         userAgent: String(req.get('User-Agent')),
@@ -425,6 +428,8 @@ app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err
         softwareTitle: softwareTitle
       }));
     } else {
+      // If the upload failed, display an error message to the user
+      // Upload Result will contain a reason for the failure, if not set by the uploader's function, it will be set to the universal error message
       res.writeHead(200, { 'Content-Type': 'text/html' });
       res.end(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), (uploadResult.reason || 'There was an issue uploading your file. Please make sure your upload was valid and try again later.')));
     }
@@ -465,7 +470,7 @@ async function uploadToLocal(filePath, protocol, connectedHost, req) {
       }
       sendAnalytics(req.get('User-Agent'), (req.headers['x-forwarded-for'] || req.ip), data);
     }
-    // Return success and desplay results to user :3
+    // Return success and display results to user :3
     resolve({ success: true, link: `${protocol}://${connectedHost}/i/${shortLink}`, qrLink: `${protocol}://${connectedHost}/${filePath.path.replace('uploads/', 'qr/')}` });
   });
 }
@@ -535,9 +540,8 @@ app.get('/qr/*', async (req, res) => {
   const fileName = req.params[0]; // Example: 0fbb2132-296b-455e-bcbc-107ca9f103e9.jpg
   // Use HTTPS for the link if server is in production mode, or HTTP if not
   const protocol = prodModeEnabled ? 'https' : 'http';
-  // Create QR code text string
 
-  // Check to see if the fileName has http in its name, if not, add it
+  // Check to see if the fileName has http in its name, if not, build a url
   let qrLink = '';
   if (fileName.startsWith('http')) {
     qrLink = fileName;
