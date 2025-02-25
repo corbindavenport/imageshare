@@ -393,9 +393,9 @@ app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err
     // If custom software title is detected, run exiftool to save it to the image description
     // If the image is a detected Wii U software title, also add the make and model to the EXIF data
     if (req.file.originalname.startsWith('WiiU_') && (softwareTitle != defaultFileTitle)) {
-      spawn('exiftool', [`-Caption-Abstract=${softwareTitle}`, `-ImageDescription=${softwareTitle}`, '-Model=Nintendo Wii U', '-Make=Nintendo', req.file.path]);
+      spawn('exiftool', [`-Caption-Abstract=${softwareTitle}`, `-ImageDescription=${softwareTitle}`, '-Model=Nintendo Wii U', '-Make=Nintendo', `-overwrite_original`, req.file.path]);
     } else if (softwareTitle != defaultFileTitle) {
-      spawn('exiftool', [`-Caption-Abstract=${softwareTitle}`, `-ImageDescription=${softwareTitle}`, req.file.path]);
+      spawn('exiftool', [`-Caption-Abstract=${softwareTitle}`, `-ImageDescription=${softwareTitle}`, `-overwrite_original`, req.file.path]);
     }
 
     // Determine whether the user selected to upload to Imgur or ImageShare
