@@ -278,7 +278,9 @@ function renderMain(passedOptions) {
     // Path to the shortlink redirecting to the uploaded image (e.g. 'http://localhost/i/e220f')
     shortLink: undefined || passedOptions.shortLink,
     // Software title detected from image (e.g. 'THE LEGEND OF ZELDA The Wind Waker HD')
-    softwareTitle: passedOptions.softwareTitle || defaultFileTitle
+    softwareTitle: passedOptions.softwareTitle || defaultFileTitle,
+    // Set the footer message for qr panel
+    qrFooter: undefined || passedOptions.qrFooter
   }
   // Shorten rendered software title for Nintendo 3DS, because text-overflow: ellipsis doesn't work on responsive-width containers
   if (data.userAgent.includes('Nintendo 3DS') && (data.softwareTitle.length > 32)) {
@@ -307,7 +309,7 @@ function renderMain(passedOptions) {
               <a href="${data.shortLink}" target="_blank">${data.shortLink}</a>
             </font>
           </p>
-          <p>Scan the QR code or type the link on another device to download the file. You have ${deleteDelay} ${deleteDelay === 1 ? 'minute' : 'minutes'} to save your file before it is deleted.</p>
+          <p>${data.qrFooter}</p>
         </div>
       </div>
     `;
@@ -425,7 +427,8 @@ app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err
         forceMobileMode: req.path.startsWith('/m'),
         qrLink: uploadResult.qrLink,
         shortLink: uploadResult.link,
-        softwareTitle: softwareTitle
+        softwareTitle: softwareTitle,
+        qrFooter: uploadResult.qrFooter
       }));
     } else {
       // If the upload failed, display an error message to the user
@@ -470,8 +473,10 @@ async function uploadToLocal(filePath, protocol, connectedHost, req) {
       }
       sendAnalytics(req.get('User-Agent'), (req.headers['x-forwarded-for'] || req.ip), data);
     }
+    // Set the footer message for qr panel
+    const qrFooter = `Scan the QR code or type the link on another device to download the file. You have ${deleteDelay} ${deleteDelay === 1 ? 'minute' : 'minutes'} minutes to save your file before it is deleted.`;
     // Return success and display results to user :3
-    resolve({ success: true, link: `${protocol}://${connectedHost}/i/${shortLink}`, qrLink: `${protocol}://${connectedHost}/${filePath.path.replace('uploads/', 'qr/')}` });
+    resolve({ success: true, link: `${protocol}://${connectedHost}/i/${shortLink}`, qrLink: `${protocol}://${connectedHost}/${filePath.path.replace('uploads/', 'qr/')}`, qrFooter });
   });
 }
 

@@ -62,8 +62,10 @@ async function uploadToImgur(filePath, softwareTitle, imgurClientId, plausibleDo
                     //Remove cached file
                     fs.unlinkSync(fullPath);
                     console.log(`Deleted cached file: ${fullPath}`);
+                    // Set the footer message for the qr panel
+                    const qrFooter = `Scan the QR code or type the link on another device to download the file.`
                     // Return success and the link to the Imgur upload
-                    resolve({ success: true, link: `https://imgur.com/${body.data.id}`, qrLink: `/qr/${body.data.link}` });
+                    resolve({ success: true, link: `https://imgur.com/${body.data.id}`, qrLink: `/qr/${body.data.link}`, qrFooter });
                 }
 
                 // Send async Plausible analytics page view if enabled
