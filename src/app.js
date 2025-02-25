@@ -323,7 +323,27 @@ function renderMain(passedOptions) {
           <form action="${data.forceMobileMode ? '/m/' : '/'}" id="upload-form" enctype="multipart/form-data" method="POST" onsubmit="document.getElementById('loading-container').style.display='block';">
             <p><input name="img" id="img-btn" type="file" accept="image/*,video/*" /></p>
             <div class="upload-type">
-              <input type="radio" id="upload-type-imageshare" name="upload-type" value="imageshare" checked>
+              <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                  // Set the upload type based on the user's past selections, use cookies to remember the selection
+                  var uploadType = localStorage.getItem('uploadType') || 'imageshare';
+                  var uploadTypeElement = document.getElementById('upload-type-' + uploadType);
+                  if (uploadTypeElement) {
+                    uploadTypeElement.checked = true;
+                    uploadTypeElement.onclick = function() {
+                      localStorage.setItem('uploadType', this.value);
+                    };
+                  }
+                  // If the user ever changes it, edit the cookie
+                  var elements = document.querySelectorAll('input[name="upload-type"]');
+                  for (var i = 0; i < elements.length; i++) {
+                    elements[i].addEventListener('change', function() {
+                      localStorage.setItem('uploadType', this.value);
+                    });
+                  }
+                });
+              </script>
+              <input type="radio" id="upload-type-imageshare" name="upload-type" value="imageshare">
               <label for="upload-type-imageshare">Upload to ImageShare (Deletes in 2 Mins.)</label>
             </div>
             <div class="upload-type">
