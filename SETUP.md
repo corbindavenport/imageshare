@@ -20,7 +20,7 @@ Here's how you get your `client id` setup:
 4. In your .env file, add the following variable, insuring to add your client id
 
 ```env
-IMGUR_CLIENT_ID=client-id-here
+IMGUR_KEY=client-id-here
 ```
 
 

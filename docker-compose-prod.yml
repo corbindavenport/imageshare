@@ -35,7 +35,7 @@ services:
       AUTODELETE_TIME: ${AUTODELETE_TIME}
       PLAUSIBLE_DOMAIN: ${PLAUSIBLE_DOMAIN}
       PRIVACY_POLICY: ${PRIVACY_POLICY}
-      IMGUR_CLIENT_ID: ${IMGUR_CLIENT_ID}
+      IMGUR_KEY: ${IMGUR_KEY}
     networks:
       - internal
 

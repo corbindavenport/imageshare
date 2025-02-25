@@ -26,7 +26,7 @@ const prodModeEnabled = (process.env.PROD_MODE === 'true');
 // Privacy statement
 const privacyUrl = process.env.PRIVACY_POLICY;
 // Imgur API client ID
-const imgurClientId = process.env.IMGUR_CLIENT_ID;
+const imgurClientId = process.env.IMGUR_KEY;
 
 // Paths to primary directories
 const publicDir = path.resolve(import.meta.dirname, '../public');
