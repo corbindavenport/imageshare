@@ -8,6 +8,7 @@ import QRCode from 'qrcode';
 import ExifReader from 'exifreader';
 import { spawn } from 'node:child_process';
 import { uploadToImgur } from './modules/imgur-upload.js';
+import { uploadToLocal } from './modules/imageshare-upload.js';
 
 // Initialize Express
 const app = express();
@@ -149,7 +150,6 @@ function sendAnalytics(userAgent, clientIp, data) {
     body: JSON.stringify(data),
   });
 }
-export { sendAnalytics };
 
 // Function to detect software title from image EXIF data or file name
 async function getSoftwareTitle(imgFile, mimeType, originalFileName) {
@@ -414,7 +414,7 @@ app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err
     } else {
       // Upload to ImageShare
       req.body['upload-type'] === 'imageshare'
-      uploadResult = await uploadToLocal(req.file, protocol, connectedHost, req);
+      uploadResult = await uploadToLocal(req.file, protocol, connectedHost, req, plausibleDomain, deleteDelay);
     }
 
     // Decide if the upload was successful or not
@@ -438,47 +438,6 @@ app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err
     }
   }
 });
-
-// Function to handle local uploads
-async function uploadToLocal(filePath, protocol, connectedHost, req) {
-  return new Promise((resolve) => {
-    // Create unique shortlink that isn't already in storage
-    let shortLink;
-    do {
-      shortLink = crypto.randomUUID().toString().substring(0, 5);
-    } while (shortLinkObj[shortLink]);
-    shortLinkObj[shortLink] = filePath.path;
-    console.log(`Created shortlink: ${protocol}://${connectedHost}/i/${shortLink}`);
-
-    // Schedule timeout to delete file and shortlink
-    const delay = deleteDelay * 60 * 1000;
-    setTimeout(async () => {
-      // Delete shortlink
-      delete shortLinkObj[shortLink];
-      console.log(`Deleted shortlink: ${protocol}://${connectedHost}/i/${shortLink}`);
-      // Delete file
-      if (filePath) {
-        fs.unlinkSync(filePath.path);
-        console.log(`Deleted file: ${filePath.path}`);
-      }
-    }, delay);
-
-    // Send async Plausible analytics page view if enabled
-    if (plausibleDomain) {
-      const data = {
-        name: 'Upload',
-        props: JSON.stringify({ 'Upload Mode': 'Native' }),
-        url: '/',
-        domain: plausibleDomain
-      }
-      sendAnalytics(req.get('User-Agent'), (req.headers['x-forwarded-for'] || req.ip), data);
-    }
-    // Set the footer message for qr panel
-    const qrFooter = `Scan the QR code or type the link on another device to download the file. You have ${deleteDelay} ${deleteDelay === 1 ? 'minute' : 'minutes'} minutes to save your file before it is deleted.`;
-    // Return success and display results to user :3
-    resolve({ success: true, link: `${protocol}://${connectedHost}/i/${shortLink}`, qrLink: `${protocol}://${connectedHost}/${filePath.path.replace('uploads/', 'qr/')}`, qrFooter });
-  });
-}
 
 // Handle requests for main page with a custom-rendered interface
 // The / and /index.html paths are required, the /index.php path retains compatibility with bookmarks for the older PHP-based ImageShare
@@ -596,3 +555,6 @@ const gracefulShutdown = () => {
 };
 process.on('SIGINT', gracefulShutdown);
 process.on('SIGTERM', gracefulShutdown);
+
+// Export the needed functions and objects for use in other modules
+export { sendAnalytics, shortLinkObj };
