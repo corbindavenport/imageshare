@@ -8,12 +8,15 @@ ImageShare is committed to respecting your privacy and being transparent about t
 
 When you upload a file to ImageShare, it is processed by the server and hosted as a public download for a period of time displayed on the upload result page. The files are hosted on ImageShare's own servers and are not transmitted to a third-party service. When the displayed time runs out, the file is permanently deleted from the server.
 
+When you upload a file to Imgur, it is processed by the server, and uploaded to imgur. Once it is uploaded, the server deletes the cached file and shows you the link to the imgur upload. When sending the image to Imgur, we do not send any informartion alongside it, keeping the uploads anomonus. Do note that all uploads to imgur are public and can be seen by anyone else with that link! We do not keep the file uploaded on our server after it has been uploaded, only imgur has the upload. For more information on Imgur's privacy policy, refer to: [https://imgur.com/privacy](https://imgur.com/privacy)
+
 ImageShare also uses the privacy-friendly Plausible Analytics, which is subject to the [Plausible Analytics Privacy Policy](https://plausible.io/privacy). ImageShare transmits the following information over an encrypted HTTPS connection:
 
 - **Platform information:** Your operating system and type of device.
 - **Browser information:** Your browser name, version, and other related data.
 - **IP address**: This is used to identify your country and region.
 - **User action**: If you are uploading an image or not.
+  - **Upload Type**: The method the user choses to upload
 
 This data is deleted from the server after the page load or image upload is complete, and the data stored in Plausible Analytics is anonymized to hide your IP address and other sensitive information. The analytics data is always transmitted from the server to Plausible over a secure HTTPS (SSL) connection, even if your device's connection to the server is over an insecure HTTP connection.
 
