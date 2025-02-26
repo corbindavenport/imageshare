@@ -5,6 +5,7 @@ import multer from 'multer';
 import fs from 'fs';
 import mime from 'mime';
 import QRCode from 'qrcode';
+import sharp from 'sharp';
 import ExifReader from 'exifreader';
 import { spawn } from 'node:child_process';
 import { uploadToImgur } from './modules/imgur-upload.js';
@@ -541,9 +542,13 @@ app.get('/qr/*', async (req, res) => {
       margin: 2,
       errorCorrectionLevel: 'L'
     });
-    // Return the QR code
-    res.setHeader('Content-Type', 'image/png');
-    res.send(Buffer.from(qrCodeDataURL.split(',')[1], 'base64'));
+
+    // Convert png to jpeg
+    const qrCodeBuffer = await sharp(Buffer.from(qrCodeDataURL.split(',')[1], 'base64')).jpeg().toBuffer();
+    // Set the Content-Type header to image/jpeg
+    res.setHeader('Content-Type', 'image/jpeg');
+    // Send the QR code image as the response
+    res.send(qrCodeBuffer);
   } catch (error) {
     res.status(500).send('Error generating QR code');
   }
