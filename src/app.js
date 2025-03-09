@@ -9,7 +9,7 @@ import sharp from 'sharp';
 import ExifReader from 'exifreader';
 import { spawn } from 'node:child_process';
 import { uploadToImgur } from './modules/imgur-upload.js';
-import { uploadToLocal } from './modules/imageshare-upload.js';
+import { uploadToLocal } from './modules/local-upload.js';
 
 // Initialize Express
 const app = express();
@@ -434,7 +434,6 @@ app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err
       }
     } else {
       // Upload to ImageShare
-      req.body['upload-type'] === 'imageshare'
       uploadResult = await uploadToLocal(req.file, protocol, connectedHost, req, plausibleDomain, deleteDelay);
     }
 

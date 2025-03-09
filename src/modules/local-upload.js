@@ -40,6 +40,7 @@ async function uploadToLocal(filePath, protocol, connectedHost, req, plausibleDo
         // Set the footer message for qr panel
         const qrFooter = `Scan the QR code or type the link on another device to download the file. You have ${deleteDelay} ${deleteDelay === 1 ? 'minute' : 'minutes'} minutes to save your file before it is deleted.`;
         // Return success and display results to user :3
+        console.log(`Selected protocol: ${protocol}`);
         resolve({ success: true, link: `${protocol}://${connectedHost}/i/${shortLink}`, qrLink: `${protocol}://${connectedHost}/${filePath.path.replace('uploads/', 'qr/')}`, qrFooter });
     });
 }
