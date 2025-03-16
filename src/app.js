@@ -324,7 +324,7 @@ function renderMain(passedOptions) {
           <form action="${data.forceMobileMode ? '/m/' : '/'}" id="upload-form" enctype="multipart/form-data" method="POST" onsubmit="document.getElementById('loading-container').style.display='block';">
             <p><input name="img" id="img-btn" type="file" accept="image/*,video/*" /></p>
             <p>
-              <input type="radio" id="upload-type-imageshare" name="upload-type" value="imageshare">
+              <input type="radio" id="upload-type-imageshare" name="upload-type" value="imageshare" checked>
               <label for="upload-type-imageshare">Upload to ImageShare (temporary)</label>
               ${imgurClientId ? `<br />
                 <input type="radio" id="upload-type-imgur" name="upload-type" value="imgur">
@@ -351,7 +351,7 @@ function renderMain(passedOptions) {
         <br /><br />
         ${data.userAgent}
     </p>
-    <script src="/settings.js"></script>
+    <!-- Disabled for now, remove 'checked' attribute from radio when this is enabled again <script LANGUAGE="JavaScript" type="text/javascript" src="/settings.js"></script> -->
   </body>
   </html>`;
   return htmlString;
@@ -503,7 +503,6 @@ app.get('/qr/*', async (req, res) => {
   const fileName = req.params[0]; // Example: 0fbb2132-296b-455e-bcbc-107ca9f103e9.jpg
   // Use HTTPS for the link if server is in production mode, or HTTP if not
   const protocol = prodModeEnabled ? 'https' : 'http';
-
   // Check to see if the fileName has http in its name, if not, build a url
   let qrLink = '';
   if (fileName.startsWith('http')) {
@@ -511,7 +510,6 @@ app.get('/qr/*', async (req, res) => {
   } else {
     qrLink = `${protocol}://${connectedHost}/uploads/${fileName}`;
   }
-
   try {
     // Generate the QR code
     const qrCodeDataURL = await QRCode.toDataURL(qrLink, {
@@ -520,11 +518,18 @@ app.get('/qr/*', async (req, res) => {
       margin: 2,
       errorCorrectionLevel: 'L'
     });
-
-    // Convert png to jpeg
-    const qrCodeBuffer = await sharp(Buffer.from(qrCodeDataURL.split(',')[1], 'base64')).jpeg().toBuffer();
-    // Set the Content-Type header to image/jpeg
-    res.setHeader('Content-Type', 'image/jpeg');
+    // Convert image if required
+    let qrCodeBuffer;
+    if (req.headers.accept?.includes('image/png') || req.get('User-Agent')?.includes('Nintendo')) {
+      // Browser supports PNG images, no conversion is needed
+      // Nintendo 3DS/Wii U also support PNG, but don't say so in the HTTP header
+      qrCodeBuffer = Buffer.from(qrCodeDataURL.split(',')[1], 'base64');
+      res.setHeader('Content-Type', 'image/png');
+    } else {
+      // Browser may not support inline PNG images, conver it to JPEG
+      qrCodeBuffer = await sharp(Buffer.from(qrCodeDataURL.split(',')[1], 'base64')).jpeg().toBuffer();
+      res.setHeader('Content-Type', 'image/jpeg');
+    }
     // Send the QR code image as the response
     res.send(qrCodeBuffer);
   } catch (error) {
