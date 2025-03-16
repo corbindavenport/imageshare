@@ -47,7 +47,8 @@ File upload limit: ${uploadLimit} MB
 Nintendo 3DS game detection: ${gameList3DS.length} titles
 Nintendo Wii U game detection: ${gameListWiiU.length} titles
 Plausible analytics domain: ${(plausibleDomain || 'None')}
-Production mode: ${prodModeEnabled}
+Production mode: ${prodModeEnabled ? 'Enabled' : 'Disabled'}
+Imgur support: ${imgurClientId ? 'Enabled' : 'Disabled'}
 `);
 
 // Create uploads folder, and delete existing one if present
@@ -324,7 +325,7 @@ function renderMain(passedOptions) {
           <form action="${data.forceMobileMode ? '/m/' : '/'}" id="upload-form" enctype="multipart/form-data" method="POST" onsubmit="document.getElementById('loading-container').style.display='block';">
             <p><input name="img" id="imageshare-file-select" type="file" accept="image/*,video/*" /></p>
             <p>
-              <input type="radio" id="upload-type-imageshare" name="upload-type" value="imageshare" checked class="imageshare-service-radio">
+              <input type="radio" id="upload-type-imageshare" name="upload-type" value="imageshare" class="imageshare-service-radio" checked>
               <label for="upload-type-imageshare">Upload to ImageShare (temporary)</label>
               ${imgurClientId ? `<br />
                 <input type="radio" id="upload-type-imgur" name="upload-type" value="imgur" class="imageshare-service-radio">
@@ -351,7 +352,6 @@ function renderMain(passedOptions) {
         <br /><br />
         ${data.userAgent}
     </p>
-    <!-- Disabled for now, remove 'checked' attribute from radio when this is enabled again <script LANGUAGE="JavaScript" type="text/javascript" src="/settings.js"></script> -->
   </body>
   </html>`;
   return htmlString;
@@ -498,7 +498,6 @@ app.get(['/uploads/*', '/i/*'], async (req, res) => {
 
 // Handle requests for QR codes
 app.get('/qr/*', async (req, res) => {
-  console.log(req.headers)
   // Use provided domain name if possible, or connected hostname as fallback
   const connectedHost = (webDomain || req.headers['host']);
   const fileName = req.params[0]; // Example: 0fbb2132-296b-455e-bcbc-107ca9f103e9.jpg
