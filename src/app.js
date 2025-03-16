@@ -5,8 +5,11 @@ import multer from 'multer';
 import fs from 'fs';
 import mime from 'mime';
 import QRCode from 'qrcode';
+import sharp from 'sharp';
 import ExifReader from 'exifreader';
 import { spawn } from 'node:child_process';
+import { uploadToImgur } from './modules/imgur-upload.js';
+import { uploadToLocal } from './modules/local-upload.js';
 
 // Initialize Express
 const app = express();
@@ -24,6 +27,8 @@ const defaultFileTitle = 'ImageShare Upload';
 const prodModeEnabled = (process.env.PROD_MODE === 'true');
 // Privacy statement
 const privacyUrl = process.env.PRIVACY_POLICY;
+// Imgur API client ID
+const imgurClientId = process.env.IMGUR_KEY;
 
 // Paths to primary directories
 const publicDir = path.resolve(import.meta.dirname, '../public');
@@ -104,7 +109,7 @@ function init3DSTitles() {
   });
   gameList.sort((a, b) => {
     // This updates the sorting on the game list, so all games are listed before their respective updated versions
-    // Example: Pokémon Sun is in the databse as TitleID 0004000000164800, Pokémon Sun v1.2 update is TitleID 0004000E00164800
+    // Example: Pokémon Sun is in the database as TitleID 0004000000164800, Pokémon Sun v1.2 update is TitleID 0004000E00164800
     // Image EXIF data doesn't include the section that indicates the update, but sorting the original titles first ensures the title match will be the original title (Pokémon Sun) instead of the modified version (Pokémon Sun Update Ver. 1.2) wherever possible
     // Games with TitleIDs starting with 000400000 are the original games, titles starting with 0004000E0 are the updates
     const aTitleIdPrefix = a.TitleID.slice(0, 10);
@@ -259,7 +264,7 @@ function renderHead(userAgent, webHost, forceMobileMode = false) {
   return htmlString;
 }
 
-
+// Function to render main page
 function renderMain(passedOptions) {
   // Set options
   let data = {
@@ -270,11 +275,13 @@ function renderMain(passedOptions) {
     // Setting to force small-screen interface
     forceMobileMode: false || passedOptions.forceMobileMode,
     // Path to an uploaded image (e.g. 'uploads/319747f3-a0c2-4492-af05-736da74f6bac.jpg')
-    uploadUrl: undefined || passedOptions.uploadUrl,
+    qrLink: undefined || passedOptions.qrLink,
     // Path to the shortlink redirecting to the uploaded image (e.g. 'http://localhost/i/e220f')
     shortLink: undefined || passedOptions.shortLink,
     // Software title detected from image (e.g. 'THE LEGEND OF ZELDA The Wind Waker HD')
-    softwareTitle: passedOptions.softwareTitle || defaultFileTitle
+    softwareTitle: passedOptions.softwareTitle || defaultFileTitle,
+    // Set the footer message for qr panel
+    qrFooter: undefined || passedOptions.qrFooter
   }
   // Shorten rendered software title for Nintendo 3DS, because text-overflow: ellipsis doesn't work on responsive-width containers
   if (data.userAgent.includes('Nintendo 3DS') && (data.softwareTitle.length > 32)) {
@@ -289,21 +296,21 @@ function renderMain(passedOptions) {
     <div class="container">
   `;
   // Show QR code if a file has been uploaded
-  if (data.uploadUrl) {
+  if (data.qrLink) {
     // Show QR code
     htmlString += `
     <div class="panel">
         <h3 class="panel-title">${data.softwareTitle}</h3>
         <div align="center">
-          <img class="qr-img" alt="QR code" width="175" height="175" border="0" src="/${data.uploadUrl.replace('uploads/', 'qr/')}">
+          <img class="qr-img" alt="QR code" width="175" height="175" border="0" src="${data.qrLink}">
         </div>
         <div class="body">
           <p class="shortcode-container" align="center">
             <font face="courier new, monospace">
-              <a href="/${data.uploadUrl}" target="_blank">${data.shortLink}</a>
+              <a href="${data.shortLink}" target="_blank">${data.shortLink}</a>
             </font>
           </p>
-          <p>Scan the QR code or type the link on another device to download the file. You have ${deleteDelay} ${deleteDelay === 1 ? 'minute' : 'minutes'} to save your file before it is deleted.</p>
+          <p>${data.qrFooter}</p>
         </div>
       </div>
     `;
@@ -316,6 +323,34 @@ function renderMain(passedOptions) {
         <div class="body">
           <form action="${data.forceMobileMode ? '/m/' : '/'}" id="upload-form" enctype="multipart/form-data" method="POST" onsubmit="document.getElementById('loading-container').style.display='block';">
             <p><input name="img" id="img-btn" type="file" accept="image/*,video/*" /></p>
+            <div class="upload-type">
+              <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                  // Set the upload type based on the user's past selections, use cookies to remember the selection
+                  var uploadType = localStorage.getItem('uploadType') || 'imageshare';
+                  var uploadTypeElement = document.getElementById('upload-type-' + uploadType);
+                  if (uploadTypeElement) {
+                    uploadTypeElement.checked = true;
+                    uploadTypeElement.onclick = function() {
+                      localStorage.setItem('uploadType', this.value);
+                    };
+                  }
+                  // If the user ever changes it, edit the cookie
+                  var elements = document.querySelectorAll('input[name="upload-type"]');
+                  for (var i = 0; i < elements.length; i++) {
+                    elements[i].addEventListener('change', function() {
+                      localStorage.setItem('uploadType', this.value);
+                    });
+                  }
+                });
+              </script>
+              <input type="radio" id="upload-type-imageshare" name="upload-type" value="imageshare">
+              <label for="upload-type-imageshare">Upload to ImageShare (Deletes in 2 Mins.)</label>
+            </div>
+            <div class="upload-type">
+              <input type="radio" id="upload-type-imgur" name="upload-type" value="imgur">
+              <label for="upload-type-imgur">Upload to Imgur</label>
+            </div>
             <p><input name="submit" type="submit" value="Upload" /></p>
             <p id="loading-container" style="display:none;" align="center">
               <img src="/img/loading.gif" alt="Loading">
@@ -379,52 +414,48 @@ app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err
     // If custom software title is detected, run exiftool to save it to the image description
     // If the image is a detected Wii U software title, also add the make and model to the EXIF data
     if (req.file.originalname.startsWith('WiiU_') && (softwareTitle != defaultFileTitle)) {
-      spawn('exiftool', [`-Caption-Abstract=${softwareTitle}`, `-ImageDescription=${softwareTitle}`, '-Model=Nintendo Wii U', '-Make=Nintendo', req.file.path]);
+      spawn('exiftool', [`-Caption-Abstract=${softwareTitle}`, `-ImageDescription=${softwareTitle}`, '-Model=Nintendo Wii U', '-Make=Nintendo', `-overwrite_original`, req.file.path]);
     } else if (softwareTitle != defaultFileTitle) {
-      spawn('exiftool', [`-Caption-Abstract=${softwareTitle}`, `-ImageDescription=${softwareTitle}`, req.file.path]);
+      spawn('exiftool', [`-Caption-Abstract=${softwareTitle}`, `-ImageDescription=${softwareTitle}`, `-overwrite_original`, req.file.path]);
     }
-    // Create unique shortlink that isn't already in storage
-    let shortLink;
-    do {
-      shortLink = crypto.randomUUID().toString().substring(0, 5);
-    } while (shortLinkObj[shortLink]);
-    shortLinkObj[shortLink] = req.file.path;
-    console.log(`Created shortlink: ${protocol}://${connectedHost}/i/${shortLink}`);
-    // Schedule timeout to delete file and shortlink
-    const delay = deleteDelay * 60 * 1000;
-    setTimeout(async () => {
-      // Delete shortlink
-      delete shortLinkObj[shortLink];
-      console.log(`Deleted shortlink: ${protocol}://${connectedHost}/i/${shortLink}`);
-      // Delete file
-      if (req.file) {
-        fs.unlinkSync(req.file.path);
-        console.log(`Deleted file: ${req.file.path}`);
+
+    // Determine whether the user selected to upload to Imgur or ImageShare
+    let uploadResult;
+    if (req.body['upload-type'] === 'imgur') {
+      // Verify that the file uploaded is supported by imgur (png and jpeg)
+      if (req.file.mimetype !== 'image/jpeg' && req.file.mimetype !== 'image/png') {
+        // Not valid, return error to user :(
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.end(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), 'The file you uploaded is not supported by Imgur. Please select a PNG or JPEG image.'));
+        return;
+      } else {
+        // Yippie, the user uploaded a valid file, upload to Imgur (code is located in src/modules/imgur-upload.js)
+        uploadResult = await uploadToImgur(req.file, softwareTitle, imgurClientId, plausibleDomain, req);
       }
-    }, delay);
-    // Send async Plausible analytics page view if enabled
-    if (plausibleDomain) {
-      const data = {
-        name: 'Upload',
-        props: JSON.stringify({ 'Upload Mode': 'Native' }),
-        url: '/',
-        domain: plausibleDomain
-      }
-      sendAnalytics(req.get('User-Agent'), (req.headers['x-forwarded-for'] || req.ip), data);
+    } else {
+      // Upload to ImageShare
+      uploadResult = await uploadToLocal(req.file, protocol, connectedHost, req, plausibleDomain, deleteDelay);
     }
-    // Display result page
-    res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.end(renderMain({
-      userAgent: String(req.get('User-Agent')),
-      webHost: connectedHost,
-      forceMobileMode: req.path.startsWith('/m'),
-      uploadUrl: req.file.path,
-      shortLink: `${protocol}://${connectedHost}/i/${shortLink}`,
-      softwareTitle: softwareTitle
-    }));
-  } else {
-    res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.end(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), 'You did not select a file, or the file you uploaded was invalid.'));
+
+    // Decide if the upload was successful or not
+    if (uploadResult.success) {
+      // Now take the data from the upload response, and display it to the user
+      res.writeHead(200, { 'Content-Type': 'text/html' });
+      res.end(renderMain({
+        userAgent: String(req.get('User-Agent')),
+        webHost: connectedHost,
+        forceMobileMode: req.path.startsWith('/m'),
+        qrLink: uploadResult.qrLink,
+        shortLink: uploadResult.link,
+        softwareTitle: softwareTitle,
+        qrFooter: uploadResult.qrFooter
+      }));
+    } else {
+      // If the upload failed, display an error message to the user
+      // Upload Result will contain a reason for the failure, if not set by the uploader's function, it will be set to the universal error message
+      res.writeHead(200, { 'Content-Type': 'text/html' });
+      res.end(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), (uploadResult.reason || 'There was an issue uploading your file. Please make sure your upload was valid and try again later.')));
+    }
   }
 });
 
@@ -493,19 +524,30 @@ app.get('/qr/*', async (req, res) => {
   const fileName = req.params[0]; // Example: 0fbb2132-296b-455e-bcbc-107ca9f103e9.jpg
   // Use HTTPS for the link if server is in production mode, or HTTP if not
   const protocol = prodModeEnabled ? 'https' : 'http';
-  // Create QR code text string
-  const qrText = `${protocol}://${connectedHost}/uploads/${fileName}`;
+
+  // Check to see if the fileName has http in its name, if not, build a url
+  let qrLink = '';
+  if (fileName.startsWith('http')) {
+    qrLink = fileName;
+  } else {
+    qrLink = `${protocol}://${connectedHost}/uploads/${fileName}`;
+  }
+
   try {
     // Generate the QR code
-    const qrCodeDataURL = await QRCode.toDataURL(qrText, {
+    const qrCodeDataURL = await QRCode.toDataURL(qrLink, {
       type: 'image/png',
       width: 350,
       margin: 2,
       errorCorrectionLevel: 'L'
     });
-    // Return the QR code
-    res.setHeader('Content-Type', 'image/png');
-    res.send(Buffer.from(qrCodeDataURL.split(',')[1], 'base64'));
+
+    // Convert png to jpeg
+    const qrCodeBuffer = await sharp(Buffer.from(qrCodeDataURL.split(',')[1], 'base64')).jpeg().toBuffer();
+    // Set the Content-Type header to image/jpeg
+    res.setHeader('Content-Type', 'image/jpeg');
+    // Send the QR code image as the response
+    res.send(qrCodeBuffer);
   } catch (error) {
     res.status(500).send('Error generating QR code');
   }
@@ -537,3 +579,6 @@ const gracefulShutdown = () => {
 };
 process.on('SIGINT', gracefulShutdown);
 process.on('SIGTERM', gracefulShutdown);
+
+// Export the needed functions and objects for use in other modules
+export { sendAnalytics, shortLinkObj };
