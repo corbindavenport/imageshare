@@ -133,7 +133,7 @@ This is a complete list of configuration options in ImageShare with the `.env` f
 | `PLAUSIBLE_DOMAIN` | `yourdomain.com` | The domain used for Plausible Analytics, the feature is turned off if the setting isn't defined. See the [Plausible Analytics section](#enable-plausible-analytics) for more information. |
 | `UPLOAD_LIMIT` | `10` | The file size limit for uploads, measured in Megabytes. This is the only setting that is required. |
 | `AUTODELETE_TIME` | `2` | The time delay to automatically delete files, measured in minutes. If you are running a public server, this should be a low number to prevent possibly-malicious content from remaining accessible for too long. |
-| `IMGUR_KEY` | 740273babac99b0 | This is needed to ensure that you can make full use of the uploading api for Imgur. There have been times where it works without one, but it gets rate limited way quicker, or just doesn't work. Makee sure to set this if you don't want to run into problems uploading with imgur! |
+| `IMGUR_KEY` | `740273babac99b0` | This is needed to ensure that you can make full use of the uploading api for Imgur. There have been times where it works without one, but it gets rate limited way quicker, or just doesn't work. Makee sure to set this if you don't want to run into problems uploading with imgur! |
 
 This is a sample `.env` file for a production server with Plausible Analytics enabled:
 

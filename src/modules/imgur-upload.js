@@ -27,7 +27,7 @@ async function uploadToImgur(filePath, softwareTitle, imgurClientId, plausibleDo
         formData.append('image', fs.createReadStream(filePath.path));
         formData.append('type', 'file');
         formData.append('title', `${softwareTitle}`);
-        formData.append('description', 'Uploaded by ImageShare (github -> corbindavenport/imageshare)');
+        formData.append('description', 'Uploaded with ImageShare: https://github.com/corbindavenport/imageshare');
 
         let options = {
             method: 'post',
@@ -84,7 +84,7 @@ async function uploadToImgur(filePath, softwareTitle, imgurClientId, plausibleDo
                 // Remove cached file and return failure
                 fs.unlinkSync(fullPath);
                 console.log(`Deleted cached file: ${fullPath}`);
-                resolve({ success: false, reason: `There was an error uploading to Imgur. Make sure that your API Key is set and you haven't exceeded your rate limit.` });
+                resolve({ success: false, reason: `There was an error uploading to Imgur. If you are the administrator of this server, check that you set an API Key and you have not exceeded your rate limit.` });
             });
     });
 }
