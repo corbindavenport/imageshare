@@ -1,5 +1,4 @@
-
-// Set the upload type based on the user's past selections, use cookies to remember the selection
+// Set upload radio box based on saved setting and update setting on click
 var uploadType = localStorage.getItem('uploadType') || 'imageshare';
 var uploadTypeElement = document.getElementById('upload-type-' + uploadType);
 if (uploadTypeElement) {
@@ -8,10 +7,11 @@ if (uploadTypeElement) {
         localStorage.setItem('uploadType', this.value);
     };
 }
-// If the user ever changes it, edit the cookie
+
+// Update settings on forum element click
 var elements = document.querySelectorAll('input[name="upload-type"]');
 for (var i = 0; i < elements.length; i++) {
-    elements[i].addEventListener('change', function () {
+    elements[i].onchange = function () {
         localStorage.setItem('uploadType', this.value);
-    });
+    };
 }
