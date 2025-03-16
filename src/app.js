@@ -322,15 +322,15 @@ function renderMain(passedOptions) {
         <h3 class="panel-title">Upload File</h3>
         <div class="body">
           <form action="${data.forceMobileMode ? '/m/' : '/'}" id="upload-form" enctype="multipart/form-data" method="POST" onsubmit="document.getElementById('loading-container').style.display='block';">
-            <p><input name="img" id="img-btn" type="file" accept="image/*,video/*" /></p>
+            <p><input name="img" id="imageshare-file-select" type="file" accept="image/*,video/*" /></p>
             <p>
-              <input type="radio" id="upload-type-imageshare" name="upload-type" value="imageshare" checked>
+              <input type="radio" id="upload-type-imageshare" name="upload-type" value="imageshare" checked class="imageshare-service-radio">
               <label for="upload-type-imageshare">Upload to ImageShare (temporary)</label>
               ${imgurClientId ? `<br />
-                <input type="radio" id="upload-type-imgur" name="upload-type" value="imgur">
+                <input type="radio" id="upload-type-imgur" name="upload-type" value="imgur" class="imageshare-service-radio">
                 <label for="upload-type-imgur">Upload to Imgur</label>` : ''}
             </p>
-            <p><input name="submit" type="submit" value="Upload" /></p>
+            <p><input name="submit" type="submit" id="imagshare-upload-btn" value="Upload" /></p>
             <p id="loading-container" style="display:none;" align="center">
               <img src="/img/loading.gif" alt="Loading">
             </p>
@@ -498,6 +498,7 @@ app.get(['/uploads/*', '/i/*'], async (req, res) => {
 
 // Handle requests for QR codes
 app.get('/qr/*', async (req, res) => {
+  console.log(req.headers)
   // Use provided domain name if possible, or connected hostname as fallback
   const connectedHost = (webDomain || req.headers['host']);
   const fileName = req.params[0]; // Example: 0fbb2132-296b-455e-bcbc-107ca9f103e9.jpg
@@ -505,7 +506,6 @@ app.get('/qr/*', async (req, res) => {
   const protocol = prodModeEnabled ? 'https' : 'http';
   // Add the domain to the fileName to make a qrLink
   const qrLink = `${protocol}://${connectedHost}/uploads/${fileName}`;
-
   try {
     // Generate the QR code
     const qrCodeDataURL = await QRCode.toDataURL(qrLink, {
@@ -516,13 +516,20 @@ app.get('/qr/*', async (req, res) => {
     });
     // Convert image if required
     let qrCodeBuffer;
-    if (req.headers.accept?.includes('image/png') || req.get('User-Agent')?.includes('Nintendo')) {
-      // Browser supports PNG images, no conversion is needed
-      // Nintendo 3DS/Wii U also support PNG, but don't say so in the HTTP header
+    // Check if the browser supports PNG images, some browsers don't report image types in the HTTP headers, so there are some additional overrides
+    const supportsPng = (
+      req.headers.accept.includes('image/png') ||
+      req.headers.accept.includes('image/apng') ||
+      req.get('User-Agent').includes('Firefox') ||
+      req.get('User-Agent').includes('Safari') ||
+      req.get('User-Agent').includes('Chrome') ||
+      req.get('User-Agent').includes('Nintendo')
+    );
+    if (supportsPng) {
       qrCodeBuffer = Buffer.from(qrCodeDataURL.split(',')[1], 'base64');
       res.setHeader('Content-Type', 'image/png');
     } else {
-      // Browser may not support inline PNG images, conver it to JPEG
+      // Browser may not support inline PNG images, convert it to JPEG
       qrCodeBuffer = await sharp(Buffer.from(qrCodeDataURL.split(',')[1], 'base64')).jpeg().toBuffer();
       res.setHeader('Content-Type', 'image/jpeg');
     }

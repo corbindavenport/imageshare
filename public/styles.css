@@ -95,16 +95,16 @@ hr {
 	padding-bottom: 10px;
 }
 
-input {
+#imagshare-upload-btn,
+#imageshare-file-select {
 	display: block;
 	box-sizing: border-box;
 	width: 100%;
 }
 
-input[type="radio"] {
+.imageshare-service-radio {
 	display: inline-block;
 	text-align: left;
-	width: auto;
 }
 
 .shortcode-container {
