@@ -234,6 +234,7 @@ function renderHead(userAgent, webHost, forceMobileMode = false) {
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>ImageShare</title>
     <meta name="description" content="ImageShare is a web app for sending images and videos to another device, designed for low-end and legacy web browsers.">
+    <link rel="canonical" href="https://${webHost}/" />
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ImageShare">
