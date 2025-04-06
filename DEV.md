@@ -133,7 +133,7 @@ This is a complete list of configuration options in ImageShare with the `.env` f
 | `PLAUSIBLE_DOMAIN` | `yourdomain.com` | The domain used for Plausible Analytics, the feature is turned off if the setting isn't defined. See the [Plausible Analytics section](#enable-plausible-analytics) for more information. |
 | `UPLOAD_LIMIT` | `10` | The file size limit for uploads, measured in Megabytes. This is the only setting that is required. |
 | `AUTODELETE_TIME` | `2` | The time delay to automatically delete files, measured in minutes. If you are running a public server, this should be a low number to prevent possibly-malicious content from remaining accessible for too long. |
-| `IMGUR_KEY` | `740273babac99b0` | This is needed to ensure that you can make full use of the uploading api for Imgur. There have been times where it works without one, but it gets rate limited way quicker, or just doesn't work. Makee sure to set this if you don't want to run into problems uploading with imgur! |
+| `IMGUR_KEY` | `740273babac99b0` | This enables Imgur API upload support. See the [Imgur section](#enable-imgur-support) for more information. |
 
 This is a sample `.env` file for a production server with Plausible Analytics enabled:
 
@@ -172,3 +172,30 @@ docker compose -f docker-compose.yml up
 ```
 
 Pageviews and upload events should now appear in your Plausible dashboard. Note that the Nintendo 3DS, New Nintendo 3DS, and Wii U Browsers all appear as "NetFront" in Plausible.
+
+## Enable Imgur support
+
+To enable Imgur as an image upload service, you'll need to create an API client key. All uploads to Imgur are anonymous and don't expire. There is an 1250 photos uploaded per hour rate limit, and ImageShare has a built-in rate limit protection feature to avoid reaching it.
+
+To start, visit the [add client page](https://api.imgur.com/oauth2/addclient) on imgur. You will have to log in with Imgur to see the page, or create a new (free) account. Once you are on the `Register an Application` page, fill out the form:
+
+- `Application Name`: Anything you want
+- `Authorization type`: `Anonymous usage without user authorization`
+- `Authorization callback URL`: You shouldn't be able to enter anything. If you can, go back to authorization type and set it to `OAuth 2 Authentication without a call...` and then change it back to anonymous.
+- `Email`: Enter your email
+- `Description`: Anything you want
+
+Imgur will give you a Client ID and a Client Secret. Next, add the Imgur client ID to your server `.env` file like this:
+
+```
+IMGUR_KEY=client-id-here
+```
+
+Finally, apply your settings by restarting the server. If you're running the production server, replace `docker-compose.yml` with `docker-compose-prod.yml` in the below example.
+
+```
+docker compose down
+docker compose -f docker-compose.yml up
+```
+
+Imgur should now appear as an option in the upload form on your ImageShare server.
