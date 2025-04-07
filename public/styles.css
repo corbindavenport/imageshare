@@ -28,9 +28,9 @@ a,
 a:visited {
 	color: #0d6efd;
 	text-decoration: none;
-	word-wrap:wrap-word;
-    word-break:break-all;
-    display:inline-block;
+	word-wrap: wrap-word;
+	word-break: break-all;
+	display: inline-block;
 }
 
 a:hover {

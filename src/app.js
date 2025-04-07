@@ -230,7 +230,7 @@ function renderHead(userAgent, webHost, forceMobileMode = false) {
   // CSS is embedded using @import statement so old browsers (IE 3, Netscape 4.x, etc.) get the plain HTML version
   const htmlString = `
     <head>
-    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>ImageShare</title>
     <meta name="description" content="ImageShare is a web app for sending images and videos to another device, designed for low-end and legacy web browsers.">
@@ -325,13 +325,15 @@ function renderMain(passedOptions) {
         <div class="body">
           <form action="${data.forceMobileMode ? '/m/' : '/'}" id="upload-form" enctype="multipart/form-data" method="POST" onsubmit="document.getElementById('loading-container').style.display='block';">
             <p><input name="img" id="imageshare-file-select" type="file" accept="image/*,video/*" /></p>
+            ${imgurClientId ? `
             <p>
               <input type="radio" id="upload-type-imageshare" name="upload-type" value="imageshare" class="imageshare-service-radio" checked>
               <label for="upload-type-imageshare">Upload to ImageShare (temporary)</label>
-              ${imgurClientId ? `<br />
-                <input type="radio" id="upload-type-imgur" name="upload-type" value="imgur" class="imageshare-service-radio">
-                <label for="upload-type-imgur">Upload to Imgur</label>` : ''}
+              <br />
+              <input type="radio" id="upload-type-imgur" name="upload-type" value="imgur" class="imageshare-service-radio">
+              <label for="upload-type-imgur">Upload to Imgur</label>
             </p>
+            ` : ''}
             <p><input name="submit" type="submit" id="imagshare-upload-btn" value="Upload" /></p>
             <p id="loading-container" style="display:none;" align="center">
               <img src="/img/loading.gif" alt="Loading">
