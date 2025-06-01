@@ -103,10 +103,10 @@ You can automate the certificate renewal so SSL continues to work without manual
 crontab -e
 ```
 
-Add the following line to the end of the file, which runs certbot on the first day of every second month (certificates last 90 days), and restarts all Docker containers to apply changes:
+Add the following line to the end of the file, which runs the certbot renew command each day at 3 AM to check if a certificate must be renewed:
 
 ```
-0 5 1 */2 * /usr/bin/docker compose -f /user/imageshare/docker-compose-prod.yml restart certbot
+0 3 * * * /usr/bin/docker compose -f /home/exampleuser/imageshare/docker-compose-prod.yml run --rm certbot renew
 ```
 
 You will need to replace the path to the compose file with the correct path. Then save your changes.
