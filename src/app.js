@@ -406,19 +406,18 @@ app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err
     if (req.body['upload-type'] === 'imgur') {
       // Verify that the file uploaded is supported by imgur (png and jpeg)
       if (req.file.mimetype !== 'image/jpeg' && req.file.mimetype !== 'image/png') {
-        // Not valid, return error to user :(
-        res.writeHead(200, { 'Content-Type': 'text/html' });
-        res.end(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), 'The file you uploaded is not supported by Imgur. Please select a PNG or JPEG image.'));
+        // Not valid, return error to user
+        const errorMessage = 'The file you uploaded is not supported by Imgur. Please select a PNG or JPEG image.'
+        res.status(500).send(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), errorMessage));
         return;
       } else {
-        // Yippie, the user uploaded a valid file, upload to Imgur (code is located in src/modules/imgur-upload.js)
+        // The user uploaded a valid file, upload to Imgur (code is located in src/modules/imgur-upload.js)
         uploadResult = await uploadToImgur(req.file, softwareTitle, imgurClientId, plausibleDomain, req);
       }
     } else {
       // Upload to ImageShare
       uploadResult = await uploadToLocal(req.file, protocol, connectedHost, req, plausibleDomain, deleteDelay);
     }
-
     // Decide if the upload was successful or not
     if (uploadResult.success) {
       // Now take the data from the upload response, and display it to the user
@@ -435,8 +434,9 @@ app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err
     } else {
       // If the upload failed, display an error message to the user
       // Upload Result will contain a reason for the failure, if not set by the uploader's function, it will be set to the universal error message
-      res.writeHead(200, { 'Content-Type': 'text/html' });
-      res.end(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), (uploadResult.reason || 'There was an issue uploading your file. Please make sure your upload was valid and try again later.')));
+      const errorMessage = 'There was an issue uploading your file. Please make sure your upload was valid and try again later.'
+      res.status(500).send(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), errorMessage));
+      return;
     }
   }
 });
@@ -466,14 +466,14 @@ app.get(['/', '/m', '/m/', '/index.html', '/index.php'], (req, res) => {
 });
 
 // Handle requests for uploaded file with direct file access
-app.get(['/uploads/*', '/i/*'], async (req, res) => {
+app.get([/\/uploads\//, '/i/:shortcode'], async (req, res) => {
   // Use provided domain name if possible, or connected hostname as fallback
   const connectedHost = (webDomain || req.headers['host']);
   // Get file path
   let reqPath = '';
-  if (req.path.startsWith('/i/')) {
+  if (req.params?.shortcode) {
     // Request from shortlink
-    let shortLinkCode = req.url.replace('/i/', '');
+    let shortLinkCode = req.params.shortcode;
     if (shortLinkCode in shortLinkObj) {
       reqPath = shortLinkObj[shortLinkCode];
     }
@@ -484,6 +484,12 @@ app.get(['/uploads/*', '/i/*'], async (req, res) => {
   // Load the file
   try {
     const filePath = path.join(mainDir, reqPath);
+    // Check if the file exists before attempting to read it
+    if (!fs.existsSync(filePath)) {
+      const errorMessage = `This upload could not be found, it may have already been deleted. File uploads on this server are set to expire after ${deleteDelay} ${deleteDelay === 1 ? 'minute' : 'minutes'}.`
+      res.status(404).send(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), errorMessage));
+      return;
+    }
     let data = await fs.promises.readFile(filePath);
     // Set MIME type on image download
     const mimeType = mime.getType(filePath);
@@ -493,21 +499,29 @@ app.get(['/uploads/*', '/i/*'], async (req, res) => {
     // Send file to client
     res.send(data);
   } catch (e) {
-    const errorMessage = `This upload could not be found, it may have already been deleted. File uploads on this server are set to expire after ${deleteDelay} ${deleteDelay === 1 ? 'minute' : 'minutes'}.`
-    res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.end(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), errorMessage));
+    const errorMessage = 'There was an unknown error reading this file.'
+    res.status(200).send(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), errorMessage));
+    return;
   }
 });
 
 // Handle requests for QR codes
-app.get('/qr/*', async (req, res) => {
+// TODO: Implement better handling for relative URLs (e.g. local uploads) and full path URLs (e.g. Imgur uploads)
+app.get(/\/qr\//, async (req, res) => {
   // Use provided domain name if possible, or connected hostname as fallback
   const connectedHost = (webDomain || req.headers['host']);
-  const fileName = req.params[0]; // Example: 0fbb2132-296b-455e-bcbc-107ca9f103e9.jpg
+  // Get filename, examples: 0fbb2132-296b-455e-bcbc-107ca9f103e9.jpg, https://i.imgur.com/Yfy4vvy.jpeg
+  const fileName = req.url.replace('/qr/', '');
   // Use HTTPS for the link if server is in production mode, or HTTP if not
   const protocol = prodModeEnabled ? 'https' : 'http';
-  // Add the domain to the fileName to make a qrLink
-  const qrLink = `${protocol}://${connectedHost}/uploads/${fileName}`;
+  // Add the domain to the fileName to make a qrLink, if needed
+  let fullUrl;
+  if (fileName.startsWith('http')) {
+    fullUrl = fileName;
+  } else {
+    fullUrl = `${protocol}://${connectedHost}/uploads/${fileName}`;
+  }
+  const qrLink = fullUrl;
   try {
     // Generate the QR code
     const qrCodeDataURL = await QRCode.toDataURL(qrLink, {
@@ -538,7 +552,9 @@ app.get('/qr/*', async (req, res) => {
     // Send the QR code image as the response
     res.send(qrCodeBuffer);
   } catch (error) {
-    res.status(500).send('Error generating QR code');
+    const errorMessage = 'There was an unknown error reading this file.'
+    res.status(500).send(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), errorMessage));
+    return;
   }
 });
 
@@ -550,9 +566,9 @@ app.get(['/privacy', '/privacy/', '/m/privacy', '/m/privacy/'], (req, res) => {
   if (privacyUrl) {
     res.redirect(privacyUrl);
   } else {
-    let errorMessage = 'Your server administrator has not specified a privacy policy.';
-    res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.end(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), errorMessage));
+    const errorMessage = 'Your server administrator has not specified a privacy policy.'
+    res.status(404).send(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), errorMessage));
+    return;
   }
 });
 
