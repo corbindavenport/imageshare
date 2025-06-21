@@ -532,7 +532,7 @@ app.get(/\/qr\//, async (req, res) => {
     });
     // Convert image if required
     let qrCodeBuffer;
-    // Check if the browser supports PNG images, some browsers don't report image types in the HTTP headers, so there are some additional overrides
+    // Check if browser supports PNG images, including browsers that don't report image types in HTTP headers
     const supportsPng = (
       req.headers.accept.includes('image/png') ||
       req.headers.accept.includes('image/apng') ||
