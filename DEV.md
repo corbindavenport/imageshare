@@ -56,11 +56,10 @@ cd imageshare
 
 You need a web doman to use for public access. If you want to retain compatibility with legacy web browsers, you may need to use an old top-level domain (e.g. `.com` or `.net`) instead of newer TLDs.
 
-Create a new plain text file in the root directory (same folder as this readme) called `.env` to store your settings. The only required settings are the domain, the file size limit on uploads (in megabytes), and the email address to be used for the Let's Encrypt certificate. However, specifying a privacy policy page is recommended.
+Create a new plain text file in the root directory (same folder as this readme) called `.env` to store your settings. The only required settings are the domain and the file size limit on uploads (in megabytes). However, specifying a privacy policy page is recommended.
 
 ```
 DOMAIN=yourwebsitegoeshere.com
-EMAIL=youremail@example.com
 UPLOAD_LIMIT=20
 PRIVACY_POLICY="https://www.example.com/privacy/"
 ```
@@ -97,7 +96,7 @@ Your ImageShare server should now be accessible over both HTTP and HTTPS connect
 
 ## Auto-renew certificate
 
-You can automate the certificate renewal so SSL continues to work without manual work. On Linux systems, create a crontab like this:
+You can automate the certificate renewal so SSL continues to work without manual renewals. On Linux systems, create a crontab like this:
 
 ```
 crontab -e
@@ -129,7 +128,6 @@ This is a complete list of configuration options in ImageShare with the `.env` f
 | Setting | Example Value | Description |
 | ------- | ------------- | ----------- |
 | `DOMAIN` | `yourdomain.com` | The web domain for the ImageShare server, used in generating QR codes, image shortlinks, and other functions. If left blank, ImageShare will use the IP address from the connected client. For example, the shortlink might look like `http://192.168.50.28/i/559e5`. |
-| `EMAIL` | `youremail@example.com` | This is the email used for Certbot, so Let's Encrypt can send [alert emails](https://letsencrypt.org/docs/expiration-emails/) about certificate expiration. |
 | `PLAUSIBLE_DOMAIN` | `yourdomain.com` | The domain used for Plausible Analytics, the feature is turned off if the setting isn't defined. See the [Plausible Analytics section](#enable-plausible-analytics) for more information. |
 | `UPLOAD_LIMIT` | `10` | The file size limit for uploads, measured in Megabytes. This is the only setting that is required. |
 | `AUTODELETE_TIME` | `2` | The time delay to automatically delete files, measured in minutes. If you are running a public server, this should be a low number to prevent possibly-malicious content from remaining accessible for too long. |
@@ -140,7 +138,6 @@ This is a sample `.env` file for a production server with Plausible Analytics en
 ```
 DOMAIN=myimageshare.com
 PLAUSIBLE_DOMAIN=myimageshare.com
-EMAIL=myemail@gmail.com
 UPLOAD_LIMIT=5
 ```
 

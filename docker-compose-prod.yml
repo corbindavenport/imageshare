@@ -47,7 +47,7 @@ services:
       - ./certbot/conf/:/etc/letsencrypt/:rw
     depends_on:
       - webserver
-    command: certonly --webroot --webroot-path /var/www/certbot/ --email ${EMAIL} -d ${DOMAIN} --agree-tos --no-redirect  --non-interactive
+    command: certonly --webroot --webroot-path /var/www/certbot/ -d ${DOMAIN} --agree-tos --no-redirect  --non-interactive
 
 networks:
   internal:
