@@ -22,14 +22,12 @@ git clone https://github.com/corbindavenport/imageshare.git
 cd imageshare
 ```
 
-Refer to [setup.md](./SETUP.md) for instructions on obtaining an imgur client id.
-
 Create a new plain text file in the root directory (same folder as this document) called `.env`, with `UPLOAD_LIMIT=20` and  `IMGUR_KEY=idGoesHere` as the only lines. You can do it manually or with this command:
 
 ```
-printf "UPLOAD_LIMIT=20\nIMGUR_KEY=idGoesHere" > .env
+printf "UPLOAD_LIMIT=20" > .env
 ```
-This sets the file size limit for uploaded files at 20MB, sets your imgur client id, and leaves all other options as the defaults. See the [full list of settings](#list-of-imageshare-settings) for more information.
+This sets the file size limit for uploaded files at 20MB, and leaves all other options as the defaults. See the [full list of settings](#list-of-imageshare-settings) for more information.
 
 Finally, start the ImageShare server like this:
 
