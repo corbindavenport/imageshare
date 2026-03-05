@@ -100,13 +100,19 @@ You can automate the certificate renewal so SSL continues to work without manual
 crontab -e
 ```
 
-Add the following line to the end of the file, which runs the certbot renew command each day at 3 AM to check if a certificate must be renewed:
+Add the following line to the end of the file, replacing the path to the compose file with the correct path. This runs the certbot renew command each day at 3 AM to check if a certificate must be renewed:
 
 ```
 0 3 * * * /usr/bin/docker compose -f /home/exampleuser/imageshare/docker-compose-prod.yml run --rm certbot renew
 ```
 
-You will need to replace the path to the compose file with the correct path. Then save your changes.
+You also need to add a line for restarting the server to apply changes. This is an example that restarts the web server service each Tuesday at 4 AM, in case there is a new certificate:
+
+```
+0 4 * * 2 /usr/bin/docker compose -f /home/exampleuser/imageshare/docker-compose-prod.yml restart webserver
+```
+
+The core ImageShare server continues running during the restart command, with uploads remaining in place until their expiry time. The web server service is only the Nginx reverse proxy.
 
 ## Updating ImageShare
 
