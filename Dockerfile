@@ -20,10 +20,6 @@ RUN npm install
 
 COPY --chown=node:node . .
 
-# Update robots.txt with latest copy from ai.robots.txt repository
-
-RUN (wget -q -O public/robots.txt https://raw.githubusercontent.com/ai-robots-txt/ai.robots.txt/refs/heads/main/robots.txt; exit 0;)
-
 # Run server
 
 EXPOSE 8080
