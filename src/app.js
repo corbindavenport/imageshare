@@ -94,7 +94,7 @@ function getFileExtension(mimeType) {
 // Function to initialize database of Nintendo 3DS games
 function init3DSTitles() {
   const gameList = [];
-  // hax0kartik database: https://hax0kartik.github.io/3dsdb
+  // hax0kartik databases: https://github.com/hax0kartik/3dsdb/tree/master/jsons
   const titleDatabases = [
     path.resolve(import.meta.dirname, 'list_GB.json'),
     path.resolve(import.meta.dirname, 'list_JP.json'),
@@ -445,6 +445,7 @@ app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err
 // The / and /index.html paths are required, the /index.php path retains compatibility with bookmarks for the older PHP-based ImageShare
 // The /m and /m/ paths will force enable the small screen mobile layout
 app.get(['/', '/m', '/m/', '/index.html', '/index.php'], (req, res) => {
+  console.log(req.headers['referer'])
   // Use provided domain name if possible, or connected hostname as fallback
   const connectedHost = (webDomain || req.headers['host']);
   // Send async Plausible analytics page view if enabled
@@ -453,6 +454,7 @@ app.get(['/', '/m', '/m/', '/index.html', '/index.php'], (req, res) => {
       name: 'pageview',
       url: '/',
       domain: plausibleDomain,
+      referrer: (req.headers['referer'] || '')
     }
     sendAnalytics(req.get('User-Agent'), (req.headers['x-forwarded-for'] || req.ip), data);
   }
