@@ -11,15 +11,15 @@
   "license": "GPL-3.0",
   "dependencies": {
     "axios": "1.14.0",
-    "exifreader": "^4.23.7",
-    "express": "^5.1.0",
-    "form-data": "^4.0.2",
-    "mime": "^4.0.7",
-    "multer": "^2.0.1",
-    "path": "^0.12.7",
-    "qrcode": "^1.5.3",
-    "serve-static": "^2.2.0",
-    "sharp": "^0.34.2"
+    "exifreader": "4.31.1",
+    "express": "5.1.0",
+    "form-data": "4.0.5",
+    "mime": "4.0.7",
+    "multer": "2.1.1",
+    "path": "0.12.7",
+    "qrcode": "1.5.4",
+    "serve-static": "2.2.0",
+    "sharp": "0.34.2"
   },
   "overrides":    { "axios": "1.14.0" },
   "resolutions":  { "axios": "1.14.0" }

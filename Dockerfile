@@ -4,7 +4,7 @@ FROM node:24-alpine
 
 RUN apk add exiftool
 
-# Set up Node dependencies
+# Set up node server and dependencies
 
 RUN mkdir -p /home/node/app/node_modules && chown -R node:node /home/node/app
 
@@ -16,7 +16,7 @@ RUN chown -R node:node /home/node/app/package*.json
 
 USER node
 
-RUN npm install
+RUN npm install --ignore-scripts
 
 COPY --chown=node:node . .
 
