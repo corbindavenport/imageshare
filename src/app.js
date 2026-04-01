@@ -445,7 +445,6 @@ app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err
 // The / and /index.html paths are required, the /index.php path retains compatibility with bookmarks for the older PHP-based ImageShare
 // The /m and /m/ paths will force enable the small screen mobile layout
 app.get(['/', '/m', '/m/', '/index.html', '/index.php'], (req, res) => {
-  console.log(req.headers['referer'])
   // Use provided domain name if possible, or connected hostname as fallback
   const connectedHost = (webDomain || req.headers['host']);
   // Send async Plausible analytics page view if enabled
