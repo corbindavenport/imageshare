@@ -14,7 +14,6 @@
     "express": "5.1.0",
     "mime": "4.0.7",
     "multer": "2.1.1",
-    "path": "0.12.7",
     "qrcode": "1.5.4",
     "serve-static": "2.2.0",
     "sharp": "0.34.2"
