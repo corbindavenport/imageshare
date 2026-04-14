@@ -400,7 +400,7 @@ app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err
     }
     // Create data object for all upload methods
     let uploadData = {
-      filePath: req.file.path,
+      filePath: path.resolve(req.file.path),
       fileType: req.file.mimetype,
       title: softwareTitle,
       origin: `${protocol}://${connectedHost}`,

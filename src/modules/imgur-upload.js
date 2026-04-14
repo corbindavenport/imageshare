@@ -24,8 +24,6 @@ const supportedTypes = [
 ];
 
 async function uploadToImgur(uploadData) {
-    // Get the full path of the file we are uploading
-    const fullPath = path.resolve(uploadData.filePath);
     // Make sure that the current time stamp is past the rate limit reset time
     let rateLimitReset = 0;
     if (fs.existsSync('rateLimitReset.txt')) {
@@ -33,8 +31,8 @@ async function uploadToImgur(uploadData) {
     }
     // Prevent the upload to Imgur if the rate limit is reached
     if (rateLimitReset > Math.floor(Date.now() / 1000)) {
-        fs.unlinkSync(fullPath);
-        console.log(`Deleted cached file because of the rate limit: ${fullPath}`);
+        fs.unlinkSync(uploadData.filePath);
+        console.log(`Deleted cached file because of the rate limit: ${uploadData.filePath}`);
         return { success: false, reason: "Imgur is currently at maximum capacity. Try uploading again later, or use another upload method." };
     }
     // Check for valid file format
@@ -75,8 +73,8 @@ async function uploadToImgur(uploadData) {
         // Check if upload was successful and handle accordingly        
         if (body.success) {
             // Remove cached file
-            fs.unlinkSync(fullPath);
-            console.log(`Deleted cached file: ${fullPath}`);
+            fs.unlinkSync(uploadData.filePath);
+            console.log(`Deleted cached file: ${uploadData.filePath}`);
             // Set the footer message for the qr panel
             const qrFooter = `Scan the QR code or type the link on another device to download the file.`;
             // Return success and the link to the Imgur upload
@@ -87,9 +85,9 @@ async function uploadToImgur(uploadData) {
     } catch (error) {
         console.log(error);
         // Remove cached file and return failure
-        if (fs.existsSync(fullPath)) {
-            fs.unlinkSync(fullPath);
-            console.log(`Deleted cached file: ${fullPath}`);
+        if (fs.existsSync(uploadData.filePath)) {
+            fs.unlinkSync(uploadData.filePath);
+            console.log(`Deleted cached file: ${uploadData.filePath}`);
         }
         return { success: false, reason: `There was an error uploading to Imgur. If you are the administrator of this server, check that you set an API Key and you have not exceeded your rate limit.` };
     }

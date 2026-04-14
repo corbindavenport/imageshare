@@ -6,7 +6,6 @@ const shortLinkObj = {};
 
 // Function to handle local uploads
 async function uploadToLocal(uploadData) {
-    const fullPath = path.resolve(uploadData.filePath);
     return new Promise((resolve) => {
         let shortLink;
         do {
@@ -23,8 +22,8 @@ async function uploadToLocal(uploadData) {
             console.log(`Deleted shortlink: ${uploadData.origin}/i/${shortLink}`);
             // Delete file
             if (uploadData.filePath) {
-                fs.unlinkSync(fullPath);
-                console.log(`Deleted file: ${fullPath}`);
+                fs.unlinkSync(uploadData.filePath);
+                console.log(`Deleted file: ${uploadData.filePath}`);
             }
         }, delay);
         // Set the footer message for qr panel
