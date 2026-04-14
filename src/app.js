@@ -403,22 +403,30 @@ app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err
       filePath: req.file.path,
       fileType: req.file.mimetype,
       title: softwareTitle,
-      userAgent: String(req.get('User-Agent')),
       origin: `${protocol}://${connectedHost}`,
-      deleteDelay: deleteDelay,
-      // These values can be removed once the sendAnalytics function is updated
-      req: req,
-      plausibleDomain: plausibleDomain
+      deleteDelay: deleteDelay
     }
     // Upload file with specified method
-    let uploadResult;
+    let uploadResult, uploadMode;
     if (req.body['upload-type'] === 'imgur') {
+      uploadMode = "Imgur"
       uploadResult = await uploadToImgur(uploadData);
     } else {
+      uploadMode = "Native";
       uploadResult = await uploadToLocal(uploadData);
     }
     // Decide if the upload was successful or not
     if (uploadResult.success) {
+      // Report upload in analytics
+      if (plausibleDomain) {
+        const data = {
+          name: 'Upload',
+          props: JSON.stringify({ 'Upload Mode': uploadMode }),
+          url: '/',
+          domain: uploadData.plausibleDomain
+        }
+        sendAnalytics(req.headers['user-agent'], (req.headers['x-forwarded-for'] || req.ip), data);
+      }
       // Now take the data from the upload response, and display it to the user
       res.writeHead(200, { 'Content-Type': 'text/html' });
       res.end(renderMain({
@@ -584,6 +592,3 @@ const gracefulShutdown = () => {
 };
 process.on('SIGINT', gracefulShutdown);
 process.on('SIGTERM', gracefulShutdown);
-
-// Export the needed functions and objects for use in other modules
-export { sendAnalytics };

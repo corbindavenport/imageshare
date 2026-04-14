@@ -1,6 +1,5 @@
 import path from 'path';
 import fs from 'fs';
-import { sendAnalytics } from '../app.js';
 
 // Object to store temporary shortlinks
 const shortLinkObj = {};
@@ -28,17 +27,6 @@ async function uploadToLocal(uploadData) {
                 console.log(`Deleted file: ${fullPath}`);
             }
         }, delay);
-
-        // Send async Plausible analytics page view if enabled
-        if (uploadData.plausibleDomain) {
-            const data = {
-                name: 'Upload',
-                props: JSON.stringify({ 'Upload Mode': 'Native' }),
-                url: '/',
-                domain: uploadData.plausibleDomain
-            }
-            sendAnalytics(uploadData.req.get('User-Agent'), (uploadData.req.headers['x-forwarded-for'] || uploadData.req.ip), data);
-        }
         // Set the footer message for qr panel
         const qrFooter = `Scan the QR code or type the link on another device to download the file. You have ${uploadData.deleteDelay} ${uploadData.deleteDelay === 1 ? 'minute' : 'minutes'} to save your file before it is deleted.`;
         // Return success and display results to user :3

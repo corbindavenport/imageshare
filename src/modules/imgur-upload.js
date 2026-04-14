@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import { sendAnalytics } from '../app.js';
 
 // Imgur API key
 const imgurClientId = process.env.IMGUR_KEY;
@@ -80,16 +79,6 @@ async function uploadToImgur(uploadData) {
             console.log(`Deleted cached file: ${fullPath}`);
             // Set the footer message for the qr panel
             const qrFooter = `Scan the QR code or type the link on another device to download the file.`;
-            // Send async Plausible analytics page view if enabled
-            if (uploadData.plausibleDomain) {
-                const data = {
-                    name: 'Upload',
-                    props: JSON.stringify({ 'Upload Mode': 'Imgur' }),
-                    url: '/',
-                    domain: uploadData.plausibleDomain
-                };
-                sendAnalytics(uploadData.req.get('User-Agent'), (uploadData.req.headers['x-forwarded-for'] || uploadData.req.ip), data);
-            }
             // Return success and the link to the Imgur upload
             return { success: true, link: `https://imgur.com/${body.data.id}`, qrLink: `/qr/${body.data.link}`, qrFooter };
         } else {
