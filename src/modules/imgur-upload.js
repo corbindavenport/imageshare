@@ -2,8 +2,27 @@ import fs from 'fs';
 import path from 'path';
 import { sendAnalytics } from '../app.js';
 
-// Imgur API client ID
+// Imgur API key
 const imgurClientId = process.env.IMGUR_KEY;
+
+// Supported MIME types for Imgur uploads
+// Source: https://apidocs.imgur.com/#c85c9dfc-7487-4de2-9ecd-66f727cf3139
+const supportedTypes = [
+    "image/jpeg",
+    "image/jpg",
+    "image/gif",
+    "image/png",
+    "image/apng",
+    "image/tiff",
+    "video/mp4",
+    "video/webm",
+    "video/x-matroska",
+    "video/quicktime",
+    "video/x-flv",
+    "video/x-msvideo",
+    "video/x-ms-wmv",
+    "video/mpeg"
+];
 
 async function uploadToImgur(uploadData) {
     // Get the full path of the file we are uploading
@@ -17,10 +36,12 @@ async function uploadToImgur(uploadData) {
     if (rateLimitReset > Math.floor(Date.now() / 1000)) {
         fs.unlinkSync(fullPath);
         console.log(`Deleted cached file because of the rate limit: ${fullPath}`);
-        return { success: false, reason: `Imgur is currently at max capacity, so you will have to try again later. You can still upload to ImageShare though!` };
+        return { success: false, reason: "Imgur is currently at maximum capacity. Try uploading again later, or use another upload method." };
     }
     // Check for valid file format
-
+    if (!supportedTypes.includes(uploadData.fileType.toLowerCase())) {
+        return { success: false, reason: "Your file format is not supported by Imgur." };
+    }
     try {
         // Read file into a Blob object
         const fileBuffer = fs.readFileSync(uploadData.filePath);

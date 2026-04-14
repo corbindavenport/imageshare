@@ -398,9 +398,10 @@ app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err
     } else if (softwareTitle != defaultFileTitle) {
       spawn('exiftool', [`-Caption-Abstract=${softwareTitle}`, `-ImageDescription=${softwareTitle}`, `-overwrite_original`, req.file.path]);
     }
-    // Create data object for specified upload method
+    // Create data object for all upload methods
     let uploadData = {
       filePath: req.file.path,
+      fileType: req.file.mimetype,
       title: softwareTitle,
       userAgent: String(req.get('User-Agent')),
       origin: `${protocol}://${connectedHost}`,
@@ -409,21 +410,11 @@ app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err
       req: req,
       plausibleDomain: plausibleDomain
     }
-    // Determine whether the user selected to upload to Imgur or ImageShare
+    // Upload file with specified method
     let uploadResult;
     if (req.body['upload-type'] === 'imgur') {
-      // Verify that the file uploaded is supported by imgur (png and jpeg)
-      if (req.file.mimetype !== 'image/jpeg' && req.file.mimetype !== 'image/png') {
-        // Not valid, return error to user
-        const errorMessage = 'The file you uploaded is not supported by Imgur. Please select a PNG or JPEG image.'
-        res.status(500).send(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), errorMessage));
-        return;
-      } else {
-        // The user uploaded a valid file, upload to Imgur (code is located in src/modules/imgur-upload.js)
-        uploadResult = await uploadToImgur(uploadData);
-      }
+      uploadResult = await uploadToImgur(uploadData);
     } else {
-      // Upload to ImageShare
       uploadResult = await uploadToLocal(uploadData);
     }
     // Decide if the upload was successful or not
@@ -442,7 +433,7 @@ app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err
     } else {
       // If the upload failed, display an error message to the user
       // Upload Result will contain a reason for the failure, if not set by the uploader's function, it will be set to the universal error message
-      const errorMessage = 'There was an issue uploading your file. Please make sure your upload was valid and try again later.'
+      const errorMessage = (uploadResult.reason || 'There was an issue uploading your file. Please make sure your upload was valid and try again later.');
       res.status(500).send(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), errorMessage));
       return;
     }
