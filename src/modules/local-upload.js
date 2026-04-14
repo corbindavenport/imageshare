@@ -12,7 +12,7 @@ async function uploadToLocal(uploadData) {
         do {
             shortLink = crypto.randomUUID().toString().substring(0, 5);
         } while (shortLinkObj[shortLink]);
-        shortLinkObj[shortLink] = uploadData.absolutePath;
+        shortLinkObj[shortLink] = uploadData.relativePath;
         console.log(`Created shortlink: ${uploadData.origin}/i/${shortLink}`);
         // Schedule timeout to delete file and shortlink
         const delay = uploadData.deleteDelay * 60 * 1000;

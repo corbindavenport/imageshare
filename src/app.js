@@ -485,12 +485,9 @@ app.get([/\/uploads\//, '/i/:shortcode'], async (req, res) => {
   const connectedHost = (webDomain || req.headers['host']);
   // Get file path
   let reqPath = '';
-  if (req.params?.shortcode) {
+  if (req.params?.shortcode && (req.params?.shortcode in shortLinkObj)) {
     // Request from shortlink
-    let shortLinkCode = req.params.shortcode;
-    if (shortLinkCode in shortLinkObj) {
-      reqPath = shortLinkObj[shortLinkCode];
-    }
+    reqPath = shortLinkObj[req.params?.shortcode];
   } else {
     // Request from full path
     reqPath = req.url;
