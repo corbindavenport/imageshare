@@ -2,9 +2,12 @@ import fs from 'fs';
 import path from 'path';
 import { sendAnalytics } from '../app.js';
 
-async function uploadToImgur(filePath, softwareTitle, imgurClientId, plausibleDomain, request) {
+// Imgur API client ID
+const imgurClientId = process.env.IMGUR_KEY;
+
+async function uploadToImgur(uploadData) {
     // Get the full path of the file we are uploading
-    const fullPath = path.resolve(filePath.path);
+    const fullPath = path.resolve(uploadData.filePath);
     // Make sure that the current time stamp is past the rate limit reset time
     let rateLimitReset = 0;
     if (fs.existsSync('rateLimitReset.txt')) {
@@ -16,15 +19,17 @@ async function uploadToImgur(filePath, softwareTitle, imgurClientId, plausibleDo
         console.log(`Deleted cached file because of the rate limit: ${fullPath}`);
         return { success: false, reason: `Imgur is currently at max capacity, so you will have to try again later. You can still upload to ImageShare though!` };
     }
+    // Check for valid file format
+
     try {
         // Read file into a Blob object
-        const fileBuffer = fs.readFileSync(filePath.path);
+        const fileBuffer = fs.readFileSync(uploadData.filePath);
         const fileBlob = new Blob([fileBuffer]);
         // Set up FormData
         const formData = new FormData();
-        formData.append('image', fileBlob, path.basename(filePath.path));
+        formData.append('image', fileBlob, path.basename(uploadData.filePath));
         formData.append('type', 'file');
-        formData.append('title', `${softwareTitle}`);
+        formData.append('title', uploadData.title);
         formData.append('description', 'Uploaded with ImageShare: https://github.com/corbindavenport/imageshare');
         // Send the request
         const response = await fetch('https://api.imgur.com/3/image', {
@@ -55,14 +60,14 @@ async function uploadToImgur(filePath, softwareTitle, imgurClientId, plausibleDo
             // Set the footer message for the qr panel
             const qrFooter = `Scan the QR code or type the link on another device to download the file.`;
             // Send async Plausible analytics page view if enabled
-            if (plausibleDomain) {
+            if (uploadData.plausibleDomain) {
                 const data = {
                     name: 'Upload',
                     props: JSON.stringify({ 'Upload Mode': 'Imgur' }),
                     url: '/',
-                    domain: plausibleDomain
+                    domain: uploadData.plausibleDomain
                 };
-                sendAnalytics(request.get('User-Agent'), (request.headers['x-forwarded-for'] || request.ip), data);
+                sendAnalytics(uploadData.req.get('User-Agent'), (uploadData.req.headers['x-forwarded-for'] || uploadData.req.ip), data);
             }
             // Return success and the link to the Imgur upload
             return { success: true, link: `https://imgur.com/${body.data.id}`, qrLink: `/qr/${body.data.link}`, qrFooter };

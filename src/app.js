@@ -9,7 +9,7 @@ import sharp from 'sharp';
 import ExifReader from 'exifreader';
 import { spawn } from 'node:child_process';
 import { uploadToImgur } from './modules/imgur-upload.js';
-import { uploadToLocal } from './modules/local-upload.js';
+import { uploadToLocal, shortLinkObj } from './modules/local-upload.js';
 
 // Initialize Express
 const app = express();
@@ -36,8 +36,6 @@ const mainDir = path.resolve(import.meta.dirname, '../');
 // Load and sort game title libraries
 const gameList3DS = init3DSTitles();
 const gameListWiiU = initWiiUTitles();
-// Object to store temporary shortlinks
-const shortLinkObj = {};
 
 // Print settings
 console.log(`
@@ -400,7 +398,17 @@ app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err
     } else if (softwareTitle != defaultFileTitle) {
       spawn('exiftool', [`-Caption-Abstract=${softwareTitle}`, `-ImageDescription=${softwareTitle}`, `-overwrite_original`, req.file.path]);
     }
-
+    // Create data object for specified upload method
+    let uploadData = {
+      filePath: req.file.path,
+      title: softwareTitle,
+      userAgent: String(req.get('User-Agent')),
+      origin: `${protocol}://${connectedHost}`,
+      deleteDelay: deleteDelay,
+      // These values can be removed once the sendAnalytics function is updated
+      req: req,
+      plausibleDomain: plausibleDomain
+    }
     // Determine whether the user selected to upload to Imgur or ImageShare
     let uploadResult;
     if (req.body['upload-type'] === 'imgur') {
@@ -412,11 +420,11 @@ app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err
         return;
       } else {
         // The user uploaded a valid file, upload to Imgur (code is located in src/modules/imgur-upload.js)
-        uploadResult = await uploadToImgur(req.file, softwareTitle, imgurClientId, plausibleDomain, req);
+        uploadResult = await uploadToImgur(uploadData);
       }
     } else {
       // Upload to ImageShare
-      uploadResult = await uploadToLocal(req.file, protocol, connectedHost, req, plausibleDomain, deleteDelay);
+      uploadResult = await uploadToLocal(uploadData);
     }
     // Decide if the upload was successful or not
     if (uploadResult.success) {
@@ -587,4 +595,4 @@ process.on('SIGINT', gracefulShutdown);
 process.on('SIGTERM', gracefulShutdown);
 
 // Export the needed functions and objects for use in other modules
-export { sendAnalytics, shortLinkObj };
+export { sendAnalytics };
