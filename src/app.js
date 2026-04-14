@@ -89,6 +89,11 @@ function getFileExtension(mimeType) {
   }
 }
 
+// Function to return a QR code image URL that points to the provided URL
+function getQrLink(url) {
+  return `/qr.png?url=${encodeURIComponent(url)}`
+}
+
 // Function to initialize database of Nintendo 3DS games
 function init3DSTitles() {
   const gameList = [];
@@ -400,7 +405,8 @@ app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err
     }
     // Create data object for all upload methods
     let uploadData = {
-      filePath: path.resolve(req.file.path),
+      relativePath: req.file.path,
+      absolutePath: path.resolve(req.file.path),
       fileType: req.file.mimetype,
       title: softwareTitle,
       origin: `${protocol}://${connectedHost}`,
@@ -514,22 +520,12 @@ app.get([/\/uploads\//, '/i/:shortcode'], async (req, res) => {
 });
 
 // Handle requests for QR codes
-// TODO: Implement better handling for relative URLs (e.g. local uploads) and full path URLs (e.g. Imgur uploads)
-app.get(/\/qr\//, async (req, res) => {
+// Example URL: /qr.png?url=https%3A%2F%2Fi.imgur.com%2FHpuIqt4.jpeg
+app.get('/qr.png', async (req, res) => {
   // Use provided domain name if possible, or connected hostname as fallback
   const connectedHost = (webDomain || req.headers['host']);
-  // Get filename, examples: 0fbb2132-296b-455e-bcbc-107ca9f103e9.jpg, https://i.imgur.com/Yfy4vvy.jpeg
-  const fileName = req.url.replace('/qr/', '');
-  // Use HTTPS for the link if server is in production mode, or HTTP if not
-  const protocol = prodModeEnabled ? 'https' : 'http';
-  // Add the domain to the fileName to make a qrLink, if needed
-  let fullUrl;
-  if (fileName.startsWith('http')) {
-    fullUrl = fileName;
-  } else {
-    fullUrl = `${protocol}://${connectedHost}/uploads/${fileName}`;
-  }
-  const qrLink = fullUrl;
+  // Get URL for the QR code
+  const qrLink = req.query.url;
   try {
     // Generate the QR code
     const qrCodeDataURL = await QRCode.toDataURL(qrLink, {
@@ -592,3 +588,6 @@ const gracefulShutdown = () => {
 };
 process.on('SIGINT', gracefulShutdown);
 process.on('SIGTERM', gracefulShutdown);
+
+// Export shared functions for upload modules
+export { getQrLink }

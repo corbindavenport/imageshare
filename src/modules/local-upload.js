@@ -1,5 +1,6 @@
 import path from 'path';
 import fs from 'fs';
+import { getQrLink } from '../app.js';
 
 // Object to store temporary shortlinks
 const shortLinkObj = {};
@@ -11,9 +12,8 @@ async function uploadToLocal(uploadData) {
         do {
             shortLink = crypto.randomUUID().toString().substring(0, 5);
         } while (shortLinkObj[shortLink]);
-        shortLinkObj[shortLink] = uploadData.filePath;
+        shortLinkObj[shortLink] = uploadData.absolutePath;
         console.log(`Created shortlink: ${uploadData.origin}/i/${shortLink}`);
-
         // Schedule timeout to delete file and shortlink
         const delay = uploadData.deleteDelay * 60 * 1000;
         setTimeout(async () => {
@@ -21,15 +21,19 @@ async function uploadToLocal(uploadData) {
             delete shortLinkObj[shortLink];
             console.log(`Deleted shortlink: ${uploadData.origin}/i/${shortLink}`);
             // Delete file
-            if (uploadData.filePath) {
-                fs.unlinkSync(uploadData.filePath);
-                console.log(`Deleted file: ${uploadData.filePath}`);
+            if (uploadData.absolutePath) {
+                fs.unlinkSync(uploadData.absolutePath);
+                console.log(`Deleted file: ${uploadData.absolutePath}`);
             }
         }, delay);
-        // Set the footer message for qr panel
-        const qrFooter = `Scan the QR code or type the link on another device to download the file. You have ${uploadData.deleteDelay} ${uploadData.deleteDelay === 1 ? 'minute' : 'minutes'} to save your file before it is deleted.`;
-        // Return success and display results to user :3
-        resolve({ success: true, link: `${uploadData.origin}/i/${shortLink}`, qrLink: `${uploadData.filePath.replace('uploads/', '/qr/')}`, qrFooter });
+        // Return upload data
+        const response = {
+            success: true,
+            link: `${uploadData.origin}/i/${shortLink}`,
+            qrLink: getQrLink(`${uploadData.origin}/${uploadData.relativePath}`),
+            qrFooter: `Scan the QR code on another device to download the file, or type the link. You have ${uploadData.deleteDelay} ${uploadData.deleteDelay === 1 ? 'minute' : 'minutes'} to save your file before it is deleted.`
+        }
+        resolve(response);
     });
 }
 

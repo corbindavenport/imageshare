@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { getQrLink } from '../app.js';
 
 // Imgur API key
 const imgurClientId = process.env.IMGUR_KEY;
@@ -31,8 +32,8 @@ async function uploadToImgur(uploadData) {
     }
     // Prevent the upload to Imgur if the rate limit is reached
     if (rateLimitReset > Math.floor(Date.now() / 1000)) {
-        fs.unlinkSync(uploadData.filePath);
-        console.log(`Deleted cached file because of the rate limit: ${uploadData.filePath}`);
+        fs.unlinkSync(uploadData.absolutePath);
+        console.log(`Deleted cached file because of the rate limit: ${uploadData.absolutePath}`);
         return { success: false, reason: "Imgur is currently at maximum capacity. Try uploading again later, or use another upload method." };
     }
     // Check for valid file format
@@ -41,11 +42,11 @@ async function uploadToImgur(uploadData) {
     }
     try {
         // Read file into a Blob object
-        const fileBuffer = fs.readFileSync(uploadData.filePath);
+        const fileBuffer = fs.readFileSync(uploadData.absolutePath);
         const fileBlob = new Blob([fileBuffer]);
         // Set up FormData
         const formData = new FormData();
-        formData.append('image', fileBlob, path.basename(uploadData.filePath));
+        formData.append('image', fileBlob, path.basename(uploadData.absolutePath));
         formData.append('type', 'file');
         formData.append('title', uploadData.title);
         formData.append('description', 'Uploaded with ImageShare: https://github.com/corbindavenport/imageshare');
@@ -73,21 +74,25 @@ async function uploadToImgur(uploadData) {
         // Check if upload was successful and handle accordingly        
         if (body.success) {
             // Remove cached file
-            fs.unlinkSync(uploadData.filePath);
-            console.log(`Deleted cached file: ${uploadData.filePath}`);
-            // Set the footer message for the qr panel
-            const qrFooter = `Scan the QR code or type the link on another device to download the file.`;
-            // Return success and the link to the Imgur upload
-            return { success: true, link: `https://imgur.com/${body.data.id}`, qrLink: `/qr/${body.data.link}`, qrFooter };
+            fs.unlinkSync(uploadData.absolutePath);
+            console.log(`Deleted cached file: ${uploadData.absolutePath}`);
+            // Return upload data
+            const response = {
+                success: true,
+                link: `https://imgur.com/${body.data.id}`,
+                qrLink: getQrLink(body.data.link),
+                qrFooter: "Scan the QR code on another device to view the upload, or type the link.",
+            };
+            return response;
         } else {
             throw new Error(body.data?.error || 'Upload was not successful');
         }
     } catch (error) {
         console.log(error);
         // Remove cached file and return failure
-        if (fs.existsSync(uploadData.filePath)) {
-            fs.unlinkSync(uploadData.filePath);
-            console.log(`Deleted cached file: ${uploadData.filePath}`);
+        if (fs.existsSync(uploadData.absolutePath)) {
+            fs.unlinkSync(uploadData.absolutePath);
+            console.log(`Deleted cached file: ${uploadData.absolutePath}`);
         }
         return { success: false, reason: `There was an error uploading to Imgur. If you are the administrator of this server, check that you set an API Key and you have not exceeded your rate limit.` };
     }
