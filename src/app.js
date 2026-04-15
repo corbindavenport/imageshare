@@ -7,7 +7,6 @@ import mime from 'mime';
 import QRCode from 'qrcode';
 import sharp from 'sharp';
 import ExifReader from 'exifreader';
-import { spawn } from 'node:child_process';
 import { uploadToImgur } from './modules/imgur-upload.js';
 import { uploadToLocal, shortLinkObj } from './modules/local-upload.js';
 
@@ -396,17 +395,11 @@ app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err
     console.log(`Uploaded file: ${req.file.originalname}, MIME type ${req.file.mimetype}`);
     // Detect software title
     const softwareTitle = await getSoftwareTitle(req.file.path, req.file.mimetype, req.file.originalname);
-    // If custom software title is detected, run exiftool to save it to the image description
-    // If the image is a detected Wii U software title, also add the make and model to the EXIF data
-    if (req.file.originalname.startsWith('WiiU_') && (softwareTitle != defaultFileTitle)) {
-      spawn('exiftool', [`-Caption-Abstract=${softwareTitle}`, `-ImageDescription=${softwareTitle}`, '-Model=Nintendo Wii U', '-Make=Nintendo', `-overwrite_original`, req.file.path]);
-    } else if (softwareTitle != defaultFileTitle) {
-      spawn('exiftool', [`-Caption-Abstract=${softwareTitle}`, `-ImageDescription=${softwareTitle}`, `-overwrite_original`, req.file.path]);
-    }
     // Create data object for all upload methods
     let uploadData = {
       relativePath: req.file.path,
       absolutePath: path.resolve(req.file.path),
+      originalFileName: req.file.originalname,
       fileType: req.file.mimetype,
       title: softwareTitle,
       origin: `${protocol}://${connectedHost}`,
@@ -587,4 +580,4 @@ process.on('SIGINT', gracefulShutdown);
 process.on('SIGTERM', gracefulShutdown);
 
 // Export shared functions for upload modules
-export { getQrLink }
+export { defaultFileTitle, getQrLink }

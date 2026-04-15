@@ -1,12 +1,33 @@
 import path from 'path';
 import fs from 'fs';
-import { getQrLink } from '../app.js';
+import { spawn } from 'node:child_process';
+import { defaultFileTitle, getQrLink } from '../app.js';
 
 // Object to store temporary shortlinks
 const shortLinkObj = {};
 
 // Function to handle local uploads
 async function uploadToLocal(uploadData) {
+    // If custom software title is detected, run exiftool to save it to the image description
+    // If the image is a detected Wii U software title, also add the make and model to the EXIF data
+    if (uploadData.originalFileName.startsWith('WiiU_') && (uploadData.title != defaultFileTitle)) {
+        spawn('exiftool', [
+            `-Caption-Abstract=${uploadData.title}`,
+            `-ImageDescription=${uploadData.title}`,
+            '-Model=Nintendo Wii U',
+            '-Make=Nintendo',
+            `-overwrite_original`,
+            uploadData.absolutePath
+        ]);
+    } else if (uploadData.title != defaultFileTitle) {
+        spawn('exiftool', [
+            `-Caption-Abstract=${uploadData.title}`,
+            `-ImageDescription=${uploadData.title}`,
+            `-overwrite_original`,
+            uploadData.absolutePath
+        ]);
+    }
+    // Create shortlink
     let shortLink;
     do {
         shortLink = crypto.randomUUID().toString().substring(0, 5);
