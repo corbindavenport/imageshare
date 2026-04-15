@@ -74,12 +74,17 @@ const upload = multer({
   }
 });
 
-// Function to return file extension from detected MIME type
+/**
+ * Set a file extension, based on MIME type data.
+ * @param {string} mimeType - The detected MIME type. Example: `image/gif`
+ * @returns {string} A file extension. Example: `.gif`
+ */
 function getFileExtension(mimeType) {
-  let detectedType = mime.getExtension(mimeType);
+  console.log(mimeType)
+  const detectedType = mime.getExtension(mimeType);
   if (detectedType) {
     return `.${detectedType}`;
-  } else if (mimeType === 'image/x-pict') {
+  } else if (mimeType === "image/x-pict") {
     // Mac PICT image format
     return `.pict`
   } else {
@@ -88,12 +93,19 @@ function getFileExtension(mimeType) {
   }
 }
 
-// Function to return a QR code image URL that points to the provided URL
+/**
+ * Create a URL for a QR code image. The actual QR code image is generated on-demand in the `app.get('/qr.png')` function.
+ * @param {string} url - The destination URL when the QR code is scanned.
+ * @returns {string} The URL for the QR code image.
+ */
 function getQrLink(url) {
   return `/qr.png?url=${encodeURIComponent(url)}`
 }
 
-// Function to initialize database of Nintendo 3DS games
+/**
+ * Initialize database of Nintendo 3DS games from built-in JSON files.
+ * @returns {Array} Array of game objects.
+ */
 function init3DSTitles() {
   const gameList = [];
   // hax0kartik databases: https://github.com/hax0kartik/3dsdb/tree/master/jsons
@@ -130,7 +142,10 @@ function init3DSTitles() {
   return gameList;
 }
 
-// Function to initialize database of Nintendo Wii U games
+/**
+ * Initialize database of Nintendo Wii U games from built-in JSON file.
+ * @returns {Array} Array of game objects.
+ */
 function initWiiUTitles() {
   const gameList = [];
   // JSON file is based on data from WiiUBrew: https://wiiubrew.org/wiki/Title_database
@@ -143,7 +158,17 @@ function initWiiUTitles() {
 }
 
 // Function to asynchronously send analytics data
+
+/**
+ * Send pageview or event to Plausible Analytics using the Plausible Events API.
+ * 
+ * Documentation: https://plausible.io/docs/events-api
+ * @param {string} userAgent - The User-Agent header for the client. Example: `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 Edg/147.0.0.0 192.168.65.1`
+ * @param {string} clientIp - The client's IP address. Example: `142.251.163.100`
+ * @param {object} data - The pageview or event information. Example: `{name: 'pageview', url: '/', domain: 'example.com', referrer: 'https://google.com/'}`
+ */
 function sendAnalytics(userAgent, clientIp, data) {
+  console.log(userAgent, clientIp, data)
   fetch('https://plausible.io/api/event', {
     method: 'POST',
     headers: {

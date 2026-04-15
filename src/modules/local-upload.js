@@ -6,7 +6,20 @@ import { defaultFileTitle, getQrLink } from '../app.js';
 // Object to store temporary shortlinks
 const shortLinkObj = {};
 
-// Function to handle local uploads
+// Time delay for automatically deleting files, in minutes
+const deleteDelay = (parseInt(process.env.AUTODELETE_TIME, 10) || 2);
+
+/**
+ * Upload a file with ImageShare's built-in server, and return the live link.
+ * @param {object} uploadData - Object containing data about the uploaded file.
+ * @param {string} uploadData.relativePath - Relative path to the file. Example: `uploads/b296834e-554c-4945-a794-c5284791fe06.JPG`
+ * @param {string} uploadData.absolutePath - Absolute path to the file. Example: `/home/node/app/uploads/b296834e-554c-4945-a794-c5284791fe06.JPG`
+ * @param {string} uploadData.originalFileName - File name when the file was uploaded. Example: `HNI_0055.JPG`
+ * @param {string} uploadData.fileType - MIME type for the file. Example: `image/jpeg`
+ * @param {string} uploadData.title - Detected software title for the file. Example: `Pokémon X`
+ * @param {string} uploadData.origin - The protocol and hostname being used for the client. Example: `https://myimagesite.com`
+ * @returns {object} Object containing the live file data.
+ */
 async function uploadToLocal(uploadData) {
     // If custom software title is detected, run exiftool to save it to the image description
     // If the image is a detected Wii U software title, also add the make and model to the EXIF data
@@ -35,7 +48,7 @@ async function uploadToLocal(uploadData) {
     shortLinkObj[shortLink] = uploadData.relativePath;
     console.log(`Created shortlink: ${uploadData.origin}/i/${shortLink}`);
     // Schedule timeout to delete file and shortlink
-    const delay = uploadData.deleteDelay * 60 * 1000;
+    const delay = deleteDelay * 60 * 1000;
     setTimeout(async () => {
         // Delete shortlink
         delete shortLinkObj[shortLink];
@@ -51,7 +64,7 @@ async function uploadToLocal(uploadData) {
         success: true,
         link: `${uploadData.origin}/i/${shortLink}`,
         qrLink: getQrLink(`${uploadData.origin}/${uploadData.relativePath}`),
-        qrFooter: `Scan the QR code on another device to download the file, or type the link. You have ${uploadData.deleteDelay} ${uploadData.deleteDelay === 1 ? 'minute' : 'minutes'} to save your file before it is deleted.`
+        qrFooter: `Scan the QR code on another device to download the file, or type the link. You have ${deleteDelay} ${deleteDelay === 1 ? 'minute' : 'minutes'} to save your file before it is deleted.`
     }
     return response;
 }

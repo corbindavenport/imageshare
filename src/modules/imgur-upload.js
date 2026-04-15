@@ -24,6 +24,17 @@ const supportedTypes = [
     "video/mpeg"
 ];
 
+/**
+ * Upload the file as an Imgur anonymous upload, and return the public post.
+ * @param {object} uploadData - Object containing data about the uploaded file.
+ * @param {string} uploadData.relativePath - Relative path to the file. Example: `uploads/b296834e-554c-4945-a794-c5284791fe06.JPG`
+ * @param {string} uploadData.absolutePath - Absolute path to the file. Example: `/home/node/app/uploads/b296834e-554c-4945-a794-c5284791fe06.JPG`
+ * @param {string} uploadData.originalFileName - File name when the file was uploaded. Example: `HNI_0055.JPG`
+ * @param {string} uploadData.fileType - MIME type for the file. Example: `image/jpeg`
+ * @param {string} uploadData.title - Detected software title for the file. Example: `Pokémon X`
+ * @param {string} uploadData.origin - The protocol and hostname being used for the client. Example: `https://myimagesite.com`
+ * @returns {object} Object containing the post data.
+ */
 async function uploadToImgur(uploadData) {
     // Make sure that the current time stamp is past the rate limit reset time
     let rateLimitReset = 0;
