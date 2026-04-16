@@ -454,10 +454,10 @@ app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err
         userAgent: String(req.get('User-Agent')),
         webHost: connectedHost,
         forceMobileMode: req.path.startsWith('/m'),
-        qrLink: uploadResult.qrLink,
-        shortLink: uploadResult.link,
+        qrLink: uploadResult.publicQrImg,
+        shortLink: uploadResult.publicFileLink,
         softwareTitle: softwareTitle,
-        qrFooter: uploadResult.qrFooter
+        qrFooter: uploadResult.userInstructions
       }));
     } else {
       // If the upload failed, display an error message to the user

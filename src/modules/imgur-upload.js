@@ -90,9 +90,9 @@ async function uploadToImgur(uploadData) {
             // Return upload data
             const response = {
                 success: true,
-                link: `https://imgur.com/${body.data.id}`,
-                qrLink: getQrLink(body.data.link),
-                qrFooter: "Scan the QR code on another device to view the upload, or type the link.",
+                publicFileLink: `https://imgur.com/${body.data.id}`,
+                publicQrImg: getQrLink(body.data.link),
+                userInstructions: "Scan the QR code on another device to view the upload, or type the link.",
             };
             return response;
         } else {

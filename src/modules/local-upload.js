@@ -67,9 +67,9 @@ async function uploadToLocal(uploadData) {
     // Return upload data
     const response = {
         success: true,
-        link: `${uploadData.origin}/i/${shortLink}`,
-        qrLink: getQrLink(`${uploadData.origin}/${uploadData.relativePath}`),
-        qrFooter: `Scan the QR code on another device to download the file, or type the link. You have ${deleteDelay} ${deleteDelay === 1 ? 'minute' : 'minutes'} to save your file before it is deleted.`
+        publicFileLink: `${uploadData.origin}/i/${shortLink}`,
+        publicQrImg: getQrLink(`${uploadData.origin}/${uploadData.relativePath}`),
+        userInstructions: `Scan the QR code on another device to download the file, or type the link. You have ${deleteDelay} ${deleteDelay === 1 ? 'minute' : 'minutes'} to save your file before it is deleted.`
     }
     return response;
 }
