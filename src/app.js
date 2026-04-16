@@ -157,8 +157,6 @@ function initWiiUTitles() {
   return gameList;
 }
 
-// Function to asynchronously send analytics data
-
 /**
  * Send pageview or event to Plausible Analytics using the Plausible Events API.
  * 
@@ -168,7 +166,6 @@ function initWiiUTitles() {
  * @param {object} data - The pageview or event information. Example: `{name: 'pageview', url: '/', domain: 'example.com', referrer: 'https://google.com/'}`
  */
 function sendAnalytics(userAgent, clientIp, data) {
-  console.log(userAgent, clientIp, data)
   fetch('https://plausible.io/api/event', {
     method: 'POST',
     headers: {
