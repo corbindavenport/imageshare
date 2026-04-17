@@ -4,7 +4,7 @@ ImageShare is a web app for sending images and videos to another device, designe
 
 ImageShare was originally designed as a replacement for the [Nintendo 3DS Image Share Service](https://web.archive.org/web/20170822055326/https://www.nintendo.com/3ds/image-share). It supports both HTTP and HTTPS, doesn't require creating user accounts, and uses static web design for the fastest possible performance. When uploading a game image from the Nintendo 3DS and Nintendo Wii U, the game title is detected and added to the file's EXIF data for easy search.
 
-You can [self-host ImageShare](DEV.md) on any server, NAS, home computer, or other device using Docker.
+You can [self-host ImageShare](doc/SETUP.md) on any server, NAS, home computer, or other device using Docker.
 
 ![Screenshot of ImageShare on two phones and a Nintendo 3DS](/screenshot.png)
 

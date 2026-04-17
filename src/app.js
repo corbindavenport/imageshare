@@ -166,6 +166,12 @@ function initWiiUTitles() {
  * @param {object} data - The pageview or event information. Example: `{name: 'pageview', url: '/', domain: 'example.com', referrer: 'https://google.com/'}`
  */
 function sendAnalytics(userAgent, clientIp, data) {
+  // Remove path from referrer if it's the server's domain
+  // This prevents expired upload links and mobile mode from appearing as analytics entries
+  if (data?.referrer && data.referrer.includes(data.domain)) {
+    data.referrer = new URL(data.referrer).origin
+  }
+  // Send API call
   fetch('https://plausible.io/api/event', {
     method: 'POST',
     headers: {
