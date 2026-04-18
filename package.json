@@ -10,12 +10,12 @@
   "author": "Corbin Davenport",
   "license": "GPL-3.0",
   "dependencies": {
-    "exifreader": "4.31.1",
-    "express": "5.1.0",
-    "mime": "4.0.7",
+    "exifreader": "4.38.1",
+    "express": "5.2.1",
+    "mime": "4.1.0",
     "multer": "2.1.1",
     "qrcode": "1.5.4",
-    "serve-static": "2.2.0",
-    "sharp": "0.34.2"
+    "serve-static": "2.2.1",
+    "sharp": "0.34.5"
   }
 }
