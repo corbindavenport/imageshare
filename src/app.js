@@ -552,8 +552,6 @@ app.get([/\/uploads\//, '/i/:shortcode'], async (req, res) => {
 // Handle requests for QR codes
 // Example URL: /qr.png?url=https%3A%2F%2Fi.imgur.com%2FHpuIqt4.jpeg
 app.get("/qr.png", async (req, res) => {
-  // Use provided domain name if possible, or connected hostname as fallback
-  const connectedHost = (webDomain || req.headers['host']);
   // Generate the QR code
   const qrText = (req.query?.url || "Error generating QR code.");
   const qrCodeDataURL = await QRCode.toDataURL(qrText, {

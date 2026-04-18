@@ -2,6 +2,7 @@
   "name": "imageshare",
   "version": "1.0.0",
   "description": "Web app for sending images and videos to another device, designed for low-end and legacy web browsers.",
+  "type": "module",
   "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
