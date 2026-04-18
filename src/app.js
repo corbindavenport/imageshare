@@ -167,7 +167,7 @@ function initWiiUTitles() {
  */
 function sendAnalytics(userAgent, clientIp, data) {
   // Remove path from referrer if it's the server's domain
-  // This prevents expired upload links and mobile mode from appearing as analytics entries
+  // This prevents expired upload links from appearing as analytics entries
   if (data?.referrer && data.referrer.includes(data.domain)) {
     data.referrer = new URL(data.referrer).origin
   }
@@ -184,6 +184,14 @@ function sendAnalytics(userAgent, clientIp, data) {
 }
 
 // Function to detect software title from image EXIF data or file name
+
+/**
+ * Detect the software title from an image, using EXIF data or the file name. If the title isn't detected, return the default title.
+ * @param {string} imgFile Path to the file. Example: `uploads/45bdcc79-3be2-43bb-a1c8-7f23993d2445.JPG`
+ * @param {string} mimeType The detected MIME type. Example: `image/jpeg`
+ * @param {string} originalFileName The file name upon upload. Example: `HNI_0049.JPG`
+ * @returns {string} The updated title. Example: `Animal Crossing: New Leaf Update Ver. 1.5`
+ */
 async function getSoftwareTitle(imgFile, mimeType, originalFileName) {
   // Exit early if file is not a supported file type
   const supportedFileTypes = [
@@ -353,7 +361,7 @@ function renderMain(passedOptions) {
       <div class="panel">
         <h3 class="panel-title">Upload File</h3>
         <div class="body">
-          <form action="${data.forceMobileMode ? '/m/' : '/'}" id="upload-form" enctype="multipart/form-data" method="POST" onsubmit="document.getElementById('loading-container').style.display='block';">
+          <form action="${data.forceMobileMode ? '/?mobile=true' : '/'}" id="upload-form" enctype="multipart/form-data" method="POST" onsubmit="document.getElementById('loading-container').style.display='block';">
             <p><input name="img" id="imageshare-file-select" type="file" accept="image/*,video/*" /></p>
             ${imgurClientId ? `
             <p>
@@ -381,7 +389,7 @@ function renderMain(passedOptions) {
       </div>
     </div>
     <p class="footer">
-        ${data.forceMobileMode ? '<a href="/">Disable mobile mode</a>' : '<a href="/m/">Mobile mode</a>'} • <a href="privacy/">Privacy policy</a>
+        ${data.forceMobileMode ? '<a href="/">Disable mobile mode</a>' : '<a href="/?mobile=true">Mobile mode</a>'} • <a href="privacy/">Privacy policy</a>
         <br /><br />
         ${data.userAgent}
     </p>
@@ -401,7 +409,7 @@ function renderMessage(userAgent = '', webHost, forceMobileMode = false, message
         <h3 class="panel-title">Message</h3>
         <div class="body">
           <p>${message}</p>
-          <p style="text-align: center; font-weight: bold;"><a href="${forceMobileMode ? '/m/' : '/'}">OK</a></p>
+          <p style="text-align: center; font-weight: bold;"><a href="${forceMobileMode ? '/?mobile=true' : '/'}">OK</a></p>
         </div>
       </div>
     </div>
@@ -414,7 +422,7 @@ function renderMessage(userAgent = '', webHost, forceMobileMode = false, message
 app.use(serveStatic(publicDir));
 
 // Handle POST requests with enctype="multipart/form-data"
-app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err) {
+app.post(['/'], upload.single('img'), async function (req, res, err) {
   // Use HTTPS for shortlink if server is in production mode, or HTTP if not
   const protocol = prodModeEnabled ? 'https' : 'http';
   // Use provided domain name if possible, or connected hostname as fallback
@@ -459,7 +467,7 @@ app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err
       res.end(renderMain({
         userAgent: String(req.get('User-Agent')),
         webHost: connectedHost,
-        forceMobileMode: req.path.startsWith('/m'),
+        forceMobileMode: req.query?.mobile,
         qrLink: uploadResult.publicQrImg,
         shortLink: uploadResult.publicFileLink,
         softwareTitle: softwareTitle,
@@ -469,7 +477,7 @@ app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err
       // If the upload failed, display an error message to the user
       // Upload Result will contain a reason for the failure, if not set by the uploader's function, it will be set to the universal error message
       const errorMessage = (uploadResult.reason || 'There was an issue uploading your file. Please make sure your upload was valid and try again later.');
-      res.status(500).send(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), errorMessage));
+      res.status(500).send(renderMessage(String(req.get('User-Agent')), connectedHost, req.query?.mobile, errorMessage));
       return;
     }
   }
@@ -477,8 +485,7 @@ app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err
 
 // Handle requests for main page with a custom-rendered interface
 // The / and /index.html paths are required, the /index.php path retains compatibility with bookmarks for the older PHP-based ImageShare
-// The /m and /m/ paths will force enable the small screen mobile layout
-app.get(['/', '/m', '/m/', '/index.html', '/index.php'], (req, res) => {
+app.get(['/', '/index.html', '/index.php'], (req, res) => {
   // Use provided domain name if possible, or connected hostname as fallback
   const connectedHost = (webDomain || req.headers['host']);
   // Send async Plausible analytics page view if enabled
@@ -496,9 +503,14 @@ app.get(['/', '/m', '/m/', '/index.html', '/index.php'], (req, res) => {
   res.end(renderMain({
     userAgent: String(req.get('User-Agent')),
     webHost: connectedHost,
-    forceMobileMode: req.path.startsWith('/m')
+    forceMobileMode: req.query?.mobile
   }));
 });
+
+// Redirect mobile mode shortcut to URL parameter
+app.get(["/m", "/m/index.html"], function (req, res) {
+  res.redirect("/?mobile=true");
+})
 
 // Handle requests for uploaded file with direct file access
 app.get([/\/uploads\//, '/i/:shortcode'], async (req, res) => {
@@ -519,7 +531,7 @@ app.get([/\/uploads\//, '/i/:shortcode'], async (req, res) => {
     // Check if the file exists before attempting to read it
     if (!fs.existsSync(filePath)) {
       const errorMessage = `This upload could not be found, it may have already been deleted. File uploads on this server are set to expire after ${deleteDelay} ${deleteDelay === 1 ? 'minute' : 'minutes'}.`
-      res.status(404).send(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), errorMessage));
+      res.status(404).send(renderMessage(String(req.get('User-Agent')), connectedHost, req.query?.mobile, errorMessage));
       return;
     }
     let data = await fs.promises.readFile(filePath);
@@ -532,56 +544,47 @@ app.get([/\/uploads\//, '/i/:shortcode'], async (req, res) => {
     res.send(data);
   } catch (e) {
     const errorMessage = 'There was an unknown error reading this file.'
-    res.status(200).send(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), errorMessage));
+    res.status(200).send(renderMessage(String(req.get('User-Agent')), connectedHost, req.query?.mobile, errorMessage));
     return;
   }
 });
 
 // Handle requests for QR codes
 // Example URL: /qr.png?url=https%3A%2F%2Fi.imgur.com%2FHpuIqt4.jpeg
-app.get('/qr.png', async (req, res) => {
+app.get("/qr.png", async (req, res) => {
   // Use provided domain name if possible, or connected hostname as fallback
   const connectedHost = (webDomain || req.headers['host']);
-  // Get URL for the QR code
-  const qrLink = req.query.url;
-  try {
-    // Generate the QR code
-    const qrCodeDataURL = await QRCode.toDataURL(qrLink, {
-      type: 'image/png',
-      width: 350,
-      margin: 2,
-      errorCorrectionLevel: 'L'
-    });
-    // Convert image if required
-    let qrCodeBuffer;
-    // Check if browser supports PNG images, including browsers that don't report image types in HTTP headers
-    const supportsPng = (
-      req.headers.accept.includes('image/png') ||
-      req.headers.accept.includes('image/apng') ||
-      req.get('User-Agent').includes('Firefox') ||
-      req.get('User-Agent').includes('Safari') ||
-      req.get('User-Agent').includes('Chrome') ||
-      req.get('User-Agent').includes('Nintendo')
-    );
-    if (supportsPng) {
-      qrCodeBuffer = Buffer.from(qrCodeDataURL.split(',')[1], 'base64');
-      res.setHeader('Content-Type', 'image/png');
-    } else {
-      // Browser may not support inline PNG images, convert it to JPEG
-      qrCodeBuffer = await sharp(Buffer.from(qrCodeDataURL.split(',')[1], 'base64')).jpeg().toBuffer();
-      res.setHeader('Content-Type', 'image/jpeg');
-    }
-    // Send the QR code image as the response
-    res.send(qrCodeBuffer);
-  } catch (error) {
-    const errorMessage = 'There was an unknown error reading this file.'
-    res.status(500).send(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), errorMessage));
-    return;
+  // Generate the QR code
+  const qrText = (req.query?.url || "Error generating QR code.");
+  const qrCodeDataURL = await QRCode.toDataURL(qrText, {
+    type: 'image/png',
+    width: 350,
+    margin: 2,
+    errorCorrectionLevel: 'L'
+  });
+  // Convert QR code image to JPEG if the browser does not support PNG
+  let qrCodeBuffer;
+  const supportsPng = (
+    req.headers.accept.includes('image/png') ||
+    req.headers.accept.includes('image/apng') ||
+    req.get('User-Agent').includes('Firefox') ||
+    req.get('User-Agent').includes('Safari') ||
+    req.get('User-Agent').includes('Chrome') ||
+    req.get('User-Agent').includes('Nintendo')
+  );
+  if (supportsPng) {
+    qrCodeBuffer = Buffer.from(qrCodeDataURL.split(',')[1], 'base64');
+    res.setHeader('Content-Type', 'image/png');
+  } else {
+    qrCodeBuffer = await sharp(Buffer.from(qrCodeDataURL.split(',')[1], 'base64')).jpeg().toBuffer();
+    res.setHeader('Content-Type', 'image/jpeg');
   }
+  // Send the QR code image as the response
+  res.send(qrCodeBuffer);
 });
 
 // Link to privacy policy
-app.get(['/privacy', '/privacy/', '/m/privacy', '/m/privacy/'], (req, res) => {
+app.get("/privacy", (req, res) => {
   // Use provided domain name if possible, or connected hostname as fallback
   const connectedHost = (webDomain || req.headers['host']);
   // Redirect to privacy policy
@@ -589,7 +592,7 @@ app.get(['/privacy', '/privacy/', '/m/privacy', '/m/privacy/'], (req, res) => {
     res.redirect(privacyUrl);
   } else {
     const errorMessage = 'Your server administrator has not specified a privacy policy.'
-    res.status(404).send(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), errorMessage));
+    res.status(404).send(renderMessage(String(req.get('User-Agent')), connectedHost, req.query?.mobile, errorMessage));
     return;
   }
 });
