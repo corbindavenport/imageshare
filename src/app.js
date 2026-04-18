@@ -10,8 +10,10 @@ import ExifReader from 'exifreader';
 import { uploadToImgur } from './modules/imgur-upload.js';
 import { uploadToLocal, shortLinkObj } from './modules/local-upload.js';
 
-// Initialize Express
+// Initialize Express and EJS view engine
 const app = express();
+app.set("views", path.resolve(import.meta.dirname, "./views"));
+app.set("view engine", "ejs");
 // Domain used for the web server and uploaded file URLs
 const webDomain = process.env.DOMAIN;
 // Domain used for Plausible analytics
@@ -183,8 +185,6 @@ function sendAnalytics(userAgent, clientIp, data) {
   });
 }
 
-// Function to detect software title from image EXIF data or file name
-
 /**
  * Detect the software title from an image, using EXIF data or the file name. If the title isn't detected, return the default title.
  * @param {string} imgFile Path to the file. Example: `uploads/45bdcc79-3be2-43bb-a1c8-7f23993d2445.JPG`
@@ -240,184 +240,6 @@ async function getSoftwareTitle(imgFile, mimeType, originalFileName) {
   return defaultFileTitle;
 }
 
-// Function to render header for HTML pages
-function renderHead(userAgent, webHost, forceMobileMode = false) {
-  // Set hardcoded viewport for old Nintendo 3DS, set full-size viewport for New Nintendo 3DS and other browsers
-  let viewportEl = ''
-  if (userAgent.includes('Nintendo 3DS') && (!(userAgent.includes('New Nintendo 3DS')))) {
-    viewportEl = '<meta name="viewport" content="width=320" />';
-  } else {
-    viewportEl = '<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">';
-  }
-  // Set a 16x16 favicon for the 3DS and Wii, set larger icons in multiple sizes for other browsers
-  let iconEl = '';
-  if (userAgent.includes('Nintendo')) {
-    iconEl = '<link rel="icon" href="favicon.ico" type="image/x-icon">';
-  } else {
-    iconEl = `<link rel="apple-touch-icon" sizes="192x192" href="img/maskable_icon_x192.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="img/favicon_x16.png">
-    <link rel="icon" type="image/png" sizes="24x24" href="img/favicon_x24.png">`
-  }
-  // Generate CSS code
-  let cssString = '@import url("/styles.css"); @import url("/small.css") (max-width: 350px);';
-  if (forceMobileMode) {
-    cssString = '@import url("/styles.css"); @import url("/small.css");';
-  }
-  // Generate full header string
-  // Documentation for Windows tile: https://learn.microsoft.com/en-us/previous-versions/windows/internet-explorer/ie-developer/platform-apis/dn255024(v=vs.85)
-  // CSS is embedded using @import statement so old browsers (IE 3, Netscape 4.x, etc.) get the plain HTML version
-  const htmlString = `
-    <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>ImageShare</title>
-    <meta name="description" content="ImageShare is a web app for sending images and videos to another device, designed for low-end and legacy web browsers.">
-    <link rel="canonical" href="https://${webHost}/" />
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="ImageShare">
-    <!-- Theme colors -->
-    <meta name="color-scheme" content="dark light">
-    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f5f5f7">
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000">
-    <style>
-    ${cssString}
-    </style>
-    ${viewportEl}
-    ${iconEl}
-    <!-- Web app manifest and Windows tile -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="application-name" content="ImageShare">
-    <meta name="msapplication-TileColor" content="#7e57c2">
-    <meta name="msapplication-square150x150logo" content="img/maskable_icon_x192.png">
-    <!-- Open Graph card -->
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="ImageShare" />
-    <meta property="og:description" content="ImageShare is a web app for sending images and videos to another device, designed for low-end and legacy web browsers." />
-    <meta property="og:image:width" content="512" />
-    <meta property="og:image:height" content="512" />
-    <meta property="og:url" content="https://${webHost}" />
-    <meta property="og:image" content="https://${webHost}/img/maskable_icon_x512.png" />
-    <meta name="og:image:alt" content="ImageShare app icon" />
-    <meta name="twitter:card" content="summary" />
-  </head>`;
-  return htmlString;
-}
-
-// Function to render main page
-function renderMain(passedOptions) {
-  // Set options
-  let data = {
-    // User agent string of the connected client
-    userAgent: passedOptions.userAgent || undefined,
-    // The web domain of the public ImageShare instance (e.g. 'localhost', 'example.com', '192.68.50.100')
-    webHost: passedOptions.webHost,
-    // Setting to force small-screen interface
-    forceMobileMode: false || passedOptions.forceMobileMode,
-    // Path to an uploaded image (e.g. 'uploads/319747f3-a0c2-4492-af05-736da74f6bac.jpg')
-    qrLink: undefined || passedOptions.qrLink,
-    // Path to the shortlink redirecting to the uploaded image (e.g. 'http://localhost/i/e220f')
-    shortLink: undefined || passedOptions.shortLink,
-    // Software title detected from image (e.g. 'THE LEGEND OF ZELDA The Wind Waker HD')
-    softwareTitle: passedOptions.softwareTitle || defaultFileTitle,
-    // Set the footer message for qr panel
-    qrFooter: undefined || passedOptions.qrFooter
-  }
-  // Shorten rendered software title for Nintendo 3DS, because text-overflow: ellipsis doesn't work on responsive-width containers
-  if (data.userAgent.includes('Nintendo 3DS') && (data.softwareTitle.length > 32)) {
-    data.softwareTitle = data.softwareTitle.substring(0, 32) + ' ...';
-  }
-  // Render initial header elements
-  // Background color is defined in <body> attributes for ancient browsers, like Netscape 4.x
-  let htmlString = `<!DOCTYPE html>
-  <html lang="en">
-  ${renderHead(data.userAgent, data.webHost, data.forceMobileMode)}
-  <body bgcolor="#FFFFFF" text="#2c3e50" link="#0d6efd" vlink="#0d6efd" alink="#0a58ca">
-    <div class="container">
-  `;
-  // Show QR code if a file has been uploaded
-  if (data.qrLink) {
-    // Show QR code
-    htmlString += `
-    <div class="panel">
-        <h3 class="panel-title">${data.softwareTitle}</h3>
-        <div align="center">
-          <img class="qr-img" alt="QR code" width="175" height="175" border="0" src="${data.qrLink}">
-        </div>
-        <div class="body">
-          <p class="shortcode-container" align="center">
-            <font face="courier new, monospace">
-              <a href="${data.shortLink}" target="_blank">${data.shortLink}</a>
-            </font>
-          </p>
-          <p>${data.qrFooter}</p>
-        </div>
-      </div>
-    `;
-  }
-  // Render rest of page
-  htmlString += `
-      <!-- Main upload panel -->
-      <div class="panel">
-        <h3 class="panel-title">Upload File</h3>
-        <div class="body">
-          <form action="${data.forceMobileMode ? '/?mobile=true' : '/'}" id="upload-form" enctype="multipart/form-data" method="POST" onsubmit="document.getElementById('loading-container').style.display='block';">
-            <p><input name="img" id="imageshare-file-select" type="file" accept="image/*,video/*" /></p>
-            ${imgurClientId ? `
-            <p>
-              <input type="radio" id="upload-type-imageshare" name="upload-type" value="imageshare" class="imageshare-service-radio" checked>
-              <label for="upload-type-imageshare">Upload to ImageShare (temporary)</label>
-              <br />
-              <input type="radio" id="upload-type-imgur" name="upload-type" value="imgur" class="imageshare-service-radio">
-              <label for="upload-type-imgur">Upload to Imgur</label>
-            </p>
-            ` : ''}
-            <p><input name="submit" type="submit" id="imagshare-upload-btn" value="Upload" /></p>
-            <p id="loading-container" style="display:none;" align="center">
-              <img src="/img/loading.gif" alt="Loading">
-            </p>
-            <p>Maximum file size: ${uploadLimit} MB</p>
-          </form>
-          <hr>
-          <p>ImageShare is a web app for sending images and videos to another device, designed for low-end and legacy web browsers. ImageShare is open-source software, see the below links for more information and support.</p>
-          <p style="text-align: center; font-weight: bold;"><a href="https://github.com/corbindavenport/imageshare" target="_blank">github.com/corbindavenport/imageshare</a></p>
-          <p style="text-align: center; font-weight: bold;"><a href="https://discord.gg/tqJDRsmQVn" target="_blank">discord.gg/tqJDRsmQVn</a></p>
-          <p>If you find ImageShare useful, please consider donating to support development and server costs!</p>
-          <p style="text-align: center; font-weight: bold;"><a href="https://www.patreon.com/corbindavenport" target="_blank">patreon.com/corbindavenport</a></p>
-          <p style="text-align: center; font-weight: bold;"><a href="https://cash.app/$corbdav" target="_blank">cash.app/$corbdav</a> • <a href="https://paypal.me/corbindav" target="_blank">paypal.me/corbindav</a></p>
-        </div>
-      </div>
-    </div>
-    <p class="footer">
-        ${data.forceMobileMode ? '<a href="/">Disable mobile mode</a>' : '<a href="/?mobile=true">Mobile mode</a>'} • <a href="privacy/">Privacy policy</a>
-        <br /><br />
-        ${data.userAgent}
-    </p>
-  </body>
-  </html>`;
-  return htmlString;
-}
-
-// Function to render error and information messages with a link back to the main page
-function renderMessage(userAgent = '', webHost, forceMobileMode = false, message = '') {
-  let htmlString = `<!DOCTYPE html>
-  <html lang="en">
-  ${renderHead(userAgent, webHost, forceMobileMode)}
-  <body bgcolor="#FFFFFF" text="#2c3e50" link="#0d6efd" vlink="#0d6efd" alink="#0a58ca">
-    <div class="container">
-      <div class="panel">
-        <h3 class="panel-title">Message</h3>
-        <div class="body">
-          <p>${message}</p>
-          <p style="text-align: center; font-weight: bold;"><a href="${forceMobileMode ? '/?mobile=true' : '/'}">OK</a></p>
-        </div>
-      </div>
-    </div>
-  </body>
-  </html>`;
-  return htmlString;
-}
-
 // Set up serve-static middleware to serve files from the 'public' folder
 app.use(serveStatic(publicDir));
 
@@ -427,6 +249,9 @@ app.post(['/'], upload.single('img'), async function (req, res, err) {
   const protocol = prodModeEnabled ? 'https' : 'http';
   // Use provided domain name if possible, or connected hostname as fallback
   const connectedHost = (webDomain || req.headers['host']);
+  // Maintain mobile mode if enabled
+  const useMobileMode = req.headers?.referer?.includes("mobile=true");
+  // Process upload
   if (req && req.file && req.file.path) {
     console.log(`Uploaded file: ${req.file.originalname}, MIME type ${req.file.mimetype}`);
     // Detect software title
@@ -463,21 +288,26 @@ app.post(['/'], upload.single('img'), async function (req, res, err) {
         sendAnalytics(req.headers['user-agent'], (req.headers['x-forwarded-for'] || req.ip), data);
       }
       // Now take the data from the upload response, and display it to the user
-      res.writeHead(200, { 'Content-Type': 'text/html' });
-      res.end(renderMain({
+      res.render("index", {
         userAgent: String(req.get('User-Agent')),
         webHost: connectedHost,
-        forceMobileMode: req.query?.mobile,
+        forceMobileMode: useMobileMode,
         qrLink: uploadResult.publicQrImg,
         shortLink: uploadResult.publicFileLink,
         softwareTitle: softwareTitle,
-        qrFooter: uploadResult.userInstructions
-      }));
+        qrFooter: uploadResult.userInstructions,
+        imgurClientId: imgurClientId
+      });
     } else {
       // If the upload failed, display an error message to the user
       // Upload Result will contain a reason for the failure, if not set by the uploader's function, it will be set to the universal error message
       const errorMessage = (uploadResult.reason || 'There was an issue uploading your file. Please make sure your upload was valid and try again later.');
-      res.status(500).send(renderMessage(String(req.get('User-Agent')), connectedHost, req.query?.mobile, errorMessage));
+      res.status(500).render("message", {
+        userAgent: String(req.get('User-Agent')),
+        webHost: connectedHost,
+        forceMobileMode: useMobileMode,
+        message: errorMessage
+      });
       return;
     }
   }
@@ -499,12 +329,12 @@ app.get(['/', '/index.html', '/index.php'], (req, res) => {
     sendAnalytics(req.get('User-Agent'), (req.headers['x-forwarded-for'] || req.ip), data);
   }
   // Send page
-  res.writeHead(200, { 'Content-Type': 'text/html' });
-  res.end(renderMain({
+  res.render("index", {
     userAgent: String(req.get('User-Agent')),
     webHost: connectedHost,
-    forceMobileMode: req.query?.mobile
-  }));
+    forceMobileMode: req.query?.mobile,
+    imgurClientId: imgurClientId
+  });
 });
 
 // Redirect mobile mode shortcut to URL parameter
@@ -516,6 +346,8 @@ app.get(["/m", "/m/index.html"], function (req, res) {
 app.get([/\/uploads\//, '/i/:shortcode'], async (req, res) => {
   // Use provided domain name if possible, or connected hostname as fallback
   const connectedHost = (webDomain || req.headers['host']);
+  // Maintain mobile mode if enabled
+  const useMobileMode = req.headers?.referer?.includes("mobile=true");
   // Get file path
   let reqPath = '';
   if (req.params?.shortcode && (req.params?.shortcode in shortLinkObj)) {
@@ -531,7 +363,12 @@ app.get([/\/uploads\//, '/i/:shortcode'], async (req, res) => {
     // Check if the file exists before attempting to read it
     if (!fs.existsSync(filePath)) {
       const errorMessage = `This upload could not be found, it may have already been deleted. File uploads on this server are set to expire after ${deleteDelay} ${deleteDelay === 1 ? 'minute' : 'minutes'}.`
-      res.status(404).send(renderMessage(String(req.get('User-Agent')), connectedHost, req.query?.mobile, errorMessage));
+      res.status(404).render("message", {
+        userAgent: String(req.get('User-Agent')),
+        webHost: connectedHost,
+        forceMobileMode: useMobileMode,
+        message: errorMessage
+      });
       return;
     }
     let data = await fs.promises.readFile(filePath);
@@ -544,7 +381,12 @@ app.get([/\/uploads\//, '/i/:shortcode'], async (req, res) => {
     res.send(data);
   } catch (e) {
     const errorMessage = 'There was an unknown error reading this file.'
-    res.status(200).send(renderMessage(String(req.get('User-Agent')), connectedHost, req.query?.mobile, errorMessage));
+    res.status(200).render("message", {
+      userAgent: String(req.get('User-Agent')),
+      webHost: connectedHost,
+      forceMobileMode: useMobileMode,
+      message: errorMessage
+    });
     return;
   }
 });
@@ -585,12 +427,19 @@ app.get("/qr.png", async (req, res) => {
 app.get("/privacy", (req, res) => {
   // Use provided domain name if possible, or connected hostname as fallback
   const connectedHost = (webDomain || req.headers['host']);
+  // Maintain mobile mode if enabled
+  const useMobileMode = req.headers?.referer?.includes("mobile=true");
   // Redirect to privacy policy
   if (privacyUrl) {
     res.redirect(privacyUrl);
   } else {
     const errorMessage = 'Your server administrator has not specified a privacy policy.'
-    res.status(404).send(renderMessage(String(req.get('User-Agent')), connectedHost, req.query?.mobile, errorMessage));
+    res.status(404).render("message", {
+      userAgent: String(req.get('User-Agent')),
+      webHost: connectedHost,
+      forceMobileMode: useMobileMode,
+      message: errorMessage
+    });
     return;
   }
 });

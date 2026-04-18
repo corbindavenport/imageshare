@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>ImageShare</title>
+    <meta name="description" content="ImageShare is a web app for sending images and videos to another device, designed for low-end and legacy web browsers.">
+    <link rel="canonical" href="https://<%= webHost %>/" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="ImageShare">
+    <!-- Theme colors -->
+    <meta name="color-scheme" content="dark light">
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f5f5f7">
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000">
+    <%# CSS is embedded using @import statement so old browsers (IE 3, Netscape 4.x, etc.) get the plain HTML version %>
+    <% if(locals.forceMobileMode){ %>
+        <style>@import url("/styles.css"); @import url("/small.css");</style>
+    <% } else{ %>
+        <style>@import url("/styles.css"); @import url("/small.css") (max-width: 350px);</style>
+    <% } %>
+    <%# Set hardcoded viewport for old Nintendo 3DS, set full-size viewport for New Nintendo 3DS and other browsers %>
+    <% if(locals.userAgent.includes('Nintendo 3DS') && (!(locals.userAgent.includes('New Nintendo 3DS')))){ %>
+        <meta name="viewport" content="width=320" />
+    <% } else{ %>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <% } %>
+    <%# Set a 16x16 favicon for the 3DS and Wii, set larger icons in multiple sizes for other browsers %>
+    <% if(userAgent.includes('Nintendo')){ %>
+        <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <% } else{ %>
+        <link rel="apple-touch-icon" sizes="192x192" href="img/maskable_icon_x192.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="img/favicon_x16.png">
+        <link rel="icon" type="image/png" sizes="24x24" href="img/favicon_x24.png">
+    <% } %>
+    <!-- Web app manifest and Windows tile -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="application-name" content="ImageShare">
+    <meta name="msapplication-TileColor" content="#7e57c2">
+    <meta name="msapplication-square150x150logo" content="img/maskable_icon_x192.png">
+    <!-- Open Graph card -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ImageShare" />
+    <meta property="og:description" content="ImageShare is a web app for sending images and videos to another device, designed for low-end and legacy web browsers." />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:url" content="https://<%= webHost %>" />
+    <meta property="og:image" content="https://<%= webHost %>/img/maskable_icon_x512.png" />
+    <meta name="og:image:alt" content="ImageShare app icon" />
+    <meta name="twitter:card" content="summary" />
+</head>
+<%# Background color is defined in body attributes for ancient browsers, like Netscape 4.x %>
+<body bgcolor="#FFFFFF" text="#2c3e50" link="#0d6efd" vlink="#0d6efd" alink="#0a58ca">
+    <div class="container">
+        <% if (locals.qrLink) { %>
+        <div class="panel">
+            <%# Shorten rendered software title for Nintendo 3DS, because text-overflow: ellipsis doesn't work on responsive-width containers %>
+            <% if (locals.userAgent.includes('Nintendo 3DS') && (locals.softwareTitle.length > 32)) { %>
+                <h3 class="panel-title"><%- locals.softwareTitle.substring(0, 32) + ' ...'; %></h3>
+            <% } else { %>
+                <h3 class="panel-title"><%= locals.softwareTitle %></h3>
+            <% } %>
+            <div align="center">
+                <img class="qr-img" alt="QR code" width="175" height="175" border="0" src="<%= locals.qrLink %>">
+            </div>
+            <div class="body">
+                <p class="shortcode-container" align="center">
+                    <font face="courier new, monospace">
+                        <a href="<%= locals.shortLink %>" target="_blank"><%= locals.shortLink %></a>
+                    </font>
+                </p>
+                <p><%= locals.qrFooter %></p>
+            </div>
+        </div>
+        <% } %>
+        <!-- Main upload panel -->
+        <div class="panel">
+            <h3 class="panel-title">Upload File</h3>
+            <div class="body">
+                <form action="/" id="upload-form" enctype="multipart/form-data" method="POST" onsubmit="document.getElementById('loading-container').style.display='block';">
+                    <p><input name="img" id="imageshare-file-select" type="file" accept="image/*,video/*" /></p>
+                    <% if(locals.imgurClientId){ %>
+                    <p>
+                        <input type="radio" id="upload-type-imageshare" name="upload-type" value="imageshare" class="imageshare-service-radio" checked>
+                        <label for="upload-type-imageshare">Upload to ImageShare (temporary)</label>
+                        <br />
+                        <input type="radio" id="upload-type-imgur" name="upload-type" value="imgur" class="imageshare-service-radio">
+                        <label for="upload-type-imgur">Upload to Imgur</label>
+                    </p>
+                    <% } %>
+                    <p><input name="submit" type="submit" id="imagshare-upload-btn" value="Upload" /></p>
+                    <p id="loading-container" style="display:none;" align="center">
+                        <img src="/img/loading.gif" alt="Loading">
+                    </p>
+                    <p>Maximum file size: <%= locals.uploadLimit %> MB</p>
+                </form>
+                <hr>
+                <p>ImageShare is a web app for sending images and videos to another device, designed for low-end and legacy web browsers. ImageShare is open-source software, see the below links for more information and support.</p>
+                <p style="text-align: center; font-weight: bold;"><a href="https://github.com/corbindavenport/imageshare" target="_blank">github.com/corbindavenport/imageshare</a></p>
+                <p style="text-align: center; font-weight: bold;"><a href="https://discord.gg/tqJDRsmQVn" target="_blank">discord.gg/tqJDRsmQVn</a></p>
+                <p>If you find ImageShare useful, please consider donating to support development and server costs!</p>
+                <p style="text-align: center; font-weight: bold;"><a href="https://www.patreon.com/corbindavenport" target="_blank">patreon.com/corbindavenport</a></p>
+                <p style="text-align: center; font-weight: bold;"><a href="https://cash.app/$corbdav" target="_blank">cash.app/$corbdav</a> • <a href="https://paypal.me/corbindav" target="_blank">paypal.me/corbindav</a></p>
+            </div>
+        </div>
+    </div>
+    <p class="footer">
+        <% if(locals.forceMobileMode){ %>
+            <a href="/">Disable mobile mode</a>
+        <% } else{ %>
+            <a href="/?mobile=true">Mobile mode</a>
+        <% } %>
+         • <a href="privacy/">Privacy policy</a>
+        <br /><br />
+        <%= locals.userAgent %>
+    </p>
+</body>
+</html>

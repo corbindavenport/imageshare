@@ -11,6 +11,7 @@
   "author": "Corbin Davenport",
   "license": "GPL-3.0",
   "dependencies": {
+    "ejs": "5.0.2",
     "exifreader": "4.38.1",
     "express": "5.2.1",
     "mime": "4.1.0",
