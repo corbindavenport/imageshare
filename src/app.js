@@ -311,6 +311,7 @@ app.post(['/'], upload.single('img'), async function (req, res, err) {
       res.render("index", {
         userAgent: String(req.get('User-Agent')),
         webHost: connectedHost,
+        uploadLimit: uploadLimit,
         forceMobileMode: useMobileMode,
         qrLink: uploadResult.publicQrImg,
         shortLink: uploadResult.publicFileLink,
@@ -352,6 +353,7 @@ app.get(['/', '/index.html', '/index.php'], (req, res) => {
   res.render("index", {
     userAgent: String(req.get('User-Agent')),
     webHost: connectedHost,
+    uploadLimit: uploadLimit,
     forceMobileMode: req.query?.mobile,
     imgurClientId: imgurClientId
   });
