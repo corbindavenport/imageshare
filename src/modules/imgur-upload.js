@@ -33,6 +33,8 @@ const supportedTypes = [
  * @param {string} uploadData.fileType - MIME type for the file. Example: `image/jpeg`
  * @param {string} uploadData.title - Detected software title for the file. Example: `Pokémon X`
  * @param {string} uploadData.origin - The protocol and hostname being used for the client. Example: `https://myimagesite.com`
+ * @param {string} uploadData.userAgent - The User-Agent header for the client. Example: `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 Edg/147.0.0.0 192.168.65.1`
+ * @param {Object | null} uploadData.exifData - EXIF data for the uploaded image. This is null if the data could not be extracted, or if the file isn't an image.
  * @returns {object} Object containing the post data.
  */
 async function uploadToImgur(uploadData) {

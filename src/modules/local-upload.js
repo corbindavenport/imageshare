@@ -25,22 +25,28 @@ const supportedExifFiles = [
  * @param {string} uploadData.fileType - MIME type for the file. Example: `image/jpeg`
  * @param {string} uploadData.title - Detected software title for the file. Example: `Pokémon X`
  * @param {string} uploadData.origin - The protocol and hostname being used for the client. Example: `https://myimagesite.com`
+ * @param {string} uploadData.userAgent - The User-Agent header for the client. Example: `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 Edg/147.0.0.0 192.168.65.1`
+ * @param {Object | null} uploadData.exifData - EXIF data for the uploaded image. This is null if the data could not be extracted, or if the file isn't an image.
  * @returns {object} Object containing the live file data.
  */
 async function uploadToLocal(uploadData) {
     // Modify EXIF data on uploaded file
     if (supportedExifFiles.includes(uploadData.fileType.toLowerCase())) {
         const exifOptions = [];
-        // Add detected software title to image description/captaion in EXIF data
+        // Add detected software title to image description/caption
         if (uploadData.title != defaultFileTitle) {
             exifOptions.push(`-Caption-Abstract=${uploadData.title}`, `-ImageDescription=${uploadData.title}`)
         }
-        // Add "Nintendo" make and "Nintendo Wii U" model to EXIF data for Wii U images, to match EXIF data for 3DS images
+        // Add make and model to Wii U images, matching the format of Nintendo 3DS images
         if (uploadData.originalFileName.startsWith('WiiU_') && (uploadData.title != defaultFileTitle)) {
             exifOptions.push('-Make=Nintendo', '-Model=Nintendo Wii U');
         }
-        // Add original filename to EXIF data (primarily useful for debugging) and record of metadata editing
-        exifOptions.push("-MetadataEditingSoftware=ImageShare", `-ImageTitle=${uploadData.originalFileName}`);
+        // Add make and model to PlayStation Vita and PSTV screenshots, matching the values of Vita camera photos
+        if (uploadData.userAgent.includes("PlayStation Vita") && (uploadData.exifData?.["Image Width"]?.value === 960) && (uploadData.exifData?.["Image Height"]?.value === 544)) {
+            exifOptions.push('-Make=Sony Interactive Entertainment Inc.', '-Model=PlayStation(R)Vita');
+        }
+        // Add original filename (primarily useful for debugging) and record of metadata editing
+        exifOptions.push("-MetadataEditingSoftware=ImageShare", `-OriginalFileName=${uploadData.originalFileName}`);
         // Run exiftool asynchronously to write modified EXIF data
         exifOptions.push("-overwrite_original", uploadData.absolutePath)
         spawn('exiftool', exifOptions);

@@ -38,6 +38,19 @@ const mainDir = path.resolve(import.meta.dirname, '../');
 const gameList3DS = init3DSTitles();
 const gameListWiiU = initWiiUTitles();
 
+// List of MIME types that can be used with the exifreader library
+const exifFileTypes = [
+  "image/jpeg",
+  "image/jxl",
+  "image/png",
+  "image/tiff",
+  "image/tiff-fx",
+  "image/heif",
+  "image/heic",
+  "image/avif",
+  "image/webp"
+]
+
 // Print settings
 console.log(`
 Domain: ${(webDomain || 'Not specified')}
@@ -190,17 +203,17 @@ function sendAnalytics(userAgent, clientIp, data) {
  * @param {string} imgFile Path to the file. Example: `uploads/45bdcc79-3be2-43bb-a1c8-7f23993d2445.JPG`
  * @param {string} mimeType The detected MIME type. Example: `image/jpeg`
  * @param {string} originalFileName The file name upon upload. Example: `HNI_0049.JPG`
+ * @param {object} tags Object containing EXIF tags.
  * @returns {string} The updated title. Example: `Animal Crossing: New Leaf Update Ver. 1.5`
  */
-async function getSoftwareTitle(imgFile, mimeType, originalFileName) {
+async function getSoftwareTitle(imgFile, mimeType, originalFileName, tags) {
   // Exit early if file is not a supported file type
   const supportedFileTypes = [
-    'image/jpeg',
-    'image/png'
+    "image/jpeg",
+    "image/png"
   ];
   if (!supportedFileTypes.includes(mimeType)) return defaultFileTitle;
   // Continue reading EXIF data
-  const tags = await ExifReader.load(imgFile);
   if (originalFileName.startsWith('WiiU_')) {
     // Nintendo Wii U screenshot
     // Game ID is at the end of the screenshot file name (e.g. Mario Kart 8 EU is 010ED, file name is WiiU_screenshot_TV_010ED.jpg)
@@ -252,10 +265,15 @@ app.post(['/'], upload.single('img'), async function (req, res, err) {
   // Maintain mobile mode if enabled
   const useMobileMode = req.headers?.referer?.includes("mobile=true");
   // Process upload
-  if (req && req.file && req.file.path) {
+  if (req?.file?.path) {
     console.log(`Uploaded file: ${req.file.originalname}, MIME type ${req.file.mimetype}`);
+    // Detect image metadata
+    let exifData;
+    if (exifFileTypes.includes(req.file.mimetype)) {
+      exifData = await ExifReader.load(req.file.path);
+    }
     // Detect software title
-    const softwareTitle = await getSoftwareTitle(req.file.path, req.file.mimetype, req.file.originalname);
+    const softwareTitle = await getSoftwareTitle(req.file.path, req.file.mimetype, req.file.originalname, exifData);
     // Create data object for all upload methods
     let uploadData = {
       relativePath: req.file.path,
@@ -264,7 +282,9 @@ app.post(['/'], upload.single('img'), async function (req, res, err) {
       fileType: req.file.mimetype,
       title: softwareTitle,
       origin: `${protocol}://${connectedHost}`,
-      deleteDelay: deleteDelay
+      deleteDelay: deleteDelay,
+      userAgent: String(req.get('User-Agent')),
+      exifData: exifData
     }
     // Upload file with specified method
     let uploadResult, uploadMode;
