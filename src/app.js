@@ -7,12 +7,13 @@ import mime from 'mime';
 import QRCode from 'qrcode';
 import sharp from 'sharp';
 import ExifReader from 'exifreader';
-import { spawn } from 'node:child_process';
 import { uploadToImgur } from './modules/imgur-upload.js';
-import { uploadToLocal } from './modules/local-upload.js';
+import { uploadToLocal, shortLinkObj } from './modules/local-upload.js';
 
-// Initialize Express
+// Initialize Express and EJS view engine
 const app = express();
+app.set("views", path.resolve(import.meta.dirname, "./views"));
+app.set("view engine", "ejs");
 // Domain used for the web server and uploaded file URLs
 const webDomain = process.env.DOMAIN;
 // Domain used for Plausible analytics
@@ -36,8 +37,19 @@ const mainDir = path.resolve(import.meta.dirname, '../');
 // Load and sort game title libraries
 const gameList3DS = init3DSTitles();
 const gameListWiiU = initWiiUTitles();
-// Object to store temporary shortlinks
-const shortLinkObj = {};
+
+// List of MIME types that can be used with the exifreader library
+const exifFileTypes = [
+  "image/jpeg",
+  "image/jxl",
+  "image/png",
+  "image/tiff",
+  "image/tiff-fx",
+  "image/heif",
+  "image/heic",
+  "image/avif",
+  "image/webp"
+]
 
 // Print settings
 console.log(`
@@ -77,12 +89,17 @@ const upload = multer({
   }
 });
 
-// Function to return file extension from detected MIME type
+/**
+ * Set a file extension, based on MIME type data.
+ * @param {string} mimeType - The detected MIME type. Example: `image/gif`
+ * @returns {string} A file extension. Example: `.gif`
+ */
 function getFileExtension(mimeType) {
-  let detectedType = mime.getExtension(mimeType);
+  console.log(mimeType)
+  const detectedType = mime.getExtension(mimeType);
   if (detectedType) {
     return `.${detectedType}`;
-  } else if (mimeType === 'image/x-pict') {
+  } else if (mimeType === "image/x-pict") {
     // Mac PICT image format
     return `.pict`
   } else {
@@ -91,7 +108,19 @@ function getFileExtension(mimeType) {
   }
 }
 
-// Function to initialize database of Nintendo 3DS games
+/**
+ * Create a URL for a QR code image. The actual QR code image is generated on-demand in the `app.get('/qr.png')` function.
+ * @param {string} url - The destination URL when the QR code is scanned.
+ * @returns {string} The URL for the QR code image.
+ */
+function getQrLink(url) {
+  return `/qr.png?url=${encodeURIComponent(url)}`
+}
+
+/**
+ * Initialize database of Nintendo 3DS games from built-in JSON files.
+ * @returns {Array} Array of game objects.
+ */
 function init3DSTitles() {
   const gameList = [];
   // hax0kartik databases: https://github.com/hax0kartik/3dsdb/tree/master/jsons
@@ -128,7 +157,10 @@ function init3DSTitles() {
   return gameList;
 }
 
-// Function to initialize database of Nintendo Wii U games
+/**
+ * Initialize database of Nintendo Wii U games from built-in JSON file.
+ * @returns {Array} Array of game objects.
+ */
 function initWiiUTitles() {
   const gameList = [];
   // JSON file is based on data from WiiUBrew: https://wiiubrew.org/wiki/Title_database
@@ -140,8 +172,21 @@ function initWiiUTitles() {
   return gameList;
 }
 
-// Function to asynchronously send analytics data
+/**
+ * Send pageview or event to Plausible Analytics using the Plausible Events API.
+ * 
+ * Documentation: https://plausible.io/docs/events-api
+ * @param {string} userAgent - The User-Agent header for the client. Example: `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 Edg/147.0.0.0 192.168.65.1`
+ * @param {string} clientIp - The client's IP address. Example: `142.251.163.100`
+ * @param {object} data - The pageview or event information. Example: `{name: 'pageview', url: '/', domain: 'example.com', referrer: 'https://google.com/'}`
+ */
 function sendAnalytics(userAgent, clientIp, data) {
+  // Remove path from referrer if it's the server's domain
+  // This prevents expired upload links from appearing as analytics entries
+  if (data?.referrer && data.referrer.includes(data.domain)) {
+    data.referrer = new URL(data.referrer).origin
+  }
+  // Send API call
   fetch('https://plausible.io/api/event', {
     method: 'POST',
     headers: {
@@ -153,16 +198,22 @@ function sendAnalytics(userAgent, clientIp, data) {
   });
 }
 
-// Function to detect software title from image EXIF data or file name
-async function getSoftwareTitle(imgFile, mimeType, originalFileName) {
+/**
+ * Detect the software title from an image, using EXIF data or the file name. If the title isn't detected, return the default title.
+ * @param {string} imgFile Path to the file. Example: `uploads/45bdcc79-3be2-43bb-a1c8-7f23993d2445.JPG`
+ * @param {string} mimeType The detected MIME type. Example: `image/jpeg`
+ * @param {string} originalFileName The file name upon upload. Example: `HNI_0049.JPG`
+ * @param {object} tags Object containing EXIF tags.
+ * @returns {string} The updated title. Example: `Animal Crossing: New Leaf Update Ver. 1.5`
+ */
+async function getSoftwareTitle(imgFile, mimeType, originalFileName, tags) {
   // Exit early if file is not a supported file type
   const supportedFileTypes = [
-    'image/jpeg',
-    'image/png'
+    "image/jpeg",
+    "image/png"
   ];
   if (!supportedFileTypes.includes(mimeType)) return defaultFileTitle;
   // Continue reading EXIF data
-  const tags = await ExifReader.load(imgFile);
   if (originalFileName.startsWith('WiiU_')) {
     // Nintendo Wii U screenshot
     // Game ID is at the end of the screenshot file name (e.g. Mario Kart 8 EU is 010ED, file name is WiiU_screenshot_TV_010ED.jpg)
@@ -202,240 +253,82 @@ async function getSoftwareTitle(imgFile, mimeType, originalFileName) {
   return defaultFileTitle;
 }
 
-// Function to render header for HTML pages
-function renderHead(userAgent, webHost, forceMobileMode = false) {
-  // Set hardcoded viewport for old Nintendo 3DS, set full-size viewport for New Nintendo 3DS and other browsers
-  let viewportEl = ''
-  if (userAgent.includes('Nintendo 3DS') && (!(userAgent.includes('New Nintendo 3DS')))) {
-    viewportEl = '<meta name="viewport" content="width=320" />';
-  } else {
-    viewportEl = '<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">';
-  }
-  // Set a 16x16 favicon for the 3DS and Wii, set larger icons in multiple sizes for other browsers
-  let iconEl = '';
-  if (userAgent.includes('Nintendo')) {
-    iconEl = '<link rel="icon" href="favicon.ico" type="image/x-icon">';
-  } else {
-    iconEl = `<link rel="apple-touch-icon" sizes="192x192" href="img/maskable_icon_x192.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="img/favicon_x16.png">
-    <link rel="icon" type="image/png" sizes="24x24" href="img/favicon_x24.png">`
-  }
-  // Generate CSS code
-  let cssString = '@import url("/styles.css"); @import url("/small.css") (max-width: 350px);';
-  if (forceMobileMode) {
-    cssString = '@import url("/styles.css"); @import url("/small.css");';
-  }
-  // Generate full header string
-  // Documentation for Windows tile: https://learn.microsoft.com/en-us/previous-versions/windows/internet-explorer/ie-developer/platform-apis/dn255024(v=vs.85)
-  // CSS is embedded using @import statement so old browsers (IE 3, Netscape 4.x, etc.) get the plain HTML version
-  const htmlString = `
-    <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>ImageShare</title>
-    <meta name="description" content="ImageShare is a web app for sending images and videos to another device, designed for low-end and legacy web browsers.">
-    <link rel="canonical" href="https://${webHost}/" />
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="ImageShare">
-    <!-- Theme colors -->
-    <meta name="color-scheme" content="dark light">
-    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f5f5f7">
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000">
-    <style>
-    ${cssString}
-    </style>
-    ${viewportEl}
-    ${iconEl}
-    <!-- Web app manifest and Windows tile -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="application-name" content="ImageShare">
-    <meta name="msapplication-TileColor" content="#7e57c2">
-    <meta name="msapplication-square150x150logo" content="img/maskable_icon_x192.png">
-    <!-- Open Graph card -->
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="ImageShare" />
-    <meta property="og:description" content="ImageShare is a web app for sending images and videos to another device, designed for low-end and legacy web browsers." />
-    <meta property="og:image:width" content="512" />
-    <meta property="og:image:height" content="512" />
-    <meta property="og:url" content="https://${webHost}" />
-    <meta property="og:image" content="https://${webHost}/img/maskable_icon_x512.png" />
-    <meta name="og:image:alt" content="ImageShare app icon" />
-    <meta name="twitter:card" content="summary" />
-  </head>`;
-  return htmlString;
-}
-
-// Function to render main page
-function renderMain(passedOptions) {
-  // Set options
-  let data = {
-    // User agent string of the connected client
-    userAgent: passedOptions.userAgent || undefined,
-    // The web domain of the public ImageShare instance (e.g. 'localhost', 'example.com', '192.68.50.100')
-    webHost: passedOptions.webHost,
-    // Setting to force small-screen interface
-    forceMobileMode: false || passedOptions.forceMobileMode,
-    // Path to an uploaded image (e.g. 'uploads/319747f3-a0c2-4492-af05-736da74f6bac.jpg')
-    qrLink: undefined || passedOptions.qrLink,
-    // Path to the shortlink redirecting to the uploaded image (e.g. 'http://localhost/i/e220f')
-    shortLink: undefined || passedOptions.shortLink,
-    // Software title detected from image (e.g. 'THE LEGEND OF ZELDA The Wind Waker HD')
-    softwareTitle: passedOptions.softwareTitle || defaultFileTitle,
-    // Set the footer message for qr panel
-    qrFooter: undefined || passedOptions.qrFooter
-  }
-  // Shorten rendered software title for Nintendo 3DS, because text-overflow: ellipsis doesn't work on responsive-width containers
-  if (data.userAgent.includes('Nintendo 3DS') && (data.softwareTitle.length > 32)) {
-    data.softwareTitle = data.softwareTitle.substring(0, 32) + ' ...';
-  }
-  // Render initial header elements
-  // Background color is defined in <body> attributes for ancient browsers, like Netscape 4.x
-  let htmlString = `<!DOCTYPE html>
-  <html lang="en">
-  ${renderHead(data.userAgent, data.webHost, data.forceMobileMode)}
-  <body bgcolor="#FFFFFF" text="#2c3e50" link="#0d6efd" vlink="#0d6efd" alink="#0a58ca">
-    <div class="container">
-  `;
-  // Show QR code if a file has been uploaded
-  if (data.qrLink) {
-    // Show QR code
-    htmlString += `
-    <div class="panel">
-        <h3 class="panel-title">${data.softwareTitle}</h3>
-        <div align="center">
-          <img class="qr-img" alt="QR code" width="175" height="175" border="0" src="${data.qrLink}">
-        </div>
-        <div class="body">
-          <p class="shortcode-container" align="center">
-            <font face="courier new, monospace">
-              <a href="${data.shortLink}" target="_blank">${data.shortLink}</a>
-            </font>
-          </p>
-          <p>${data.qrFooter}</p>
-        </div>
-      </div>
-    `;
-  }
-  // Render rest of page
-  htmlString += `
-      <!-- Main upload panel -->
-      <div class="panel">
-        <h3 class="panel-title">Upload File</h3>
-        <div class="body">
-          <form action="${data.forceMobileMode ? '/m/' : '/'}" id="upload-form" enctype="multipart/form-data" method="POST" onsubmit="document.getElementById('loading-container').style.display='block';">
-            <p><input name="img" id="imageshare-file-select" type="file" accept="image/*,video/*" /></p>
-            ${imgurClientId ? `
-            <p>
-              <input type="radio" id="upload-type-imageshare" name="upload-type" value="imageshare" class="imageshare-service-radio" checked>
-              <label for="upload-type-imageshare">Upload to ImageShare (temporary)</label>
-              <br />
-              <input type="radio" id="upload-type-imgur" name="upload-type" value="imgur" class="imageshare-service-radio">
-              <label for="upload-type-imgur">Upload to Imgur</label>
-            </p>
-            ` : ''}
-            <p><input name="submit" type="submit" id="imagshare-upload-btn" value="Upload" /></p>
-            <p id="loading-container" style="display:none;" align="center">
-              <img src="/img/loading.gif" alt="Loading">
-            </p>
-            <p>Maximum file size: ${uploadLimit} MB</p>
-          </form>
-          <hr>
-          <p>ImageShare is a web app for sending images and videos to another device, designed for low-end and legacy web browsers. ImageShare is open-source software, see the below links for more information and support.</p>
-          <p style="text-align: center; font-weight: bold;"><a href="https://github.com/corbindavenport/imageshare" target="_blank">github.com/corbindavenport/imageshare</a></p>
-          <p style="text-align: center; font-weight: bold;"><a href="https://discord.gg/tqJDRsmQVn" target="_blank">discord.gg/tqJDRsmQVn</a></p>
-          <p>If you find ImageShare useful, please consider donating to support development and server costs!</p>
-          <p style="text-align: center; font-weight: bold;"><a href="https://www.patreon.com/corbindavenport" target="_blank">patreon.com/corbindavenport</a></p>
-          <p style="text-align: center; font-weight: bold;"><a href="https://cash.app/$corbdav" target="_blank">cash.app/$corbdav</a> • <a href="https://paypal.me/corbindav" target="_blank">paypal.me/corbindav</a></p>
-        </div>
-      </div>
-    </div>
-    <p class="footer">
-        ${data.forceMobileMode ? '<a href="/">Disable mobile mode</a>' : '<a href="/m/">Mobile mode</a>'} • <a href="privacy/">Privacy policy</a>
-        <br /><br />
-        ${data.userAgent}
-    </p>
-  </body>
-  </html>`;
-  return htmlString;
-}
-
-// Function to render error and information messages with a link back to the main page
-function renderMessage(userAgent = '', webHost, forceMobileMode = false, message = '') {
-  let htmlString = `<!DOCTYPE html>
-  <html lang="en">
-  ${renderHead(userAgent, webHost, forceMobileMode)}
-  <body bgcolor="#FFFFFF" text="#2c3e50" link="#0d6efd" vlink="#0d6efd" alink="#0a58ca">
-    <div class="container">
-      <div class="panel">
-        <h3 class="panel-title">Message</h3>
-        <div class="body">
-          <p>${message}</p>
-          <p style="text-align: center; font-weight: bold;"><a href="${forceMobileMode ? '/m/' : '/'}">OK</a></p>
-        </div>
-      </div>
-    </div>
-  </body>
-  </html>`;
-  return htmlString;
-}
-
 // Set up serve-static middleware to serve files from the 'public' folder
 app.use(serveStatic(publicDir));
 
 // Handle POST requests with enctype="multipart/form-data"
-app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err) {
+app.post(['/'], upload.single('img'), async function (req, res, err) {
   // Use HTTPS for shortlink if server is in production mode, or HTTP if not
   const protocol = prodModeEnabled ? 'https' : 'http';
   // Use provided domain name if possible, or connected hostname as fallback
   const connectedHost = (webDomain || req.headers['host']);
-  if (req && req.file && req.file.path) {
+  // Maintain mobile mode if enabled
+  const useMobileMode = req.headers?.referer?.includes("mobile=true");
+  // Process upload
+  if (req?.file?.path) {
     console.log(`Uploaded file: ${req.file.originalname}, MIME type ${req.file.mimetype}`);
-    // Detect software title
-    const softwareTitle = await getSoftwareTitle(req.file.path, req.file.mimetype, req.file.originalname);
-    // If custom software title is detected, run exiftool to save it to the image description
-    // If the image is a detected Wii U software title, also add the make and model to the EXIF data
-    if (req.file.originalname.startsWith('WiiU_') && (softwareTitle != defaultFileTitle)) {
-      spawn('exiftool', [`-Caption-Abstract=${softwareTitle}`, `-ImageDescription=${softwareTitle}`, '-Model=Nintendo Wii U', '-Make=Nintendo', `-overwrite_original`, req.file.path]);
-    } else if (softwareTitle != defaultFileTitle) {
-      spawn('exiftool', [`-Caption-Abstract=${softwareTitle}`, `-ImageDescription=${softwareTitle}`, `-overwrite_original`, req.file.path]);
+    // Detect image metadata
+    let exifData;
+    if (exifFileTypes.includes(req.file.mimetype)) {
+      exifData = await ExifReader.load(req.file.path);
     }
-
-    // Determine whether the user selected to upload to Imgur or ImageShare
-    let uploadResult;
+    // Detect software title
+    const softwareTitle = await getSoftwareTitle(req.file.path, req.file.mimetype, req.file.originalname, exifData);
+    // Create data object for all upload methods
+    let uploadData = {
+      relativePath: req.file.path,
+      absolutePath: path.resolve(req.file.path),
+      originalFileName: req.file.originalname,
+      fileType: req.file.mimetype,
+      title: softwareTitle,
+      origin: `${protocol}://${connectedHost}`,
+      deleteDelay: deleteDelay,
+      userAgent: String(req.get('User-Agent')),
+      exifData: exifData
+    }
+    // Upload file with specified method
+    let uploadResult, uploadMode;
     if (req.body['upload-type'] === 'imgur') {
-      // Verify that the file uploaded is supported by imgur (png and jpeg)
-      if (req.file.mimetype !== 'image/jpeg' && req.file.mimetype !== 'image/png') {
-        // Not valid, return error to user
-        const errorMessage = 'The file you uploaded is not supported by Imgur. Please select a PNG or JPEG image.'
-        res.status(500).send(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), errorMessage));
-        return;
-      } else {
-        // The user uploaded a valid file, upload to Imgur (code is located in src/modules/imgur-upload.js)
-        uploadResult = await uploadToImgur(req.file, softwareTitle, imgurClientId, plausibleDomain, req);
-      }
+      uploadMode = "Imgur"
+      uploadResult = await uploadToImgur(uploadData);
     } else {
-      // Upload to ImageShare
-      uploadResult = await uploadToLocal(req.file, protocol, connectedHost, req, plausibleDomain, deleteDelay);
+      uploadMode = "Native";
+      uploadResult = await uploadToLocal(uploadData);
     }
     // Decide if the upload was successful or not
     if (uploadResult.success) {
+      // Report upload in analytics
+      if (plausibleDomain) {
+        const data = {
+          name: 'Upload',
+          props: JSON.stringify({ 'Upload Mode': uploadMode }),
+          url: '/',
+          domain: uploadData.plausibleDomain
+        }
+        sendAnalytics(req.headers['user-agent'], (req.headers['x-forwarded-for'] || req.ip), data);
+      }
       // Now take the data from the upload response, and display it to the user
-      res.writeHead(200, { 'Content-Type': 'text/html' });
-      res.end(renderMain({
+      res.render("index", {
         userAgent: String(req.get('User-Agent')),
         webHost: connectedHost,
-        forceMobileMode: req.path.startsWith('/m'),
-        qrLink: uploadResult.qrLink,
-        shortLink: uploadResult.link,
+        uploadLimit: uploadLimit,
+        forceMobileMode: useMobileMode,
+        qrLink: uploadResult.publicQrImg,
+        shortLink: uploadResult.publicFileLink,
         softwareTitle: softwareTitle,
-        qrFooter: uploadResult.qrFooter
-      }));
+        qrFooter: uploadResult.userInstructions,
+        imgurClientId: imgurClientId
+      });
     } else {
       // If the upload failed, display an error message to the user
       // Upload Result will contain a reason for the failure, if not set by the uploader's function, it will be set to the universal error message
-      const errorMessage = 'There was an issue uploading your file. Please make sure your upload was valid and try again later.'
-      res.status(500).send(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), errorMessage));
+      const errorMessage = (uploadResult.reason || 'There was an issue uploading your file. Please make sure your upload was valid and try again later.');
+      res.status(500).render("message", {
+        userAgent: String(req.get('User-Agent')),
+        webHost: connectedHost,
+        forceMobileMode: useMobileMode,
+        message: errorMessage
+      });
       return;
     }
   }
@@ -443,8 +336,7 @@ app.post(['/', '/m', '/m/'], upload.single('img'), async function (req, res, err
 
 // Handle requests for main page with a custom-rendered interface
 // The / and /index.html paths are required, the /index.php path retains compatibility with bookmarks for the older PHP-based ImageShare
-// The /m and /m/ paths will force enable the small screen mobile layout
-app.get(['/', '/m', '/m/', '/index.html', '/index.php'], (req, res) => {
+app.get(['/', '/index.html', '/index.php'], (req, res) => {
   // Use provided domain name if possible, or connected hostname as fallback
   const connectedHost = (webDomain || req.headers['host']);
   // Send async Plausible analytics page view if enabled
@@ -458,26 +350,31 @@ app.get(['/', '/m', '/m/', '/index.html', '/index.php'], (req, res) => {
     sendAnalytics(req.get('User-Agent'), (req.headers['x-forwarded-for'] || req.ip), data);
   }
   // Send page
-  res.writeHead(200, { 'Content-Type': 'text/html' });
-  res.end(renderMain({
+  res.render("index", {
     userAgent: String(req.get('User-Agent')),
     webHost: connectedHost,
-    forceMobileMode: req.path.startsWith('/m')
-  }));
+    uploadLimit: uploadLimit,
+    forceMobileMode: req.query?.mobile,
+    imgurClientId: imgurClientId
+  });
 });
+
+// Redirect mobile mode shortcut to URL parameter
+app.get(["/m", "/m/index.html"], function (req, res) {
+  res.redirect("/?mobile=true");
+})
 
 // Handle requests for uploaded file with direct file access
 app.get([/\/uploads\//, '/i/:shortcode'], async (req, res) => {
   // Use provided domain name if possible, or connected hostname as fallback
   const connectedHost = (webDomain || req.headers['host']);
+  // Maintain mobile mode if enabled
+  const useMobileMode = req.headers?.referer?.includes("mobile=true");
   // Get file path
   let reqPath = '';
-  if (req.params?.shortcode) {
+  if (req.params?.shortcode && (req.params?.shortcode in shortLinkObj)) {
     // Request from shortlink
-    let shortLinkCode = req.params.shortcode;
-    if (shortLinkCode in shortLinkObj) {
-      reqPath = shortLinkObj[shortLinkCode];
-    }
+    reqPath = shortLinkObj[req.params?.shortcode];
   } else {
     // Request from full path
     reqPath = req.url;
@@ -488,7 +385,12 @@ app.get([/\/uploads\//, '/i/:shortcode'], async (req, res) => {
     // Check if the file exists before attempting to read it
     if (!fs.existsSync(filePath)) {
       const errorMessage = `This upload could not be found, it may have already been deleted. File uploads on this server are set to expire after ${deleteDelay} ${deleteDelay === 1 ? 'minute' : 'minutes'}.`
-      res.status(404).send(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), errorMessage));
+      res.status(404).render("message", {
+        userAgent: String(req.get('User-Agent')),
+        webHost: connectedHost,
+        forceMobileMode: useMobileMode,
+        message: errorMessage
+      });
       return;
     }
     let data = await fs.promises.readFile(filePath);
@@ -501,74 +403,65 @@ app.get([/\/uploads\//, '/i/:shortcode'], async (req, res) => {
     res.send(data);
   } catch (e) {
     const errorMessage = 'There was an unknown error reading this file.'
-    res.status(200).send(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), errorMessage));
+    res.status(200).render("message", {
+      userAgent: String(req.get('User-Agent')),
+      webHost: connectedHost,
+      forceMobileMode: useMobileMode,
+      message: errorMessage
+    });
     return;
   }
 });
 
 // Handle requests for QR codes
-// TODO: Implement better handling for relative URLs (e.g. local uploads) and full path URLs (e.g. Imgur uploads)
-app.get(/\/qr\//, async (req, res) => {
-  // Use provided domain name if possible, or connected hostname as fallback
-  const connectedHost = (webDomain || req.headers['host']);
-  // Get filename, examples: 0fbb2132-296b-455e-bcbc-107ca9f103e9.jpg, https://i.imgur.com/Yfy4vvy.jpeg
-  const fileName = req.url.replace('/qr/', '');
-  // Use HTTPS for the link if server is in production mode, or HTTP if not
-  const protocol = prodModeEnabled ? 'https' : 'http';
-  // Add the domain to the fileName to make a qrLink, if needed
-  let fullUrl;
-  if (fileName.startsWith('http')) {
-    fullUrl = fileName;
+// Example URL: /qr.png?url=https%3A%2F%2Fi.imgur.com%2FHpuIqt4.jpeg
+app.get("/qr.png", async (req, res) => {
+  // Generate the QR code
+  const qrText = (req.query?.url || "Error generating QR code.");
+  const qrCodeDataURL = await QRCode.toDataURL(qrText, {
+    type: 'image/png',
+    width: 350,
+    margin: 2,
+    errorCorrectionLevel: 'L'
+  });
+  // Convert QR code image to JPEG if the browser does not support PNG
+  let qrCodeBuffer;
+  const supportsPng = (
+    req.headers.accept.includes('image/png') ||
+    req.headers.accept.includes('image/apng') ||
+    req.get('User-Agent').includes('Firefox') ||
+    req.get('User-Agent').includes('Safari') ||
+    req.get('User-Agent').includes('Chrome') ||
+    req.get('User-Agent').includes('Nintendo')
+  );
+  if (supportsPng) {
+    qrCodeBuffer = Buffer.from(qrCodeDataURL.split(',')[1], 'base64');
+    res.setHeader('Content-Type', 'image/png');
   } else {
-    fullUrl = `${protocol}://${connectedHost}/uploads/${fileName}`;
+    qrCodeBuffer = await sharp(Buffer.from(qrCodeDataURL.split(',')[1], 'base64')).jpeg().toBuffer();
+    res.setHeader('Content-Type', 'image/jpeg');
   }
-  const qrLink = fullUrl;
-  try {
-    // Generate the QR code
-    const qrCodeDataURL = await QRCode.toDataURL(qrLink, {
-      type: 'image/png',
-      width: 350,
-      margin: 2,
-      errorCorrectionLevel: 'L'
-    });
-    // Convert image if required
-    let qrCodeBuffer;
-    // Check if browser supports PNG images, including browsers that don't report image types in HTTP headers
-    const supportsPng = (
-      req.headers.accept.includes('image/png') ||
-      req.headers.accept.includes('image/apng') ||
-      req.get('User-Agent').includes('Firefox') ||
-      req.get('User-Agent').includes('Safari') ||
-      req.get('User-Agent').includes('Chrome') ||
-      req.get('User-Agent').includes('Nintendo')
-    );
-    if (supportsPng) {
-      qrCodeBuffer = Buffer.from(qrCodeDataURL.split(',')[1], 'base64');
-      res.setHeader('Content-Type', 'image/png');
-    } else {
-      // Browser may not support inline PNG images, convert it to JPEG
-      qrCodeBuffer = await sharp(Buffer.from(qrCodeDataURL.split(',')[1], 'base64')).jpeg().toBuffer();
-      res.setHeader('Content-Type', 'image/jpeg');
-    }
-    // Send the QR code image as the response
-    res.send(qrCodeBuffer);
-  } catch (error) {
-    const errorMessage = 'There was an unknown error reading this file.'
-    res.status(500).send(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), errorMessage));
-    return;
-  }
+  // Send the QR code image as the response
+  res.send(qrCodeBuffer);
 });
 
 // Link to privacy policy
-app.get(['/privacy', '/privacy/', '/m/privacy', '/m/privacy/'], (req, res) => {
+app.get("/privacy", (req, res) => {
   // Use provided domain name if possible, or connected hostname as fallback
   const connectedHost = (webDomain || req.headers['host']);
+  // Maintain mobile mode if enabled
+  const useMobileMode = req.headers?.referer?.includes("mobile=true");
   // Redirect to privacy policy
   if (privacyUrl) {
     res.redirect(privacyUrl);
   } else {
     const errorMessage = 'Your server administrator has not specified a privacy policy.'
-    res.status(404).send(renderMessage(String(req.get('User-Agent')), connectedHost, req.path.startsWith('/m'), errorMessage));
+    res.status(404).render("message", {
+      userAgent: String(req.get('User-Agent')),
+      webHost: connectedHost,
+      forceMobileMode: useMobileMode,
+      message: errorMessage
+    });
     return;
   }
 });
@@ -586,5 +479,5 @@ const gracefulShutdown = () => {
 process.on('SIGINT', gracefulShutdown);
 process.on('SIGTERM', gracefulShutdown);
 
-// Export the needed functions and objects for use in other modules
-export { sendAnalytics, shortLinkObj };
+// Export shared functions for upload modules
+export { defaultFileTitle, getQrLink }

@@ -1,46 +1,83 @@
 import path from 'path';
 import fs from 'fs';
-import { sendAnalytics, shortLinkObj } from '../app.js';
+import { spawn } from 'node:child_process';
+import { defaultFileTitle, getQrLink } from '../app.js';
 
-// Function to handle local uploads
-async function uploadToLocal(filePath, protocol, connectedHost, req, plausibleDomain, deleteDelay) {
-    const fullPath = path.resolve(filePath.path);
-    return new Promise((resolve) => {
-        let shortLink;
-        do {
-            shortLink = crypto.randomUUID().toString().substring(0, 5);
-        } while (shortLinkObj[shortLink]);
-        shortLinkObj[shortLink] = filePath.path;
-        console.log(`Created shortlink: ${protocol}://${connectedHost}/i/${shortLink}`);
+// Object to store temporary shortlinks
+const shortLinkObj = {};
 
-        // Schedule timeout to delete file and shortlink
-        const delay = deleteDelay * 60 * 1000;
-        setTimeout(async () => {
-            // Delete shortlink
-            delete shortLinkObj[shortLink];
-            console.log(`Deleted shortlink: ${protocol}://${connectedHost}/i/${shortLink}`);
-            // Delete file
-            if (filePath) {
-                fs.unlinkSync(fullPath);
-                console.log(`Deleted file: ${fullPath}`);
-            }
-        }, delay);
+// Time delay for automatically deleting files, in minutes
+const deleteDelay = (parseInt(process.env.AUTODELETE_TIME, 10) || 2);
 
-        // Send async Plausible analytics page view if enabled
-        if (plausibleDomain) {
-            const data = {
-                name: 'Upload',
-                props: JSON.stringify({ 'Upload Mode': 'Native' }),
-                url: '/',
-                domain: plausibleDomain
-            }
-            sendAnalytics(req.get('User-Agent'), (req.headers['x-forwarded-for'] || req.ip), data);
+// File formats that are enabled for EXIF modification
+const supportedExifFiles = [
+    "image/jpeg",
+    "image/tiff",
+    "image/png"
+]
+
+/**
+ * Upload a file with ImageShare's built-in server, and return the live link.
+ * @param {object} uploadData - Object containing data about the uploaded file.
+ * @param {string} uploadData.relativePath - Relative path to the file. Example: `uploads/b296834e-554c-4945-a794-c5284791fe06.JPG`
+ * @param {string} uploadData.absolutePath - Absolute path to the file. Example: `/home/node/app/uploads/b296834e-554c-4945-a794-c5284791fe06.JPG`
+ * @param {string} uploadData.originalFileName - File name when the file was uploaded. Example: `HNI_0055.JPG`
+ * @param {string} uploadData.fileType - MIME type for the file. Example: `image/jpeg`
+ * @param {string} uploadData.title - Detected software title for the file. Example: `Pokémon X`
+ * @param {string} uploadData.origin - The protocol and hostname being used for the client. Example: `https://myimagesite.com`
+ * @param {string} uploadData.userAgent - The User-Agent header for the client. Example: `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 Edg/147.0.0.0 192.168.65.1`
+ * @param {Object | null} uploadData.exifData - EXIF data for the uploaded image. This is null if the data could not be extracted, or if the file isn't an image.
+ * @returns {object} Object containing the live file data.
+ */
+async function uploadToLocal(uploadData) {
+    // Modify EXIF data on uploaded file
+    if (supportedExifFiles.includes(uploadData.fileType.toLowerCase())) {
+        const exifOptions = [];
+        // Add detected software title to image description/caption
+        if (uploadData.title != defaultFileTitle) {
+            exifOptions.push(`-Caption-Abstract=${uploadData.title}`, `-ImageDescription=${uploadData.title}`)
         }
-        // Set the footer message for qr panel
-        const qrFooter = `Scan the QR code or type the link on another device to download the file. You have ${deleteDelay} ${deleteDelay === 1 ? 'minute' : 'minutes'} to save your file before it is deleted.`;
-        // Return success and display results to user :3
-        resolve({ success: true, link: `${protocol}://${connectedHost}/i/${shortLink}`, qrLink: `${filePath.path.replace('uploads/', '/qr/')}`, qrFooter });
-    });
+        // Add make and model to Wii U images, matching the format of Nintendo 3DS images
+        if (uploadData.originalFileName.startsWith('WiiU_') && (uploadData.title != defaultFileTitle)) {
+            exifOptions.push('-Make=Nintendo', '-Model=Nintendo Wii U');
+        }
+        // Add make and model to PlayStation Vita and PSTV screenshots, matching the values of Vita camera photos
+        if (uploadData.userAgent.includes("PlayStation Vita") && (uploadData.exifData?.["Image Width"]?.value === 960) && (uploadData.exifData?.["Image Height"]?.value === 544)) {
+            exifOptions.push('-Make=Sony Interactive Entertainment Inc.', '-Model=PlayStation(R)Vita');
+        }
+        // Add original filename (primarily useful for debugging) and record of metadata editing
+        exifOptions.push("-MetadataEditingSoftware=ImageShare", `-OriginalFileName=${uploadData.originalFileName}`);
+        // Run exiftool asynchronously to write modified EXIF data
+        exifOptions.push("-overwrite_original", uploadData.absolutePath)
+        spawn('exiftool', exifOptions);
+    }
+    // Create shortlink
+    let shortLink;
+    do {
+        shortLink = crypto.randomUUID().toString().substring(0, 5);
+    } while (shortLinkObj[shortLink]);
+    shortLinkObj[shortLink] = uploadData.relativePath;
+    console.log(`Created shortlink: ${uploadData.origin}/i/${shortLink}`);
+    // Schedule timeout to delete file and shortlink
+    const delay = deleteDelay * 60 * 1000;
+    setTimeout(async () => {
+        // Delete shortlink
+        delete shortLinkObj[shortLink];
+        console.log(`Deleted shortlink: ${uploadData.origin}/i/${shortLink}`);
+        // Delete file
+        if (uploadData.absolutePath) {
+            fs.unlinkSync(uploadData.absolutePath);
+            console.log(`Deleted file: ${uploadData.absolutePath}`);
+        }
+    }, delay);
+    // Return upload data
+    const response = {
+        success: true,
+        publicFileLink: `${uploadData.origin}/i/${shortLink}`,
+        publicQrImg: getQrLink(`${uploadData.origin}/${uploadData.relativePath}`),
+        userInstructions: `Scan the QR code on another device to download the file, or type the link. You have ${deleteDelay} ${deleteDelay === 1 ? 'minute' : 'minutes'} to save your file before it is deleted.`
+    }
+    return response;
 }
 
-export { uploadToLocal };
+export { uploadToLocal, shortLinkObj };
