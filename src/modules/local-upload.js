@@ -54,7 +54,7 @@ async function uploadToLocal(uploadData) {
     // Create shortlink
     let shortLink;
     do {
-        shortLink = crypto.randomUUID().toString().substring(0, 5);
+        shortLink = crypto.randomUUID().toString().substring(0, 8);
     } while (shortLinkObj[shortLink]);
     shortLinkObj[shortLink] = uploadData.relativePath;
     console.log(`Created shortlink: ${uploadData.origin}/i/${shortLink}`);
@@ -74,7 +74,7 @@ async function uploadToLocal(uploadData) {
     const response = {
         success: true,
         publicFileLink: `${uploadData.origin}/i/${shortLink}`,
-        publicQrImg: getQrLink(`${uploadData.origin}/${uploadData.relativePath}`),
+        publicQrImg: getQrLink(`${uploadData.origin}/i/${shortLink}`),
         userInstructions: `Scan the QR code on another device to download the file, or type the link. You have ${deleteDelay} ${deleteDelay === 1 ? 'minute' : 'minutes'} to save your file before it is deleted.`
     }
     return response;

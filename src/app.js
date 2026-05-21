@@ -468,12 +468,12 @@ app.get("/privacy", (req, res) => {
 
 // Start the HTTP server
 app.listen(8080, () => {
-  console.log(`Server is running`);
+  console.log("Server is running!");
 });
 
 // Listen for termination signals
 const gracefulShutdown = () => {
-  console.log('Received shutdown signal, closing server...');
+  console.log("Received shutdown signal, closing server...");
   process.exit(0);
 };
 process.on('SIGINT', gracefulShutdown);
