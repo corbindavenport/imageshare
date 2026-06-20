@@ -15,7 +15,7 @@
     "express": "5.1.0",
     "form-data": "4.0.5",
     "mime": "4.0.7",
-    "multer": "2.1.1",
+    "multer": "2.2.0",
     "path": "0.12.7",
     "qrcode": "1.5.4",
     "serve-static": "2.2.0",
