@@ -1,0 +1,1 @@
+This directory contains unmodified images and videos from various game consoles. These can be used for testing platform and game title detection in ImageShare.

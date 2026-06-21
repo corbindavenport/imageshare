@@ -30,7 +30,7 @@ a:visited {
 	text-decoration: none;
 	word-wrap: wrap-word;
 	word-break: break-all;
-	display: inline-block;
+	display: inline;
 }
 
 a:hover {

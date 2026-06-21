@@ -1,4 +1,4 @@
-FROM node:24-alpine
+FROM node:26-alpine
 
 ## Set up exiftool for checking game title from Nintendo 3DS images
 
