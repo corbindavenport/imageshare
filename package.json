@@ -11,11 +11,11 @@
   "author": "Corbin Davenport",
   "license": "GPL-3.0",
   "dependencies": {
-    "ejs": "5.0.2",
-    "exifreader": "4.38.1",
+    "ejs": "6.0.1",
+    "exifreader": "4.41.0",
     "express": "5.2.1",
     "mime": "4.1.0",
-    "multer": "2.1.1",
+    "multer": "2.2.0",
     "qrcode": "1.5.4",
     "serve-static": "2.2.1",
     "sharp": "0.34.5"
