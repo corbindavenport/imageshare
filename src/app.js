@@ -95,7 +95,6 @@ const upload = multer({
  * @returns {string} A file extension. Example: `.gif`
  */
 function getFileExtension(mimeType) {
-  console.log(mimeType)
   const detectedType = mime.getExtension(mimeType);
   if (detectedType) {
     return `.${detectedType}`;

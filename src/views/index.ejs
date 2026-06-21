@@ -106,11 +106,10 @@
     </div>
     <p class="footer">
         <% if(locals.forceMobileMode){ %>
-            <a href="/">Disable mobile mode</a>
+            <a href="/">Disable mobile mode</a> • <a href="privacy/">Privacy policy</a>
         <% } else{ %>
-            <a href="/?mobile=true">Mobile mode</a>
+            <a href="/?mobile=true">Mobile mode</a> • <a href="privacy/">Privacy policy</a>
         <% } %>
-         • <a href="privacy/">Privacy policy</a>
         <br /><br />
         <%= locals.userAgent %>
     </p>
