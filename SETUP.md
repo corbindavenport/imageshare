@@ -1,8 +1,10 @@
 # How to host ImageShare
 
-ImageShare is built to run as a multi-container Docker application, using Nginx as the reverse proxy web server, Node as the application server, and Let's Encrypt Certbot for obtaining an SSL certificate. The custom Ngix configuration and Certbot allows ImageShare to load over both HTTP and HTTPS, without forcing an HTTPS connection. This setup means ImageShare is available on legacy browsers that have outdated certificate chains or no SSL support at all, and works on just about any host operating system.
+ImageShare is built to run as a multi-container Docker application, using Nginx as the reverse proxy web server, Node as the application server, and Let's Encrypt Certbot for obtaining an SSL certificate. The custom Ngix configuration and Certbot allows ImageShare to load over both HTTP and HTTPS, without forcing an HTTPS connection. This setup means ImageShare is available on legacy browsers that have outdated certificate chains or no SSL support at all.
 
 This guide assumes you have some knowledge of Docker ([this video](https://www.youtube.com/watch?v=Gjnup-PuquQ) is a simple overview). You also need [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed for running locally.
+
+**Note:** These instructions are written primarily for a Linux or macOS system. It should work on Windows, but some of the commands might be different.
 
 ## Docker Compose files
 
@@ -17,21 +19,21 @@ Setting up ImageShare on a production server involves using the `docker-compose`
 
 First, clone the ImageShare repository, if you haven't already:
 
-```
+```shell
 git clone https://github.com/corbindavenport/imageshare.git
 cd imageshare
 ```
 
-Create a new plain text file in the root directory (same folder as this document) called `.env`, with `UPLOAD_LIMIT=20` and  `IMGUR_KEY=idGoesHere` as the only lines. You can do it manually or with this command:
+Create a new plain text file in the root directory (same folder as this document) called `.env`, with `UPLOAD_LIMIT=20`  as the first line. You can make it in a text editor, or with this command:
 
-```
+```shell
 printf "UPLOAD_LIMIT=20" > .env
 ```
 This sets the file size limit for uploaded files at 20MB, and leaves all other options as the defaults. See the [full list of settings](#list-of-imageshare-settings) for more information.
 
 Finally, start the ImageShare server like this:
 
-```
+```shell
 docker compose -f docker-compose.yml up --build
 ```
 
@@ -39,7 +41,7 @@ ImageShare should now be accessible in your web browser from `http://localhost`.
 
 When you're done, run this command to shut down the containers:
 
-```
+```shell
 docker compose down
 ```
 
@@ -47,7 +49,7 @@ docker compose down
 
 You need a server with Docker and Docker Compose installed. I used the [pre-configured Docker droplet from DigitalOcean](https://marketplace.digitalocean.com/apps/docker). Clone the ImageShare repository on your server, if you haven't already:
 
-```
+```shell
 git clone https://github.com/corbindavenport/imageshare.git
 cd imageshare
 ```
@@ -56,7 +58,7 @@ You need a web doman to use for public access. If you want to retain compatibili
 
 Create a new plain text file in the root directory (same folder as this readme) called `.env` to store your settings. The only required settings are the domain and the file size limit on uploads (in megabytes). However, specifying a privacy policy page is recommended.
 
-```
+```shell
 DOMAIN=yourwebsitegoeshere.com
 UPLOAD_LIMIT=20
 PRIVACY_POLICY="https://www.example.com/privacy/"
@@ -73,19 +75,19 @@ Next, set the DNS settings for your domain like this:
 
 Then start the regular ImageShare server:
 
-```
+```shell
 docker compose -f docker-compose.yml up
 ```
 
 ImageShare should now be running at the server's IP address. It will automatically run Certbot to create the certificate, and you will see a confirmation message if it worked. If it didn't work (e.g. if your DNS configuration wasn't fully applied yet), you can either restart the ImageShare server or just restart the Certbot container:
 
-```
+```shell
 docker compose restart certbot
 ```
 
 Once you have your certificate, shut down the default server and start up the production server:
 
-```
+```shell
 docker compose down
 docker compose -f docker-compose-prod.yml up
 ```
@@ -96,19 +98,19 @@ Your ImageShare server should now be accessible over both HTTP and HTTPS connect
 
 You can automate the certificate renewal so SSL continues to work without manual renewals. On Linux systems, create a crontab like this:
 
-```
+```shell
 crontab -e
 ```
 
 Add the following line to the end of the file, replacing the path to the compose file with the correct path. This runs the certbot renew command each day at 3 AM to check if a certificate must be renewed:
 
-```
+```shell
 0 3 * * * /usr/bin/docker compose -f /home/exampleuser/imageshare/docker-compose-prod.yml run --rm certbot renew
 ```
 
 You also need to add a line for restarting the server to apply changes. This is an example that restarts the web server service each Tuesday at 4 AM, in case there is a new certificate:
 
-```
+```shell
 0 4 * * 2 /usr/bin/docker compose -f /home/exampleuser/imageshare/docker-compose-prod.yml restart webserver
 ```
 
@@ -118,7 +120,7 @@ The core ImageShare server continues running during the restart command, with up
 
 To apply new changes, such as edited config files or a new version pulled from GitHub, shut down the containers and start them with `--build`, like this:
 
-```
+```shell
 docker compose down
 docker compose -f docker-compose.yml up --build
 ```
@@ -139,7 +141,7 @@ This is a complete list of configuration options in ImageShare with the `.env` f
 
 This is a sample `.env` file for a production server with Plausible Analytics enabled:
 
-```
+```ini
 DOMAIN=myimageshare.com
 PLAUSIBLE_DOMAIN=myimageshare.com
 UPLOAD_LIMIT=5
@@ -161,13 +163,13 @@ Next, open the Custom Properties page, and create a new property called "Upload 
 
 Next, add the Plausible domain to your server `.env` file like this:
 
-```
+```ini
 PLAUSIBLE_DOMAIN=yourdomain.com
 ```
 
 Finally, apply your settings by restarting the server. If you're running the production server, replace `docker-compose.yml` with `docker-compose-prod.yml` in the below example.
 
-```
+```shell
 docker compose down
 docker compose -f docker-compose.yml up
 ```
@@ -188,13 +190,13 @@ To start, visit the [add client page](https://api.imgur.com/oauth2/addclient) on
 
 Imgur will give you a Client ID and a Client Secret. Next, add the Imgur client ID to your server `.env` file like this:
 
-```
+```ini
 IMGUR_KEY=client-id-here
 ```
 
 Finally, apply your settings by restarting the server. If you're running the production server, replace `docker-compose.yml` with `docker-compose-prod.yml` in the below example.
 
-```
+```shell
 docker compose down
 docker compose -f docker-compose.yml up
 ```
