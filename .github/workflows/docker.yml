@@ -26,6 +26,8 @@ jobs:
       output: image
       push: ${{ github.event_name != 'pull_request' }}
       meta-images: corbindavenport/imageshare
+      meta-flavor: |
+        latest=true
       platforms: linux/amd64,linux/arm64
     secrets:
       registry-auths: |
