@@ -1,4 +1,6 @@
 # Action to build Docker images for ImageShare
+# Action documentation: https://github.com/docker/github-builder
+# Runners documentation: https://docs.github.com/en/actions/reference/runners/github-hosted-runners#supported-runners-and-hardware-resources
 
 name: Build Docker images
 on:
@@ -23,7 +25,7 @@ jobs:
     with:
       output: image
       push: ${{ github.event_name != 'pull_request' }}
-      meta-images: name/app
+      meta-images: corbindavenport/imageshare
       platforms: linux/amd64,linux/arm64
     secrets:
       registry-auths: |
