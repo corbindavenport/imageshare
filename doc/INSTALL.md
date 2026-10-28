@@ -1,6 +1,6 @@
 # Installing ImageShare
 
-This page explains the various options for install ImageShare on a desktop, NAS, or server. If you're not sure which one to pick, try the Docker Desktop method.
+This page explains how to install ImageShare on your own computer, NAS, or home server. If you're new to self-hosting and containers, try the [Docker Desktop method](#docker-desktop).
 
 For running ImageShare on a public web server, see the [production guide](PROD.md).
 
@@ -43,7 +43,7 @@ For examples of running ImageShare in Docker Compose with HTTPS support, see the
 
 ## Docker Desktop
 
-You can run ImageShare in [Docker Desktop](https://www.docker.com/products/docker-desktop/) on Windows, Mac, and desktop Linux.
+You can also run ImageShare in [Docker Desktop](https://www.docker.com/products/docker-desktop/) on Windows, Mac, and desktop Linux.
 
 First, open ImageShare in Docker Desktop by [clicking here](https://open.docker.com/dashboard/docker-hub/image?name=corbindavenport/imageshare&type=image&tag=latest) or by typing "corbindavenport/imageshare" in the search bar at the top of the window. Make sure the "latest" tag is selected, then click the "Pull" button. Wait for the download to finish.
 
