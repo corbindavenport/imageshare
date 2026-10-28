@@ -5,7 +5,7 @@
 
 services:
   imageshare:
-    image: corbindavenport/imageshare:latest
+    image: docker.io/corbindavenport/imageshare:latest
     container_name: imageshare
     restart: unless-stopped
     networks:

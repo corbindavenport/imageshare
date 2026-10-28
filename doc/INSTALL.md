@@ -68,7 +68,7 @@ You can stop the server by clicking the Stop ⏹️ button in Docker Desktop. To
 If you have the [Docker Engine](https://docs.docker.com/engine/install/) installed, you can run ImageShare like this:
 
 ```bash
-docker run -p 8080:8080 --env UPLOAD_LIMIT=20 corbindavenport/imageshare:latest
+docker run -p 8080:8080 --env UPLOAD_LIMIT=20 docker.io/corbindavenport/imageshare:latest
 ```
 
 ImageShare will be accessible at `http://localhost:8080` in your computer's web browser, and other devices on your network can open it by replacing `localhost` with your computer's local IP address. 
