@@ -77,7 +77,7 @@ Check the [settings documentation](SETTINGS.md) for a full list of options you c
 
 ## Apple Container
 
-You can run ImageShare in [Apple's Container tool](https://github.com/apple/container) as an alternative to Docker Desktop or the Docker CLI. Container is available from [GitHub](https://github.com/apple/container/releases) or [Homebrew](https://formulae.brew.sh/formula/container).
+You can run ImageShare in [Apple's Container tool](https://github.com/apple/container) on an Apple Silicon Mac, as an alternative to Docker Desktop or the Docker CLI. The tool is available from [GitHub](https://github.com/apple/container/releases) or [Homebrew](https://formulae.brew.sh/formula/container).
 
 After the tool is installed, start the Container service, and install the recommended kernel if asked.
 
@@ -94,9 +94,38 @@ container registry login --username <USERNAME> docker.io
 Then you can download and run ImageShare with the `container run` command.
 
 ```shell
-container run -p -p 8080:8080 --env UPLOAD_LIMIT=20 docker.io/corbindavenport/imageshare:latest
+container run -p 8080:8080 --env UPLOAD_LIMIT=20 docker.io/corbindavenport/imageshare:latest
 ```
 
 ImageShare will be accessible at `http://localhost:8080` in your computer's web browser, and other devices on your network can open it by replacing `localhost` with your Mac's local IP address. 
 
 Check the [settings documentation](SETTINGS.md) for a full list of options you can add as environment variables.
+
+## Bare metal (no container)
+
+ImageShare can be run without a container, but this configuration isn't as well-tested. You need [Node.js](https://nodejs.org/), [exiftool](https://exiftool.org/), and [Git](https://git-scm.com/install/) installed on the host system.
+
+First, clone the ImageShare repository to your system, replacing `main` with a specific [tagged version](https://github.com/corbindavenport/imageshare/tags) if desired:
+
+```shell
+git clone https://github.com/corbindavenport/imageshare.git -b main imageshare
+cd imageshare
+```
+
+Next, install the Node.js dependencies:
+
+```shell
+npm install --ignore-scripts
+```
+
+Finally, run the server with Node: 
+
+```
+UPLOAD_LIMIT=20 npm start
+```
+
+ImageShare will be accessible at `http://localhost:8080` in your computer's web browser, and other devices on your network can open it by replacing `localhost` with your computer's local IP address.
+
+Check the [settings documentation](SETTINGS.md) for a full list of options. The environment variables go before `npm` in the command.
+
+To update ImageShare in the future, run `git pull` while in the `main` branch, or run `checkout` with a specific tagged version, then start the server again.
