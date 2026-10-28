@@ -2,7 +2,7 @@ FROM node:26-alpine
 
 ## Set up exiftool for checking game title from Nintendo 3DS images
 
-RUN apk add exiftool
+RUN apk add --no-cache exiftool
 
 # Set up node server and dependencies
 
