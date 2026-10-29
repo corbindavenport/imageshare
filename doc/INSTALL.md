@@ -21,7 +21,7 @@ Next, download the [Docker Compose example file](https://raw.githubusercontent.c
 curl "https://raw.githubusercontent.com/corbindavenport/imageshare/refs/heads/main/doc/docker-compose.yaml" -o docker-compose.yaml
 ```
 
-You can open the file in your preferred text editor to change any options. The default port for the web server is `8080`. For more details on how to use the environment variables, see the [settings documentation](SETTINGS.md).
+You can open the file in your preferred text editor to change any options. The default exposed port is `8080`. For more details on how to use the environment variables, see the [settings documentation](SETTINGS.md).
 
 Start the container with this command:
 
@@ -68,7 +68,7 @@ You can stop the server by clicking the Stop ⏹️ button in Docker Desktop. To
 If you have the [Docker Engine](https://docs.docker.com/engine/install/) installed, you can run ImageShare like this:
 
 ```bash
-docker run -p 8080:8080 --env UPLOAD_LIMIT=20 docker.io/corbindavenport/imageshare:latest
+docker run -p 8080:80 --env UPLOAD_LIMIT=20 docker.io/corbindavenport/imageshare:latest
 ```
 
 ImageShare will be accessible at `http://localhost:8080` in your computer's web browser, and other devices on your network can open it by replacing `localhost` with your computer's local IP address. 
@@ -94,7 +94,7 @@ container registry login --username <USERNAME> docker.io
 Then you can download and run ImageShare with the `container run` command.
 
 ```shell
-container run -p 8080:8080 --env UPLOAD_LIMIT=20 docker.io/corbindavenport/imageshare:latest
+container run -p 8080:80 --env UPLOAD_LIMIT=20 docker.io/corbindavenport/imageshare:latest
 ```
 
 ImageShare will be accessible at `http://localhost:8080` in your computer's web browser, and other devices on your network can open it by replacing `localhost` with your Mac's local IP address. 

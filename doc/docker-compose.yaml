@@ -24,7 +24,7 @@ services:
       #IMGUR_KEY: yourclientidgoeshere
     ports:
       # The first number is the port on the host, so ImageShare would be accessible from localhost:8080
-      - 8080:8080
+      - 8080:80
 
 networks:
   imageshare:

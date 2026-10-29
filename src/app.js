@@ -466,7 +466,7 @@ app.get("/privacy", (req, res) => {
 });
 
 // Start the HTTP server
-app.listen(8080, () => {
+app.listen(80, () => {
   console.log(`\nImageShare web server is running: ${prodModeEnabled ? 'https' : 'http'}://${(webDomain || 'localhost')}\n`);
 });
 

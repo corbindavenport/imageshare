@@ -1,27 +1,16 @@
 FROM node:26-alpine
 
-## Set up exiftool for checking game title from Nintendo 3DS images
-
+## Install exiftool for reading and writing image metadata
 RUN apk add --no-cache exiftool
 
 # Set up node server and dependencies
-
-RUN mkdir -p /home/node/app/node_modules && chown -R node:node /home/node/app
-
-WORKDIR /home/node/app
-
-COPY package*.json ./
-
-RUN chown -R node:node /home/node/app/package*.json
-
-USER node
-
-RUN npm install --ignore-scripts
-
-COPY --chown=node:node . .
+ENV NODE_ENV=production
+WORKDIR /app
+COPY --chown=node:node ./src ./src
+COPY --chown=node:node ./public ./public
+COPY --chown=node:node ./*.json .
+RUN npm ci --only=production --ignore-scripts
 
 # Run server
-
-EXPOSE 8080
-
+EXPOSE 80
 CMD [ "node", "src/app.js" ]
