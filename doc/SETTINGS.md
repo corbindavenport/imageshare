@@ -6,7 +6,7 @@ This is a complete list of configuration options in ImageShare with the `.env` f
 | ------- | ------------- | ----------- |
 | `DOMAIN` | `yourdomain.com` | The web domain for the ImageShare server, used in generating QR codes, image shortlinks, and other functions. If left blank, ImageShare will use the IP address from the connected client. For example, the shortlink might look like `http://192.168.50.28/i/559e5`. |
 | `PLAUSIBLE_DOMAIN` | `yourdomain.com` | The domain used for Plausible Analytics, the feature is turned off if the setting isn't defined. See the [Plausible Analytics section](#enable-plausible-analytics) for more information. |
-| `UPLOAD_LIMIT` | `10` | The file size limit for uploads, measured in Megabytes. This is the only setting that is required. |
+| `UPLOAD_LIMIT` | `20` | The file size limit for uploads, measured in Megabytes. |
 | `AUTODELETE_TIME` | `2` | The time delay to automatically delete files, measured in minutes. If you are running a public server, this should be a low number to prevent possibly-malicious content from remaining accessible for too long. |
 | `IMGUR_KEY` | `740273babac99b0` | This enables Imgur API upload support. See the [Imgur section](#enable-imgur-support) for more information. |
 
