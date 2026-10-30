@@ -63,11 +63,16 @@ Production mode: ${prodModeEnabled ? 'Enabled' : 'Disabled'}
 Imgur support: ${imgurClientId ? 'Enabled' : 'Disabled'}
 `);
 
-// Create uploads folder, and delete existing one if present
+// Create uploads folder on startup, if it doesn't exist
+// Leftover uploads from previous runs are also deleted
 if (fs.existsSync('uploads')) {
-  fs.rmSync('uploads', { recursive: true, force: true });
+  for (const file of fs.readdirSync('uploads')) {
+    let thisFile = path.resolve('uploads', file)
+    fs.rmSync(thisFile, { recursive: true, force: true });
+  }
+} else {
+  fs.mkdirSync('uploads');
 }
-fs.mkdirSync('uploads');
 
 // Set storage for uploads
 const storage = multer.diskStorage({
@@ -478,5 +483,5 @@ const gracefulShutdown = () => {
 process.on('SIGINT', gracefulShutdown);
 process.on('SIGTERM', gracefulShutdown);
 
-// Export shared functions for upload modules
-export { defaultFileTitle, getQrLink }
+// Export shared functions and variables for upload modules
+export { defaultFileTitle, getQrLink, deleteDelay }
