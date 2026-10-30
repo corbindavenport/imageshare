@@ -27,6 +27,15 @@ Next, install the Node.js dependencies:
 npm install --ignore-scripts
 ```
 
+If you want to configure [settings](SETTINGS.md), create an `.env` text file in the root directory (same folder as `Dockerfile`) like this:
+
+```
+AUTODELETE_TIME=2
+UPLOAD_LIMIT=50
+```
+
+If you don't have a `.env` file, the Node runtime will try to read the settings from your system's environment variables.
+
 Finally, run ImageShare:
 
 ```shell
