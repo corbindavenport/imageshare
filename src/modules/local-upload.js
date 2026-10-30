@@ -1,13 +1,10 @@
 import path from 'path';
 import fs from 'fs';
 import { spawn } from 'node:child_process';
-import { defaultFileTitle, getQrLink } from '../app.js';
+import { defaultFileTitle, getQrLink, deleteDelay } from '../app.js';
 
 // Object to store temporary shortlinks
 const shortLinkObj = {};
-
-// Time delay for automatically deleting files, in minutes
-const deleteDelay = (parseInt(process.env.AUTODELETE_TIME, 10) || 2);
 
 // File formats that are enabled for EXIF modification
 const supportedExifFiles = [
@@ -65,7 +62,7 @@ async function uploadToLocal(uploadData) {
         delete shortLinkObj[shortLink];
         console.log(`Deleted shortlink: ${uploadData.origin}/i/${shortLink}`);
         // Delete file
-        if (uploadData.absolutePath) {
+        if (uploadData.absolutePath && fs.existsSync(uploadData.absolutePath)) {
             fs.unlinkSync(uploadData.absolutePath);
             console.log(`Deleted file: ${uploadData.absolutePath}`);
         }

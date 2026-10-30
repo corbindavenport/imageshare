@@ -5,7 +5,7 @@
   "type": "module",
   "main": "src/app.js",
   "scripts": {
-    "start": "node src/app.js",
+    "start": "node --env-file-if-exists=.env src/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Corbin Davenport",

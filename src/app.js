@@ -18,9 +18,9 @@ app.set("view engine", "ejs");
 const webDomain = process.env.DOMAIN;
 // Domain used for Plausible analytics
 const plausibleDomain = process.env.PLAUSIBLE_DOMAIN;
-// File size limit for uploads in MB
-const uploadLimit = parseInt(process.env.UPLOAD_LIMIT, 10);
-// Time delay for automatically deleting files, in minutes
+// File size limit for uploads in MB, default is 20 MB
+const uploadLimit = (parseInt(process.env.UPLOAD_LIMIT, 10) || 20);
+// Time delay for automatically deleting files, in minutes, default is 2 minutes
 const deleteDelay = (parseInt(process.env.AUTODELETE_TIME, 10) || 2);
 // Default name for file uploads
 const defaultFileTitle = 'ImageShare Upload';
@@ -63,11 +63,19 @@ Production mode: ${prodModeEnabled ? 'Enabled' : 'Disabled'}
 Imgur support: ${imgurClientId ? 'Enabled' : 'Disabled'}
 `);
 
-// Create uploads folder, and delete existing one if present
+// Create uploads folder on startup, if it doesn't exist
+// Leftover uploads from previous runs are also deleted
 if (fs.existsSync('uploads')) {
-  fs.rmSync('uploads', { recursive: true, force: true });
+  for (const file of fs.readdirSync('uploads')) {
+    let thisFile = path.resolve('uploads', file)
+    fs.rmSync(thisFile, { recursive: true, force: true });
+  }
+} else {
+  fs.mkdirSync('uploads');
 }
-fs.mkdirSync('uploads');
+
+// Create reminder in uploads folder that contents are temporary
+fs.writeFileSync(path.resolve('uploads', '! THESE FILES WILL BE AUTOMATICALLY DELETED !'), '');
 
 // Set storage for uploads
 const storage = multer.diskStorage({
@@ -466,7 +474,7 @@ app.get("/privacy", (req, res) => {
 });
 
 // Start the HTTP server
-app.listen(8080, () => {
+app.listen(80, () => {
   console.log(`\nImageShare web server is running: ${prodModeEnabled ? 'https' : 'http'}://${(webDomain || 'localhost')}\n`);
 });
 
@@ -478,5 +486,5 @@ const gracefulShutdown = () => {
 process.on('SIGINT', gracefulShutdown);
 process.on('SIGTERM', gracefulShutdown);
 
-// Export shared functions for upload modules
-export { defaultFileTitle, getQrLink }
+// Export shared functions and variables for upload modules
+export { defaultFileTitle, getQrLink, deleteDelay }
