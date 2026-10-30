@@ -74,6 +74,9 @@ if (fs.existsSync('uploads')) {
   fs.mkdirSync('uploads');
 }
 
+// Create reminder in uploads folder that contents are temporary
+fs.writeFileSync(path.resolve('uploads', '! THESE FILES WILL BE AUTOMATICALLY DELETED !'), '');
+
 // Set storage for uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
