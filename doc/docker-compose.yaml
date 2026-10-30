@@ -8,6 +8,9 @@ services:
     image: docker.io/corbindavenport/imageshare:latest
     container_name: imageshare
     restart: unless-stopped
+    volumes:
+      ## Mount the uploads folder to the host system
+      #- ./uploads:/app/uploads
     networks:
      - imageshare
     environment:
@@ -16,7 +19,7 @@ services:
       # The time delay to automatically delete files, measured in minutes. If you are running a public server, this should be a low number to prevent possibly-malicious content from remaining accessible.
       AUTODELETE_TIME: 2
       ## The web domain for the ImageShare server, used in generating QR codes, image shortlinks, and other functions. If left blank, ImageShare will use the IP address from the connected client.
-      # DOMAIN: yourdomain.com
+      #DOMAIN: yourdomain.com
       ## The domain used for Plausible Analytics. The domain used for Plausible Analytics, the feature is turned off if the setting isn't defined.
       #PLAUSIBLE_DOMAIN: yourdomain.com
       ## The time delay to automatically delete files, measured in minutes. If you are running a public server, this should be a low number to prevent possibly-malicious content from remaining accessible for too long.
