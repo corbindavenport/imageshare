@@ -62,7 +62,7 @@ async function uploadToLocal(uploadData) {
         delete shortLinkObj[shortLink];
         console.log(`Deleted shortlink: ${uploadData.origin}/i/${shortLink}`);
         // Delete file
-        if (uploadData.absolutePath) {
+        if (uploadData.absolutePath && fs.existsSync(uploadData.absolutePath)) {
             fs.unlinkSync(uploadData.absolutePath);
             console.log(`Deleted file: ${uploadData.absolutePath}`);
         }
