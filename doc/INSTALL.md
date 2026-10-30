@@ -103,29 +103,4 @@ Check the [settings documentation](SETTINGS.md) for a full list of options you c
 
 ## Bare metal (no container)
 
-ImageShare can be run without a container, but this configuration isn't as well-tested. You need [Node.js](https://nodejs.org/), [exiftool](https://exiftool.org/), and [Git](https://git-scm.com/install/) installed on the host system.
-
-First, clone the ImageShare repository to your system, replacing `main` with a specific [tagged version](https://github.com/corbindavenport/imageshare/tags) if desired:
-
-```shell
-git clone https://github.com/corbindavenport/imageshare.git -b main imageshare
-cd imageshare
-```
-
-Next, install the Node.js dependencies:
-
-```shell
-npm install --ignore-scripts
-```
-
-Finally, run the server with Node: 
-
-```
-UPLOAD_LIMIT=20 npm start
-```
-
-ImageShare will be accessible at `http://localhost:8080` in your computer's web browser, and other devices on your network can open it by replacing `localhost` with your computer's local IP address.
-
-Check the [settings documentation](SETTINGS.md) for a full list of options. The environment variables go before `npm` in the command.
-
-To update ImageShare in the future, run `git pull` while in the `main` branch, or run `checkout` with a specific tagged version, then start the server again.
+ImageShare can be run without a container, but that configuration is primarily intended for development. See the [development guide](DEV.md).
