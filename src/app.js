@@ -510,4 +510,4 @@ process.on('SIGINT', gracefulShutdown);
 process.on('SIGTERM', gracefulShutdown);
 
 // Export shared functions and variables for upload modules
-export { defaultFileTitle, getQrLink, deleteDelay, savePermanentFile }
+export { defaultFileTitle, getQrLink, deleteDelay, savePermanentFile, imgurClientId }

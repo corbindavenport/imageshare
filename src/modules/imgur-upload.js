@@ -1,9 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { getQrLink } from '../app.js';
-
-// Imgur API key
-const imgurClientId = process.env.IMGUR_KEY;
+import { getQrLink, imgurClientId, savePermanentFile } from '../app.js';
 
 // Supported MIME types for Imgur uploads
 // Source: https://apidocs.imgur.com/#c85c9dfc-7487-4de2-9ecd-66f727cf3139
@@ -86,6 +83,8 @@ async function uploadToImgur(uploadData) {
         const body = await response.json();
         // Check if upload was successful and handle accordingly        
         if (body.success) {
+            // Save permanent copy if the setting is enabled, but only after exiftool is done
+            savePermanentFile(uploadData.absolutePath);
             // Remove cached file
             fs.unlinkSync(uploadData.absolutePath);
             console.log(`Deleted cached file: ${uploadData.absolutePath}`);
