@@ -33,6 +33,9 @@
             <div class="body">
                 <form action="/" id="upload-form" enctype="multipart/form-data" method="POST" onsubmit="document.getElementById('loading-container').style.display='block';">
                     <p><input name="img" id="imageshare-file-select" type="file" accept="image/*,video/*" /></p>
+                    <% if (locals.userAgent.includes('Nintendo 3DS') && (!(locals.userAgent.includes('New Nintendo 3DS')))) { %>
+                        <p><small>Your Nintendo 3DS model does not support video uploads.</small></p>
+                    <% } %>
                     <% if(locals.imgurClientId){ %>
                     <p>
                         <input type="radio" id="upload-type-imageshare" name="upload-type" value="imageshare" class="imageshare-service-radio" checked>
