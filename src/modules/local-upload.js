@@ -16,7 +16,6 @@ const supportedExifFiles = [
 /**
  * Upload a file with ImageShare's built-in server, and return the live link.
  * @param {object} uploadData - Object containing data about the uploaded file.
- * @param {string} uploadData.relativePath - Relative path to the file. Example: `uploads/b296834e-554c-4945-a794-c5284791fe06.JPG`
  * @param {string} uploadData.absolutePath - Absolute path to the file. Example: `/home/node/app/uploads/b296834e-554c-4945-a794-c5284791fe06.JPG`
  * @param {string} uploadData.originalFileName - File name when the file was uploaded. Example: `HNI_0055.JPG`
  * @param {string} uploadData.fileType - MIME type for the file. Example: `image/jpeg`
@@ -57,7 +56,7 @@ async function uploadToLocal(uploadData) {
     do {
         shortLink = crypto.randomUUID().toString().substring(0, 8);
     } while (shortLinkObj[shortLink]);
-    shortLinkObj[shortLink] = uploadData.relativePath;
+    shortLinkObj[shortLink] = uploadData.absolutePath;
     console.log(`Created shortlink: ${uploadData.origin}/i/${shortLink}`);
     // Schedule timeout to delete file and shortlink
     const delay = deleteDelay * 60 * 1000;

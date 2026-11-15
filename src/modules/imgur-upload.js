@@ -24,7 +24,6 @@ const supportedTypes = [
 /**
  * Upload the file as an Imgur anonymous upload, and return the public post.
  * @param {object} uploadData - Object containing data about the uploaded file.
- * @param {string} uploadData.relativePath - Relative path to the file. Example: `uploads/b296834e-554c-4945-a794-c5284791fe06.JPG`
  * @param {string} uploadData.absolutePath - Absolute path to the file. Example: `/home/node/app/uploads/b296834e-554c-4945-a794-c5284791fe06.JPG`
  * @param {string} uploadData.originalFileName - File name when the file was uploaded. Example: `HNI_0055.JPG`
  * @param {string} uploadData.fileType - MIME type for the file. Example: `image/jpeg`

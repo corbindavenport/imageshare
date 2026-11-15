@@ -306,7 +306,6 @@ app.post(['/'], upload.single('img'), async function (req, res, err) {
     const softwareTitle = await getSoftwareTitle(req.file.path, req.file.mimetype, req.file.originalname, exifData);
     // Create data object for all upload methods
     let uploadData = {
-      relativePath: req.file.path,
       absolutePath: path.resolve(req.file.path),
       originalFileName: req.file.originalname,
       fileType: req.file.mimetype,
@@ -400,18 +399,17 @@ app.get([/\/uploads\//, '/i/:shortcode'], async (req, res) => {
   const connectedHost = (webDomain || req.headers['host']);
   // Maintain mobile mode if enabled
   const useMobileMode = req.headers?.referer?.includes("mobile=true");
-  // Get file path
-  let reqPath = '';
+  // Get absolute file path
+  let filePath = '';
   if (req.params?.shortcode && (req.params?.shortcode in shortLinkObj)) {
-    // Request from shortlink
-    reqPath = shortLinkObj[req.params?.shortcode];
+    // The absolute path is already available in the database
+    filePath = shortLinkObj[req.params?.shortcode];
   } else {
-    // Request from full path
-    reqPath = req.url;
+    // Build the absolute path from the request's file name and uploads directory
+    filePath = path.join(uploadsDir, path.basename(req.url));
   }
   // Load the file
   try {
-    const filePath = path.join(uploadsDir, path.basename(reqPath));
     // Check if the file exists before attempting to read it
     if (!fs.existsSync(filePath)) {
       const errorMessage = `This upload could not be found, it may have already been deleted. File uploads on this server are set to expire after ${deleteDelay} ${deleteDelay === 1 ? 'minute' : 'minutes'}.`
