@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import { spawn } from 'node:child_process';
-import { defaultFileTitle, getQrLink, deleteDelay } from '../app.js';
+import { defaultFileTitle, getQrLink, deleteDelay, savePermanentFile } from '../app.js';
 
 // Object to store temporary shortlinks
 const shortLinkObj = {};
@@ -46,7 +46,11 @@ async function uploadToLocal(uploadData) {
         exifOptions.push("-MetadataEditingSoftware=ImageShare", `-OriginalFileName=${uploadData.originalFileName}`);
         // Run exiftool asynchronously to write modified EXIF data
         exifOptions.push("-overwrite_original", uploadData.absolutePath)
-        spawn('exiftool', exifOptions);
+        let exif = spawn('exiftool', exifOptions);
+        // Save permanent copy if the setting is enabled, but only after exiftool is done
+        exif.on('close', function () {
+            savePermanentFile(uploadData.absolutePath);
+        });
     }
     // Create shortlink
     let shortLink;

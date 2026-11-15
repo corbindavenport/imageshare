@@ -24,6 +24,8 @@ const webDomain = process.env.DOMAIN;
 const plausibleDomain = process.env.PLAUSIBLE_DOMAIN;
 // File size limit for uploads in MB, default is 20 MB
 const uploadLimit = (parseInt(process.env.UPLOAD_LIMIT, 10) || 20);
+// Setting for saving a permanent copy of all uploaded files\
+const savePermanentFiles = (process.env.IMAGESHARE_PERMANENT === 'true' || process.env.IMAGESHARE_PERMANENT === 'TRUE');
 // Time delay for automatically deleting files, in minutes, default is 2 minutes
 const deleteDelay = (parseInt(process.env.AUTODELETE_TIME, 10) || 2);
 // Default name for file uploads
@@ -35,7 +37,8 @@ const imgurClientId = process.env.IMGUR_KEY;
 
 // Paths to primary directories
 const publicDir = path.resolve(import.meta.dirname, '../public');
-const mainDir = path.resolve(import.meta.dirname, '../');
+const uploadsDir = path.resolve(import.meta.dirname, '../uploads');
+const permanentDir = path.resolve(import.meta.dirname, '../storage');
 // Load and sort game title libraries
 const gameList3DS = init3DSTitles();
 const gameListWiiU = initWiiUTitles();
@@ -63,26 +66,32 @@ Nintendo 3DS game detection: ${gameList3DS.length} titles
 Nintendo Wii U game detection: ${gameListWiiU.length} titles
 Plausible analytics domain: ${(plausibleDomain || 'None')}
 Imgur support: ${imgurClientId ? 'Enabled' : 'Disabled'}
+Permanent copies: ${savePermanentFiles ? 'Enabled' : 'Disabled'}
 `);
 
-// Create uploads folder on startup, if it doesn't exist
+// Create temporary uploads folder on startup, if it doesn't exist
 // Leftover uploads from previous runs are also deleted
-if (fs.existsSync('uploads')) {
-  for (const file of fs.readdirSync('uploads')) {
-    let thisFile = path.resolve('uploads', file)
+if (fs.existsSync(uploadsDir)) {
+  for (const file of fs.readdirSync(uploadsDir)) {
+    let thisFile = path.resolve(uploadsDir, file)
     fs.rmSync(thisFile, { recursive: true, force: true });
   }
 } else {
-  fs.mkdirSync('uploads');
+  fs.mkdirSync(uploadsDir);
 }
 
 // Create reminder in uploads folder that contents are temporary
-fs.writeFileSync(path.resolve('uploads', '! THESE FILES WILL BE AUTOMATICALLY DELETED !'), '');
+fs.writeFileSync(path.resolve(uploadsDir, '! THESE FILES WILL BE AUTOMATICALLY DELETED !'), '');
+
+// Create permanent uploads folder on startup, if the option is enabled
+if (savePermanentFiles && !(fs.existsSync(permanentDir))) {
+  fs.mkdirSync(permanentDir)
+}
 
 // Set storage for uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads');
+    cb(null, uploadsDir);
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = crypto.randomUUID();
@@ -262,6 +271,20 @@ async function getSoftwareTitle(imgFile, mimeType, originalFileName, tags) {
   return defaultFileTitle;
 }
 
+/**
+ * Function to duplicate an uploaded file to the permanent storage directory, if permanent storage is enabled.
+ * @param {string} path 
+ */
+function savePermanentFile(originalPath) {
+  // Copy the file
+  if (savePermanentFiles) {
+    const fileName = path.basename(originalPath);
+    const destPath = path.resolve(permanentDir, fileName);
+    fs.copyFileSync(originalPath, destPath);
+    console.log(`Copied to permanent storage: ${destPath}`);
+  }
+}
+
 // Set up serve-static middleware to serve files from the 'public' folder
 app.use(serveStatic(publicDir));
 
@@ -288,7 +311,7 @@ app.post(['/'], upload.single('img'), async function (req, res, err) {
       originalFileName: req.file.originalname,
       fileType: req.file.mimetype,
       title: softwareTitle,
-      origin: `${webPort}://${connectedHost}`,
+      origin: `${webProtocol}://${connectedHost}`,
       deleteDelay: deleteDelay,
       userAgent: String(req.get('User-Agent')),
       exifData: exifData
@@ -388,7 +411,7 @@ app.get([/\/uploads\//, '/i/:shortcode'], async (req, res) => {
   }
   // Load the file
   try {
-    const filePath = path.join(mainDir, reqPath);
+    const filePath = path.join(uploadsDir, path.basename(reqPath));
     // Check if the file exists before attempting to read it
     if (!fs.existsSync(filePath)) {
       const errorMessage = `This upload could not be found, it may have already been deleted. File uploads on this server are set to expire after ${deleteDelay} ${deleteDelay === 1 ? 'minute' : 'minutes'}.`
@@ -487,4 +510,4 @@ process.on('SIGINT', gracefulShutdown);
 process.on('SIGTERM', gracefulShutdown);
 
 // Export shared functions and variables for upload modules
-export { defaultFileTitle, getQrLink, deleteDelay }
+export { defaultFileTitle, getQrLink, deleteDelay, savePermanentFile }

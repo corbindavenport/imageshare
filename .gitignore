@@ -6,4 +6,5 @@ node_modules/
 .DS_Store
 dist/*
 uploads/*
+storage/*
 rateLimitReset.txt
