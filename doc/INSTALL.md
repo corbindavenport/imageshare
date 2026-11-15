@@ -131,7 +131,7 @@ Create a `.env` text file in the root directory (same place as `Dockerfile`) to 
 ```
 AUTODELETE_TIME=5
 UPLOAD_LIMIT=50
-WEB_PORT=8080
+IMAGESHARE_PORT=8080
 ```
 
 If you don't have a `.env` file, the Node runtime will try to read the settings from your system's environment variables.

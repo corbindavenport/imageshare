@@ -15,7 +15,9 @@ const app = express();
 app.set("views", path.resolve(import.meta.dirname, "./views"));
 app.set("view engine", "ejs");
 // Port for the web server
-const webPort = (parseInt(process.env.WEB_PORT, 10) || 80);
+const webPort = (parseInt(process.env.IMAGESHARE_PORT, 10) || 80);
+// Protocol to use for file download links and other elements
+const webProtocol = (process.env.IMAGESHARE_PROTOCOL || "http").toLowerCase();
 // Domain used for the web server and uploaded file URLs
 const webDomain = process.env.DOMAIN;
 // Domain used for Plausible analytics
@@ -26,8 +28,6 @@ const uploadLimit = (parseInt(process.env.UPLOAD_LIMIT, 10) || 20);
 const deleteDelay = (parseInt(process.env.AUTODELETE_TIME, 10) || 2);
 // Default name for file uploads
 const defaultFileTitle = 'ImageShare Upload';
-// Check if production mode is enabled, so we can default to SSL for image links and other actions
-const prodModeEnabled = (process.env.PROD_MODE === 'true');
 // Privacy statement
 const privacyUrl = process.env.PRIVACY_POLICY;
 // Imgur API client ID
@@ -56,12 +56,12 @@ const exifFileTypes = [
 // Print settings
 console.log(`
 Domain: ${(webDomain || 'Not specified')}
+Port: ${webPort}
 File delete delay: ${deleteDelay} minute(s)
 File upload limit: ${uploadLimit} MB
 Nintendo 3DS game detection: ${gameList3DS.length} titles
 Nintendo Wii U game detection: ${gameListWiiU.length} titles
 Plausible analytics domain: ${(plausibleDomain || 'None')}
-Production mode: ${prodModeEnabled ? 'Enabled' : 'Disabled'}
 Imgur support: ${imgurClientId ? 'Enabled' : 'Disabled'}
 `);
 
@@ -267,8 +267,6 @@ app.use(serveStatic(publicDir));
 
 // Handle POST requests with enctype="multipart/form-data"
 app.post(['/'], upload.single('img'), async function (req, res, err) {
-  // Use HTTPS for shortlink if server is in production mode, or HTTP if not
-  const protocol = prodModeEnabled ? 'https' : 'http';
   // Use provided domain name if possible, or connected hostname as fallback
   const connectedHost = (webDomain || req.headers['host']);
   // Maintain mobile mode if enabled
@@ -290,7 +288,7 @@ app.post(['/'], upload.single('img'), async function (req, res, err) {
       originalFileName: req.file.originalname,
       fileType: req.file.mimetype,
       title: softwareTitle,
-      origin: `${protocol}://${connectedHost}`,
+      origin: `${webPort}://${connectedHost}`,
       deleteDelay: deleteDelay,
       userAgent: String(req.get('User-Agent')),
       exifData: exifData
