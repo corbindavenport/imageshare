@@ -126,11 +126,12 @@ Next, install the Node.js dependencies:
 npm install --ignore-scripts
 ```
 
-If you want to configure [settings](SETTINGS.md), create an `.env` text file in the root directory (same folder as `Dockerfile`) like this:
+Create a `.env` text file in the root directory (same place as `Dockerfile`) to store your settings. For example, this will set the autodelete to five minutes, allow files up to 50 MB, and run the server on port `8080`:
 
 ```
-AUTODELETE_TIME=2
+AUTODELETE_TIME=5
 UPLOAD_LIMIT=50
+WEB_PORT=8080
 ```
 
 If you don't have a `.env` file, the Node runtime will try to read the settings from your system's environment variables.
@@ -141,6 +142,6 @@ Finally, run ImageShare:
 npm start
 ```
 
-ImageShare will be accessible at `http://localhost:8080` in your computer's web browser, and other devices on your network can open it by replacing `localhost` with your Mac's local IP address. 
+ImageShare will be accessible at `http://localhost:8080` in your computer's web browser. Other devices on your network can open it by replacing `localhost` with your Mac's local IP address.
 
 Check the [settings documentation](SETTINGS.md) for a full list of options you can add as environment variables.

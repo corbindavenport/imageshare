@@ -1,4 +1,4 @@
-import express, { json } from 'express';
+import express from 'express';
 import serveStatic from 'serve-static';
 import path from 'path';
 import multer from 'multer';
@@ -14,6 +14,8 @@ import { uploadToLocal, shortLinkObj } from './modules/local-upload.js';
 const app = express();
 app.set("views", path.resolve(import.meta.dirname, "./views"));
 app.set("view engine", "ejs");
+// Port for the web server
+const webPort = (parseInt(process.env.WEB_PORT, 10) || 80);
 // Domain used for the web server and uploaded file URLs
 const webDomain = process.env.DOMAIN;
 // Domain used for Plausible analytics
@@ -474,8 +476,8 @@ app.get("/privacy", (req, res) => {
 });
 
 // Start the HTTP server
-app.listen(80, () => {
-  console.log(`\nImageShare web server is running: ${prodModeEnabled ? 'https' : 'http'}://${(webDomain || 'localhost')}\n`);
+app.listen(webPort, () => {
+  console.log(`Started web server on port ${webPort}\n`);
 });
 
 // Listen for termination signals

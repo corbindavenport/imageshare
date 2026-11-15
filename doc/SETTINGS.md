@@ -4,6 +4,7 @@ This is a complete list of configuration options in ImageShare with the `.env` f
 
 | Setting | Example Value | Description |
 | ------- | ------------- | ----------- |
+| `WEB_PORT` | `8080` | The port to use for the web server. |
 | `DOMAIN` | `yourdomain.com` | The web domain for the ImageShare server, used in generating QR codes, image shortlinks, and other functions. If left blank, ImageShare will use the IP address from the connected client. For example, the shortlink might look like `http://192.168.50.28/i/559e5`. |
 | `PLAUSIBLE_DOMAIN` | `yourdomain.com` | The domain used for Plausible Analytics, the feature is turned off if the setting isn't defined. See the [Plausible Analytics section](#enable-plausible-analytics) for more information. |
 | `UPLOAD_LIMIT` | `20` | The file size limit for uploads, measured in Megabytes. |
