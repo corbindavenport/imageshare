@@ -276,10 +276,15 @@ async function getSoftwareTitle(imgFile, mimeType, originalFileName, tags) {
  * @param {string} path 
  */
 function savePermanentFile(originalPath) {
-  // Copy the file
   if (savePermanentFiles) {
-    const fileName = path.basename(originalPath);
-    const destPath = path.resolve(permanentDir, fileName);
+    let fileName = path.basename(originalPath);
+    let destPath = path.resolve(permanentDir, fileName);
+    // Make sure a file with the same name doesn't already exist
+    while (fs.existsSync(destPath)) {
+      fileName = crypto.randomUUID() + path.extname(fileName);
+      destPath = path.resolve(permanentDir, fileName);
+    }
+    // Copy the file
     fs.copyFileSync(originalPath, destPath);
     console.log(`Copied to permanent storage: ${destPath}`);
   }
@@ -289,78 +294,89 @@ function savePermanentFile(originalPath) {
 app.use(serveStatic(publicDir));
 
 // Handle POST requests with enctype="multipart/form-data"
-app.post(['/'], upload.single('img'), async function (req, res, err) {
-  // Use provided domain name if possible, or connected hostname as fallback
-  const connectedHost = (webDomain || req.headers['host']);
-  // Maintain mobile mode if enabled
-  const useMobileMode = req.headers?.referer?.includes("mobile=true");
-  // Process upload
-  if (req?.file?.path) {
-    console.log(`Uploaded file: ${req.file.originalname}, MIME type ${req.file.mimetype}`);
-    // Detect image metadata
-    let exifData;
-    if (exifFileTypes.includes(req.file.mimetype)) {
-      exifData = await ExifReader.load(req.file.path);
+app.post(['/'], function (req, res) {
+  upload.single('img')(req, res, async function (err) {
+    // Use provided domain name if possible, or connected hostname as fallback
+    const connectedHost = (webDomain || req.headers['host']);
+    // Maintain mobile mode if enabled
+    const useMobileMode = req.headers?.referer?.includes("mobile=true");
+    // Handle errors
+    if (err) {
+      return res.status(400).render("message", {
+        userAgent: String(req.get('User-Agent')),
+        webHost: connectedHost,
+        forceMobileMode: useMobileMode,
+        message: err.message
+      });
     }
-    // Detect software title
-    const softwareTitle = await getSoftwareTitle(req.file.path, req.file.mimetype, req.file.originalname, exifData);
-    // Create data object for all upload methods
-    let uploadData = {
-      absolutePath: path.resolve(req.file.path),
-      originalFileName: req.file.originalname,
-      fileType: req.file.mimetype,
-      title: softwareTitle,
-      origin: `${webProtocol}://${connectedHost}`,
-      deleteDelay: deleteDelay,
-      userAgent: String(req.get('User-Agent')),
-      exifData: exifData
-    }
-    // Upload file with specified method
-    let uploadResult, uploadMode;
-    if (req.body['upload-type'] === 'imgur') {
-      uploadMode = "Imgur"
-      uploadResult = await uploadToImgur(uploadData);
-    } else {
-      uploadMode = "Native";
-      uploadResult = await uploadToLocal(uploadData);
-    }
-    // Decide if the upload was successful or not
-    if (uploadResult.success) {
-      // Report upload in analytics
-      if (plausibleDomain) {
-        const data = {
-          name: 'Upload',
-          props: JSON.stringify({ 'Upload Mode': uploadMode }),
-          url: '/',
-          domain: uploadData.plausibleDomain
-        }
-        sendAnalytics(req.headers['user-agent'], (req.headers['x-forwarded-for'] || req.ip), data);
+    // Process upload
+    if (req?.file?.path) {
+      console.log(`Uploaded file: ${req.file.originalname}, MIME type ${req.file.mimetype}`);
+      // Detect image metadata
+      let exifData;
+      if (exifFileTypes.includes(req.file.mimetype)) {
+        exifData = await ExifReader.load(req.file.path);
       }
-      // Now take the data from the upload response, and display it to the user
-      res.render("index", {
+      // Detect software title
+      const softwareTitle = await getSoftwareTitle(req.file.path, req.file.mimetype, req.file.originalname, exifData);
+      // Create data object for all upload methods
+      let uploadData = {
+        absolutePath: path.resolve(req.file.path),
+        originalFileName: req.file.originalname,
+        fileType: req.file.mimetype,
+        title: softwareTitle,
+        origin: `${webProtocol}://${connectedHost}`,
+        deleteDelay: deleteDelay,
         userAgent: String(req.get('User-Agent')),
-        webHost: connectedHost,
-        uploadLimit: uploadLimit,
-        forceMobileMode: useMobileMode,
-        qrLink: uploadResult.publicQrImg,
-        shortLink: uploadResult.publicFileLink,
-        softwareTitle: softwareTitle,
-        qrFooter: uploadResult.userInstructions,
-        imgurClientId: imgurClientId
-      });
-    } else {
-      // If the upload failed, display an error message to the user
-      // Upload Result will contain a reason for the failure, if not set by the uploader's function, it will be set to the universal error message
-      const errorMessage = (uploadResult.reason || 'There was an issue uploading your file. Please make sure your upload was valid and try again later.');
-      res.status(500).render("message", {
-        userAgent: String(req.get('User-Agent')),
-        webHost: connectedHost,
-        forceMobileMode: useMobileMode,
-        message: errorMessage
-      });
-      return;
+        exifData: exifData
+      }
+      // Upload file with specified method
+      let uploadResult, uploadMode;
+      if (req.body['upload-type'] === 'imgur') {
+        uploadMode = "Imgur"
+        uploadResult = await uploadToImgur(uploadData);
+      } else {
+        uploadMode = "Native";
+        uploadResult = await uploadToLocal(uploadData);
+      }
+      // Decide if the upload was successful or not
+      if (uploadResult.success) {
+        // Report upload in analytics
+        if (plausibleDomain) {
+          const data = {
+            name: 'Upload',
+            props: JSON.stringify({ 'Upload Mode': uploadMode }),
+            url: '/',
+            domain: uploadData.plausibleDomain
+          }
+          sendAnalytics(req.headers['user-agent'], (req.headers['x-forwarded-for'] || req.ip), data);
+        }
+        // Now take the data from the upload response, and display it to the user
+        res.render("index", {
+          userAgent: String(req.get('User-Agent')),
+          webHost: connectedHost,
+          uploadLimit: uploadLimit,
+          forceMobileMode: useMobileMode,
+          qrLink: uploadResult.publicQrImg,
+          shortLink: uploadResult.publicFileLink,
+          softwareTitle: softwareTitle,
+          qrFooter: uploadResult.userInstructions,
+          imgurClientId: imgurClientId
+        });
+      } else {
+        // If the upload failed, display an error message to the user
+        // Upload Result will contain a reason for the failure, if not set by the uploader's function, it will be set to the universal error message
+        const errorMessage = (uploadResult.reason || 'There was an issue uploading your file. Please make sure your upload was valid and try again later.');
+        res.status(500).render("message", {
+          userAgent: String(req.get('User-Agent')),
+          webHost: connectedHost,
+          forceMobileMode: useMobileMode,
+          message: errorMessage
+        });
+        return;
+      }
     }
-  }
+  });
 });
 
 // Handle requests for main page with a custom-rendered interface
