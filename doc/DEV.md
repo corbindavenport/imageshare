@@ -1,46 +1,6 @@
 # Setup for ImageShare Development
 
-This guide explains how to develop and run ImageShare outside of a container, and test the Docker images if needed.
-
-### Dependencies
-
-You need [Node.js](https://nodejs.org/), [exiftool](https://exiftool.org/), and [Git](https://git-scm.com/install/) installed on the host system.
-
-If you're on a Mac with [Homebrew](https://brew.sh/) installed, you can get everything with this command:
-
-```shell
-brew install node git exiftool
-```
-
-### ImageShare Setup
-
-First, clone the repository:
-
-```shell
-git clone https://github.com/corbindavenport/imageshare.git -b main imageshare
-cd imageshare
-```
-
-Next, install the Node.js dependencies:
-
-```shell
-npm install --ignore-scripts
-```
-
-If you want to configure [settings](SETTINGS.md), create an `.env` text file in the root directory (same folder as `Dockerfile`) like this:
-
-```
-AUTODELETE_TIME=2
-UPLOAD_LIMIT=50
-```
-
-If you don't have a `.env` file, the Node runtime will try to read the settings from your system's environment variables.
-
-Finally, run ImageShare:
-
-```shell
-npm start
-```
+See the bare metal instructions in [INSTALL.md](INSTALL.md) for a local environment setup.
 
 If you need to test new changes, just kill the Node process and start it again.
 

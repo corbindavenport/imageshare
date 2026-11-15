@@ -103,4 +103,44 @@ Check the [settings documentation](SETTINGS.md) for a full list of options you c
 
 ## Bare metal (no container)
 
-ImageShare can be run without a container, but that configuration is primarily intended for development. See the [development guide](DEV.md).
+ImageShare can run as a Node.js server without containers. That might be helpful if you want to run from the source code, use a different version of Node.js, or run the app on other architectures.
+
+You need [Node.js](https://nodejs.org/) and [exiftool](https://exiftool.org/) installed on the host system. [Git](https://git-scm.com/install/) is recommended for checking out the code and easily updating it.
+
+If you're on a Mac with [Homebrew](https://brew.sh/) installed, you can get everything with this command:
+
+```shell
+brew install node git exiftool
+```
+
+Next, clone the ImageShare repository from GitHub:
+
+```shell
+git clone https://github.com/corbindavenport/imageshare.git -b main imageshare
+cd imageshare
+```
+
+Next, install the Node.js dependencies:
+
+```shell
+npm install --ignore-scripts
+```
+
+If you want to configure [settings](SETTINGS.md), create an `.env` text file in the root directory (same folder as `Dockerfile`) like this:
+
+```
+AUTODELETE_TIME=2
+UPLOAD_LIMIT=50
+```
+
+If you don't have a `.env` file, the Node runtime will try to read the settings from your system's environment variables.
+
+Finally, run ImageShare:
+
+```shell
+npm start
+```
+
+ImageShare will be accessible at `http://localhost:8080` in your computer's web browser, and other devices on your network can open it by replacing `localhost` with your Mac's local IP address. 
+
+Check the [settings documentation](SETTINGS.md) for a full list of options you can add as environment variables.
