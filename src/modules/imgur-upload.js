@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { getQrLink, imgurClientId, savePermanentFile } from '../app.js';
+import { getQrLink, imgurClientId } from '../app.js';
 
 // Supported MIME types for Imgur uploads
 // Source: https://apidocs.imgur.com/#c85c9dfc-7487-4de2-9ecd-66f727cf3139
@@ -42,14 +42,17 @@ async function uploadToImgur(uploadData) {
     // Prevent the upload to Imgur if the rate limit is reached
     if (rateLimitReset > Math.floor(Date.now() / 1000)) {
         fs.unlinkSync(uploadData.absolutePath);
-        console.log(`Deleted cached file because of the rate limit: ${uploadData.absolutePath}`);
+        console.log(`Deleted cached file, Imgur rate limit in effect: ${uploadData.absolutePath}`);
         return { success: false, reason: "Imgur is currently at maximum capacity. Try uploading again later, or use another upload method." };
     }
     // Check for valid file format
     if (!supportedTypes.includes(uploadData.fileType.toLowerCase())) {
+        fs.unlinkSync(uploadData.absolutePath);
+        console.log(`Deleted cached file, Imgur does not support it: ${uploadData.absolutePath}`);
         return { success: false, reason: "Your file format is not supported by Imgur." };
     }
     try {
+        console.log (`Uploading cached file to Imgur: ${uploadData.absolutePath}`)
         // Read file into a Blob object
         const fileBuffer = fs.readFileSync(uploadData.absolutePath);
         const fileBlob = new Blob([fileBuffer]);
@@ -82,8 +85,6 @@ async function uploadToImgur(uploadData) {
         const body = await response.json();
         // Check if upload was successful and handle accordingly        
         if (body.success) {
-            // Save permanent copy if the setting is enabled, but only after exiftool is done
-            savePermanentFile(uploadData.absolutePath);
             // Remove cached file
             fs.unlinkSync(uploadData.absolutePath);
             console.log(`Deleted cached file: ${uploadData.absolutePath}`);
