@@ -24,8 +24,8 @@ const webDomain = process.env.DOMAIN;
 const plausibleDomain = process.env.PLAUSIBLE_DOMAIN;
 // File size limit for uploads in MB, default is 20 MB
 const uploadLimit = (parseInt(process.env.UPLOAD_LIMIT, 10) || 20);
-// Setting for saving a permanent copy of all uploaded files\
-const savePermanentFiles = (process.env.IMAGESHARE_PERMANENT === 'true' || process.env.IMAGESHARE_PERMANENT === 'TRUE');
+// Setting for saving a permanent copy of all uploaded files
+const storageDir = process.env.IMAGESHARE_STORAGE_DIR ? path.resolve(process.cwd(), process.env.IMAGESHARE_STORAGE_DIR) : undefined;
 // Time delay for automatically deleting files, in minutes, default is 2 minutes
 const deleteDelay = (parseInt(process.env.AUTODELETE_TIME, 10) || 2);
 // Default name for file uploads
@@ -38,7 +38,6 @@ const imgurClientId = process.env.IMGUR_KEY;
 // Paths to primary directories
 const publicDir = path.resolve(import.meta.dirname, '../public');
 const uploadsDir = path.resolve(import.meta.dirname, '../uploads');
-const permanentDir = path.resolve(import.meta.dirname, '../storage');
 // Load and sort game title libraries
 const gameList3DS = init3DSTitles();
 const gameListWiiU = initWiiUTitles();
@@ -66,7 +65,9 @@ Nintendo 3DS game detection: ${gameList3DS.length} titles
 Nintendo Wii U game detection: ${gameListWiiU.length} titles
 Plausible analytics domain: ${(plausibleDomain || 'None')}
 Imgur support: ${imgurClientId ? 'Enabled' : 'Disabled'}
-Permanent copies: ${savePermanentFiles ? 'Enabled' : 'Disabled'}
+
+Temporary storage location: ${uploadsDir}
+Permanent storage location: ${storageDir ? storageDir : 'Disabled'}
 `);
 
 // Create temporary uploads folder on startup, if it doesn't exist
@@ -84,8 +85,8 @@ if (fs.existsSync(uploadsDir)) {
 fs.writeFileSync(path.resolve(uploadsDir, '! THESE FILES WILL BE AUTOMATICALLY DELETED !'), '');
 
 // Create permanent uploads folder on startup, if the option is enabled
-if (savePermanentFiles && !(fs.existsSync(permanentDir))) {
-  fs.mkdirSync(permanentDir)
+if (storageDir && !(fs.existsSync(storageDir))) {
+  fs.mkdirSync(storageDir)
 }
 
 // Set storage for uploads
@@ -276,17 +277,21 @@ async function getSoftwareTitle(imgFile, mimeType, originalFileName, tags) {
  * @param {string} path 
  */
 function savePermanentFile(originalPath) {
-  if (savePermanentFiles) {
+  if (storageDir) {
     let fileName = path.basename(originalPath);
-    let destPath = path.resolve(permanentDir, fileName);
+    let destPath = path.resolve(storageDir, fileName);
     // Make sure a file with the same name doesn't already exist
     while (fs.existsSync(destPath)) {
       fileName = crypto.randomUUID() + path.extname(fileName);
-      destPath = path.resolve(permanentDir, fileName);
+      destPath = path.resolve(storageDir, fileName);
     }
     // Copy the file
-    fs.copyFileSync(originalPath, destPath);
-    console.log(`Copied to permanent storage: ${destPath}`);
+    try {
+      fs.copyFileSync(originalPath, destPath);
+      console.log(`Copied to permanent storage: ${destPath}`);
+    } catch (err) {
+      console.log(`Could not save copy in permanent storage: ${err.message}`);
+    }
   }
 }
 

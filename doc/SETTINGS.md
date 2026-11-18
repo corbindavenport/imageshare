@@ -10,7 +10,7 @@ This is a complete list of configuration options in ImageShare with the `.env` f
 | `PLAUSIBLE_DOMAIN` | `yourdomain.com` | The domain used for Plausible Analytics, the feature is turned off if the setting isn't defined. See the [Plausible Analytics section](#enable-plausible-analytics) for more information. |
 | `UPLOAD_LIMIT` | `20` | The file size limit for uploads, measured in Megabytes. |
 | `AUTODELETE_TIME` | `2` | The time delay to automatically delete files, measured in minutes. If you are running a public server, this should be a low number to prevent possibly-malicious content from remaining accessible for too long. |
-| `IMAGESHARE_PERMANENT` | `TRUE` | If this is set to `TRUE`, a permanent copy of every upload will be stored in the `storage` folder, after all post-upload processing is complete. For example, you could have a photo backup/cloud storage service watching the folder for new uploads, or set the folder as an FTP or SMB mount. |
+| `IMAGESHARE_STORAGE_DIR` | `/home/john/upload_storage/` | A directory where ImageShare should store a copy of all uploads. For example, if you set it to a folder inside a cloud storage service like Google Drive or OneDrive, your files can automatically appear on other synchronized devices. If you don't set a directory, permanent storage is not enabled. |
 | `IMGUR_KEY` | `740273babac99b0` | This enables Imgur API upload support. See the [Imgur section](#enable-imgur-support) for more information. |
 
 This is a sample `.env` file for a production server with Plausible Analytics enabled:
