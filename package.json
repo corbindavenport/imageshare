@@ -5,19 +5,19 @@
   "type": "module",
   "main": "src/app.js",
   "scripts": {
-    "start": "node src/app.js",
+    "start": "node --env-file-if-exists=.env src/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Corbin Davenport",
   "license": "GPL-3.0",
   "dependencies": {
     "ejs": "6.0.1",
-    "exifreader": "4.41.0",
+    "exifreader": "4.54.0",
     "express": "5.2.1",
     "mime": "4.1.0",
-    "multer": "2.2.0",
+    "multer": "2.5.0",
     "qrcode": "1.5.4",
     "serve-static": "2.2.1",
-    "sharp": "0.35.2"
+    "sharp": "0.35.5"
   }
 }

@@ -1,4 +1,4 @@
-import express, { json } from 'express';
+import express from 'express';
 import serveStatic from 'serve-static';
 import path from 'path';
 import multer from 'multer';
@@ -14,18 +14,22 @@ import { uploadToLocal, shortLinkObj } from './modules/local-upload.js';
 const app = express();
 app.set("views", path.resolve(import.meta.dirname, "./views"));
 app.set("view engine", "ejs");
+// Port for the web server
+const webPort = (parseInt(process.env.IMAGESHARE_PORT, 10) || 80);
+// Protocol to use for file download links and other elements
+const webProtocol = (process.env.IMAGESHARE_PROTOCOL || "http").toLowerCase();
 // Domain used for the web server and uploaded file URLs
 const webDomain = process.env.DOMAIN;
 // Domain used for Plausible analytics
 const plausibleDomain = process.env.PLAUSIBLE_DOMAIN;
-// File size limit for uploads in MB
-const uploadLimit = parseInt(process.env.UPLOAD_LIMIT, 10);
-// Time delay for automatically deleting files, in minutes
+// File size limit for uploads in MB, default is 20 MB
+const uploadLimit = (parseInt(process.env.UPLOAD_LIMIT, 10) || 20);
+// Setting for saving a permanent copy of all uploaded files
+const storageDir = process.env.IMAGESHARE_STORAGE_DIR ? path.resolve(process.cwd(), process.env.IMAGESHARE_STORAGE_DIR) : undefined;
+// Time delay for automatically deleting files, in minutes, default is 2 minutes
 const deleteDelay = (parseInt(process.env.AUTODELETE_TIME, 10) || 2);
 // Default name for file uploads
 const defaultFileTitle = 'ImageShare Upload';
-// Check if production mode is enabled, so we can default to SSL for image links and other actions
-const prodModeEnabled = (process.env.PROD_MODE === 'true');
 // Privacy statement
 const privacyUrl = process.env.PRIVACY_POLICY;
 // Imgur API client ID
@@ -33,7 +37,7 @@ const imgurClientId = process.env.IMGUR_KEY;
 
 // Paths to primary directories
 const publicDir = path.resolve(import.meta.dirname, '../public');
-const mainDir = path.resolve(import.meta.dirname, '../');
+const uploadsDir = path.resolve(import.meta.dirname, '../uploads');
 // Load and sort game title libraries
 const gameList3DS = init3DSTitles();
 const gameListWiiU = initWiiUTitles();
@@ -54,25 +58,41 @@ const exifFileTypes = [
 // Print settings
 console.log(`
 Domain: ${(webDomain || 'Not specified')}
+Port: ${webPort}
 File delete delay: ${deleteDelay} minute(s)
 File upload limit: ${uploadLimit} MB
 Nintendo 3DS game detection: ${gameList3DS.length} titles
 Nintendo Wii U game detection: ${gameListWiiU.length} titles
 Plausible analytics domain: ${(plausibleDomain || 'None')}
-Production mode: ${prodModeEnabled ? 'Enabled' : 'Disabled'}
 Imgur support: ${imgurClientId ? 'Enabled' : 'Disabled'}
+
+Temporary storage location: ${uploadsDir}
+Permanent storage location: ${storageDir ? storageDir : 'Disabled'}
 `);
 
-// Create uploads folder, and delete existing one if present
-if (fs.existsSync('uploads')) {
-  fs.rmSync('uploads', { recursive: true, force: true });
+// Create temporary uploads folder on startup, if it doesn't exist
+// Leftover uploads from previous runs are also deleted
+if (fs.existsSync(uploadsDir)) {
+  for (const file of fs.readdirSync(uploadsDir)) {
+    let thisFile = path.resolve(uploadsDir, file)
+    fs.rmSync(thisFile, { recursive: true, force: true });
+  }
+} else {
+  fs.mkdirSync(uploadsDir);
 }
-fs.mkdirSync('uploads');
+
+// Create reminder in uploads folder that contents are temporary
+fs.writeFileSync(path.resolve(uploadsDir, '! THESE FILES WILL BE AUTOMATICALLY DELETED !'), '');
+
+// Create permanent uploads folder on startup, if the option is enabled
+if (storageDir && !(fs.existsSync(storageDir))) {
+  fs.mkdirSync(storageDir)
+}
 
 // Set storage for uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads');
+    cb(null, uploadsDir);
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = crypto.randomUUID();
@@ -252,85 +272,116 @@ async function getSoftwareTitle(imgFile, mimeType, originalFileName, tags) {
   return defaultFileTitle;
 }
 
+/**
+ * Function to duplicate an uploaded file to the permanent storage directory, if permanent storage is enabled.
+ * @param {string} path 
+ */
+function savePermanentFile(originalPath) {
+  if (storageDir) {
+    let fileName = path.basename(originalPath);
+    let destPath = path.resolve(storageDir, fileName);
+    // Make sure a file with the same name doesn't already exist
+    while (fs.existsSync(destPath)) {
+      fileName = crypto.randomUUID() + path.extname(fileName);
+      destPath = path.resolve(storageDir, fileName);
+    }
+    // Copy the file
+    try {
+      fs.copyFileSync(originalPath, destPath);
+      console.log(`Copied to permanent storage: ${destPath}`);
+    } catch (err) {
+      console.log(`Could not save copy in permanent storage: ${err.message}`);
+    }
+  }
+}
+
 // Set up serve-static middleware to serve files from the 'public' folder
 app.use(serveStatic(publicDir));
 
 // Handle POST requests with enctype="multipart/form-data"
-app.post(['/'], upload.single('img'), async function (req, res, err) {
-  // Use HTTPS for shortlink if server is in production mode, or HTTP if not
-  const protocol = prodModeEnabled ? 'https' : 'http';
-  // Use provided domain name if possible, or connected hostname as fallback
-  const connectedHost = (webDomain || req.headers['host']);
-  // Maintain mobile mode if enabled
-  const useMobileMode = req.headers?.referer?.includes("mobile=true");
-  // Process upload
-  if (req?.file?.path) {
-    console.log(`Uploaded file: ${req.file.originalname}, MIME type ${req.file.mimetype}`);
-    // Detect image metadata
-    let exifData;
-    if (exifFileTypes.includes(req.file.mimetype)) {
-      exifData = await ExifReader.load(req.file.path);
+app.post(['/'], function (req, res) {
+  upload.single('img')(req, res, async function (err) {
+    // Use provided domain name if possible, or connected hostname as fallback
+    const connectedHost = (webDomain || req.headers['host']);
+    // Maintain mobile mode if enabled
+    const useMobileMode = req.headers?.referer?.includes("mobile=true");
+    // Handle errors
+    if (err) {
+      return res.status(400).render("message", {
+        userAgent: String(req.get('User-Agent')),
+        webHost: connectedHost,
+        forceMobileMode: useMobileMode,
+        message: err.message
+      });
     }
-    // Detect software title
-    const softwareTitle = await getSoftwareTitle(req.file.path, req.file.mimetype, req.file.originalname, exifData);
-    // Create data object for all upload methods
-    let uploadData = {
-      relativePath: req.file.path,
-      absolutePath: path.resolve(req.file.path),
-      originalFileName: req.file.originalname,
-      fileType: req.file.mimetype,
-      title: softwareTitle,
-      origin: `${protocol}://${connectedHost}`,
-      deleteDelay: deleteDelay,
-      userAgent: String(req.get('User-Agent')),
-      exifData: exifData
-    }
-    // Upload file with specified method
-    let uploadResult, uploadMode;
-    if (req.body['upload-type'] === 'imgur') {
-      uploadMode = "Imgur"
-      uploadResult = await uploadToImgur(uploadData);
-    } else {
-      uploadMode = "Native";
-      uploadResult = await uploadToLocal(uploadData);
-    }
-    // Decide if the upload was successful or not
-    if (uploadResult.success) {
-      // Report upload in analytics
-      if (plausibleDomain) {
-        const data = {
-          name: 'Upload',
-          props: JSON.stringify({ 'Upload Mode': uploadMode }),
-          url: '/',
-          domain: uploadData.plausibleDomain
-        }
-        sendAnalytics(req.headers['user-agent'], (req.headers['x-forwarded-for'] || req.ip), data);
+    // Process upload
+    if (req?.file?.path) {
+      console.log(`Uploaded file: ${req.file.originalname}, MIME type ${req.file.mimetype}`);
+      // Detect image metadata
+      let exifData;
+      if (exifFileTypes.includes(req.file.mimetype)) {
+        exifData = await ExifReader.load(req.file.path);
       }
-      // Now take the data from the upload response, and display it to the user
-      res.render("index", {
+      // Detect software title
+      const softwareTitle = await getSoftwareTitle(req.file.path, req.file.mimetype, req.file.originalname, exifData);
+      // Create data object for all upload methods
+      let uploadData = {
+        absolutePath: path.resolve(req.file.path),
+        originalFileName: req.file.originalname,
+        fileType: req.file.mimetype,
+        title: softwareTitle,
+        origin: `${webProtocol}://${connectedHost}`,
+        deleteDelay: deleteDelay,
         userAgent: String(req.get('User-Agent')),
-        webHost: connectedHost,
-        uploadLimit: uploadLimit,
-        forceMobileMode: useMobileMode,
-        qrLink: uploadResult.publicQrImg,
-        shortLink: uploadResult.publicFileLink,
-        softwareTitle: softwareTitle,
-        qrFooter: uploadResult.userInstructions,
-        imgurClientId: imgurClientId
-      });
-    } else {
-      // If the upload failed, display an error message to the user
-      // Upload Result will contain a reason for the failure, if not set by the uploader's function, it will be set to the universal error message
-      const errorMessage = (uploadResult.reason || 'There was an issue uploading your file. Please make sure your upload was valid and try again later.');
-      res.status(500).render("message", {
-        userAgent: String(req.get('User-Agent')),
-        webHost: connectedHost,
-        forceMobileMode: useMobileMode,
-        message: errorMessage
-      });
-      return;
+        exifData: exifData
+      }
+      // Upload file with specified method
+      let uploadResult, uploadMode;
+      if (req.body['upload-type'] === 'imgur') {
+        uploadMode = "Imgur"
+        uploadResult = await uploadToImgur(uploadData);
+      } else {
+        uploadMode = "Native";
+        uploadResult = await uploadToLocal(uploadData);
+      }
+      // Decide if the upload was successful or not
+      if (uploadResult.success) {
+        // Report upload in analytics
+        if (plausibleDomain) {
+          const data = {
+            name: 'Upload',
+            props: JSON.stringify({ 'Upload Mode': uploadMode }),
+            url: '/',
+            domain: uploadData.plausibleDomain
+          }
+          sendAnalytics(req.headers['user-agent'], (req.headers['x-forwarded-for'] || req.ip), data);
+        }
+        // Now take the data from the upload response, and display it to the user
+        res.render("index", {
+          userAgent: String(req.get('User-Agent')),
+          webHost: connectedHost,
+          uploadLimit: uploadLimit,
+          forceMobileMode: useMobileMode,
+          qrLink: uploadResult.publicQrImg,
+          shortLink: uploadResult.publicFileLink,
+          softwareTitle: softwareTitle,
+          qrFooter: uploadResult.userInstructions,
+          imgurClientId: imgurClientId
+        });
+      } else {
+        // If the upload failed, display an error message to the user
+        // Upload Result will contain a reason for the failure, if not set by the uploader's function, it will be set to the universal error message
+        const errorMessage = (uploadResult.reason || 'There was an issue uploading your file. Please make sure your upload was valid and try again later.');
+        res.status(500).render("message", {
+          userAgent: String(req.get('User-Agent')),
+          webHost: connectedHost,
+          forceMobileMode: useMobileMode,
+          message: errorMessage
+        });
+        return;
+      }
     }
-  }
+  });
 });
 
 // Handle requests for main page with a custom-rendered interface
@@ -369,18 +420,17 @@ app.get([/\/uploads\//, '/i/:shortcode'], async (req, res) => {
   const connectedHost = (webDomain || req.headers['host']);
   // Maintain mobile mode if enabled
   const useMobileMode = req.headers?.referer?.includes("mobile=true");
-  // Get file path
-  let reqPath = '';
+  // Get absolute file path
+  let filePath = '';
   if (req.params?.shortcode && (req.params?.shortcode in shortLinkObj)) {
-    // Request from shortlink
-    reqPath = shortLinkObj[req.params?.shortcode];
+    // The absolute path is already available in the database
+    filePath = shortLinkObj[req.params?.shortcode];
   } else {
-    // Request from full path
-    reqPath = req.url;
+    // Build the absolute path from the request's file name and uploads directory
+    filePath = path.join(uploadsDir, path.basename(req.url));
   }
   // Load the file
   try {
-    const filePath = path.join(mainDir, reqPath);
     // Check if the file exists before attempting to read it
     if (!fs.existsSync(filePath)) {
       const errorMessage = `This upload could not be found, it may have already been deleted. File uploads on this server are set to expire after ${deleteDelay} ${deleteDelay === 1 ? 'minute' : 'minutes'}.`
@@ -466,8 +516,8 @@ app.get("/privacy", (req, res) => {
 });
 
 // Start the HTTP server
-app.listen(8080, () => {
-  console.log(`\nImageShare web server is running: ${prodModeEnabled ? 'https' : 'http'}://${(webDomain || 'localhost')}\n`);
+app.listen(webPort, () => {
+  console.log(`Started web server on port ${webPort}\n`);
 });
 
 // Listen for termination signals
@@ -478,5 +528,5 @@ const gracefulShutdown = () => {
 process.on('SIGINT', gracefulShutdown);
 process.on('SIGTERM', gracefulShutdown);
 
-// Export shared functions for upload modules
-export { defaultFileTitle, getQrLink }
+// Export shared functions and variables for upload modules
+export { defaultFileTitle, getQrLink, deleteDelay, savePermanentFile, imgurClientId }

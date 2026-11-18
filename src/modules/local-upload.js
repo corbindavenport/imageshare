@@ -1,13 +1,10 @@
 import path from 'path';
 import fs from 'fs';
 import { spawn } from 'node:child_process';
-import { defaultFileTitle, getQrLink } from '../app.js';
+import { defaultFileTitle, getQrLink, deleteDelay, savePermanentFile } from '../app.js';
 
 // Object to store temporary shortlinks
 const shortLinkObj = {};
-
-// Time delay for automatically deleting files, in minutes
-const deleteDelay = (parseInt(process.env.AUTODELETE_TIME, 10) || 2);
 
 // File formats that are enabled for EXIF modification
 const supportedExifFiles = [
@@ -19,7 +16,6 @@ const supportedExifFiles = [
 /**
  * Upload a file with ImageShare's built-in server, and return the live link.
  * @param {object} uploadData - Object containing data about the uploaded file.
- * @param {string} uploadData.relativePath - Relative path to the file. Example: `uploads/b296834e-554c-4945-a794-c5284791fe06.JPG`
  * @param {string} uploadData.absolutePath - Absolute path to the file. Example: `/home/node/app/uploads/b296834e-554c-4945-a794-c5284791fe06.JPG`
  * @param {string} uploadData.originalFileName - File name when the file was uploaded. Example: `HNI_0055.JPG`
  * @param {string} uploadData.fileType - MIME type for the file. Example: `image/jpeg`
@@ -49,14 +45,18 @@ async function uploadToLocal(uploadData) {
         exifOptions.push("-MetadataEditingSoftware=ImageShare", `-OriginalFileName=${uploadData.originalFileName}`);
         // Run exiftool asynchronously to write modified EXIF data
         exifOptions.push("-overwrite_original", uploadData.absolutePath)
-        spawn('exiftool', exifOptions);
+        let exif = spawn('exiftool', exifOptions);
+        // Save permanent copy if the setting is enabled, but only after exiftool is done
+        exif.on('close', function () {
+            savePermanentFile(uploadData.absolutePath);
+        });
     }
     // Create shortlink
     let shortLink;
     do {
         shortLink = crypto.randomUUID().toString().substring(0, 8);
     } while (shortLinkObj[shortLink]);
-    shortLinkObj[shortLink] = uploadData.relativePath;
+    shortLinkObj[shortLink] = uploadData.absolutePath;
     console.log(`Created shortlink: ${uploadData.origin}/i/${shortLink}`);
     // Schedule timeout to delete file and shortlink
     const delay = deleteDelay * 60 * 1000;
@@ -65,7 +65,7 @@ async function uploadToLocal(uploadData) {
         delete shortLinkObj[shortLink];
         console.log(`Deleted shortlink: ${uploadData.origin}/i/${shortLink}`);
         // Delete file
-        if (uploadData.absolutePath) {
+        if (uploadData.absolutePath && fs.existsSync(uploadData.absolutePath)) {
             fs.unlinkSync(uploadData.absolutePath);
             console.log(`Deleted file: ${uploadData.absolutePath}`);
         }
